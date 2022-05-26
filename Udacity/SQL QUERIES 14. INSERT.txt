@@ -1,0 +1,5 @@
+
+INSERT_QUERY 
+insert into animals (name, species, birthdate)
+values ('Mirko', 'opossums', '2020-08-03')
+

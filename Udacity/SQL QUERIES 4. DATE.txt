@@ -1,0 +1,39 @@
+ind the sales in terms of total dollars for all orders in each year, ordered from greatest to least. Do you notice any trends in the yearly sales totals?
+
+SELECT DATE_PART('year', occurred_at) AS YEAR, SUM(total_amt_usd) AS TOTAL_SALES / vráti rok, DATE_TRUNC vráti to isté ale celý dátum
+FROM orders
+GROUP BY DATE_PART('year', occurred_at)
+ORDER BY DATE_PART('year', occurred_at) DESC
+
+Which month did Parch & Posey have the greatest sales in terms of total dollars? Are all months evenly represented by the dataset?
+
+SELECT DATE_PART('month', occurred_at) AS month, SUM(total_amt_usd) AS TOTAL_SALES
+FROM orders
+WHERE occurred_at BETWEEN'2014-01-01' AND '2017-01-01'
+GROUP BY DATE_PART('month', occurred_at)
+ORDER BY SUM(total_amt_usd) DESC 
+
+Which year did Parch & Posey have the greatest sales in terms of total number of orders? Are all years evenly represented by the dataset?
+
+SELECT DATE_PART('year', occurred_at) AS year, SUM(total) AS TOTAL_ORDERS
+FROM orders
+WHERE occurred_at BETWEEN '2014-1-1' AND '2017-1-1'
+GROUP BY 1
+ORDER BY 2 DESC
+
+In which month of which year did Walmart spend the most on gloss paper in terms of dollars?
+
+SELECT DATE_TRUNC('month', o.occurred_at) AS ORDERDATE, SUM(o.gloss_amt_usd) AS TOTAL_GLOSS_USD
+FROM orders o
+JOIN accounts a
+ON o.account_id = a.id
+WHERE name = 'Walmart'
+GROUP BY DATE_TRUNC('month', o.occurred_at)
+ORDER BY SUM(o.gloss_amt_usd) 
+
+
+
+
+
+
+

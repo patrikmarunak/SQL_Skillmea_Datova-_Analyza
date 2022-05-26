@@ -1,0 +1,25 @@
+Vypíše číslo a.id pri o.total v hodnote null
+
+SELECT COALESCE(a.id) filled_id, a.name, a.website, a.lat, a.long, a.primary_poc, a.sales_rep_id, o.*
+FROM accounts a
+LEFT JOIN orders o
+ON a.id = o.account_id
+WHERE o.total IS NULL;
+
++ o.account_filled_id
+
+SELECT COALESCE(a.id, a.id) AS account_filled_id, COALESCE(o.account_id, a.id) filled_id, a.name, a.website, a.lat, a.long, a.primary_poc, a.sales_rep_id, o.*
+FROM accounts a
+LEFT JOIN orders o
+ON a.id = o.account_id
+WHERE o.total IS NULL;
+
+Všetky qty a usd s null vypíše s 0
+
+SELECT COALESCE(a.id, a.id) AS account_filled_id, COALESCE(o.account_id, a.id) filled_id, a.name, a.website, a.lat, a.long, a.primary_poc, a.sales_rep_id, COALESCE(o.standard_qty, 0) AS standart_qty, COALESCE(o.poster_qty, 0) AS poster_qty, COALESCE(o.gloss_qty, 0) AS gloss_qty, COALESCE(o.standard_amt_usd, 0) AS standart_amt_usd,  COALESCE(o.poster_amt_usd, 0) AS poster_amt_usd,  COALESCE(o.gloss_amt_usd, 0) AS gloss_amt_usd,  COALESCE(o.total_amt_usd, 0) AS total_amt_usd
+FROM accounts a
+LEFT JOIN orders o
+ON a.id = o.account_id
+WHERE o.total IS NULL;
+
+

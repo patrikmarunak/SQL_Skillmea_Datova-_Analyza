@@ -1,0 +1,97 @@
+Use the accounts table to create first and last name columns that hold the first and last names for the primary_poc.
+
+SELECT LEFT(primary_poc,STRPOS(primary_poc,' ') -1) AS first_name, RIGHT(primary_poc, LENGTH (primary_poc)- STRPOS(primary_poc,' '))  AS last_name
+FROM accounts
+
+Now see if you can do the same thing for every rep name in the sales_reps table. Again provide first and last name columns.
+
+SELECT LEFT(name,STRPOS(name,' ') -1) AS first_name, RIGHT(name, LENGTH (name)- STRPOS(name,' '))  AS last_name
+FROM sales_reps
+
+Vypíše z mien email
+
+Odstráni prípadné medzery v mene 
+
+WITH t1 AS (
+ SELECT LEFT(primary_poc,     STRPOS(primary_poc, ' ') -1 ) first_name,  RIGHT(primary_poc, LENGTH(primary_poc) - STRPOS(primary_poc, ' ')) last_name, name
+ FROM accounts)
+SELECT first_name, last_name, CONCAT(first_name, '.', last_name, '@', REPLACE(name, ' ', ''), '.com')
+FROM  t1;
+
+Meno, priezvisko, email, heslo
+
+WITH t1 AS (
+ SELECT LEFT(primary_poc,     STRPOS(primary_poc, ' ') -1 ) first_name,  RIGHT(primary_poc, LENGTH(primary_poc) - STRPOS(primary_poc, ' ')) last_name, name
+ FROM accounts)
+SELECT first_name, last_name, CONCAT(first_name, '.', last_name, '@', name, '.com'), LEFT(LOWER(first_name), 1) || RIGHT(LOWER(first_name), 1) || LEFT(LOWER(last_name), 1) || RIGHT(LOWER(last_name), 1) || LENGTH(first_name) || LENGTH(last_name) || REPLACE(UPPER(name), ' ', '')
+FROM t1;
+
+Formatovanie datumu s pouzitim :: 
+
+SELECT date orig_date, (SUBSTR(date, 7, 4) || '-' || LEFT(date, 2) || '-' || SUBSTR(date, 4, 2)):: DATE AS new_date
+FROM sf_crime_data
+LIMIT 10
+
+Write a query that separates the `location` field into separate fields for latitude and longitude. You can compare your results against the actual `lat` and `lon` fields in the table.
+
+SELECT location,
+       TRIM(leading '(' FROM LEFT(location, POSITION(',' IN location) - 1)) AS lattitude,
+       TRIM(trailing ')' FROM RIGHT(location, LENGTH(location) - POSITION(',' IN location) ) ) AS longitude
+  FROM tutorial.sf_crime_incidents_2014_01
+
+Concatenate the lat and lon fields to form a field that is equivalent to the location field. (Note that the answer will have a different decimal precision.)
+
+SELECT CONCAT('(', lat, ', ', lon, ')') AS concat_location,
+       location
+  FROM tutorial.sf_crime_incidents_2014_01
+
+ALEBO 
+
+SELECT '(' || lat || ', ' || lon || ')' AS concat_location,
+       location
+  FROM tutorial.sf_crime_incidents_2014_01
+
+Write a query that returns the `category` field, but with the first letter capitalized and the rest of the letters in lower-case.
+
+SELECT incidnt_num,
+       category,
+       UPPER(LEFT(category, 1)) || LOWER(RIGHT(category, LENGTH(category) - 1)) AS category_cleaned
+  FROM tutorial.sf_crime_incidents_2014_0
+
+SUBSTRING zmena na SQL formát 
+
+SELECT incidnt_num,
+       date,
+       (SUBSTR(date, 7, 4) || '-' || LEFT(date, 2) ||
+        '-' || SUBSTR(date, 4, 2))::date AS cleaned_date
+  FROM tutorial.sf_crime_incidents_2014_01
+
+Write a query that creates an accurate timestamp using the date and time columns in tutorial.sf_crime_incidents_2014_01. Include a field that is exactly 1 week later as well.
+
+SELECT incidnt_num,
+       (SUBSTR(date, 7, 4) || '-' || LEFT(date, 2) ||
+        '-' || SUBSTR(date, 4, 2) || ' ' || time || ':00')::timestamp AS timestamp,
+       (SUBSTR(date, 7, 4) || '-' || LEFT(date, 2) ||
+        '-' || SUBSTR(date, 4, 2) || ' ' || time || ':00')::timestamp
+        + INTERVAL '1 week' AS timestamp_plus_interval
+  FROM tutorial.sf_crime_incidents_2014_01
+
+Write a query that counts the number of incidents reported by week. Cast the week as a date to get rid of the hours/minutes/seconds.
+
+SELECT DATE_TRUNC('week', cleaned_date)::date AS week_beginning,
+       COUNT(*) AS incidents
+  FROM tutorial.sf_crime_incidents_cleandate
+ GROUP BY 1
+ ORDER BY 1
+
+Write a query that shows exactly how long ago each indicent was reported. Assume that the dataset is in Pacific Standard Time (UTC - 8).
+
+SELECT incidnt_num,
+       cleaned_date,
+       NOW() AT TIME ZONE 'PST' AS now,
+       NOW() AT TIME ZONE 'PST' - cleaned_date AS time_ago 
+  FROM tutorial.sf_crime_incidents_cleandate
+
+
+
+

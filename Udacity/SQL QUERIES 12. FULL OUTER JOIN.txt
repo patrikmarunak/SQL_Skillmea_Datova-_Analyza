@@ -1,0 +1,27 @@
+Finding Matched and Unmatched Rows with FULL OUTER JOIN
+
+SELECT *, COALESCE(accounts.sales_rep_id) filled_id
+  FROM accounts
+ FULL JOIN sales_reps ON accounts.sales_rep_id = sales_reps.id
+ WHERE accounts.sales_rep_id IS NULL OR sales_reps.id IS NULL
+
+In the following SQL Explorer, write a query that left joins the accounts table and the sales_reps tables on each sale rep's ID number and joins it using the < comparison operator on accounts.primary_poc and sales_reps.name, like so:
+accounts.primary_poc < sales_reps.name
+
+SELECT a.name accounts, a.primary_poc, s.name sales_reps
+FROM accounts a 
+LEFT JOIN sales_reps s
+ON a.sales_rep_id = s.id AND a.primary_poc <    s.name
+
+Perform the union in your first query (under the Appending Data via UNION header) in a common table expression and name it double_accounts. Then do a COUNT the number of times a name appears in the double_accounts table. If you do this correctly, your query results should have a count of 2 for each name.
+
+WITH double_accounts AS (SELECT *
+FROM accounts 
+UNION ALL
+SELECT *
+FROM accounts)
+
+SELECT name, COUNT(name) AS count_name
+FROM double_accounts
+GROUP BY 1
+ORDER BY 2;

@@ -1,0 +1,36 @@
+Zgrupenie firiem podľa domén
+
+SELECT RIGHT(website, 3) AS domain, COUNT(*) num_companies
+FROM accounts
+GROUP BY 1
+ORDER BY 2 DESC;
+
+Use the accounts table to pull the first letter of each company name to see the distribution of company names that begin with each letter (or number).
+
+SELECT LEFT(UPPER(name), 1) AS first_letter, COUNT(*) num_companies
+FROM accounts
+GROUP BY 1
+ORDER BY 2 DESC;
+
+one group of company names that start with a number and a second group of those company names that start with a letter. What proportion of company names start with a letter?
+
+
+SELECT SUM(num) AS NUM, SUM(letter) AS LETT
+FROM
+(SELECT name, CASE WHEN LEFT(UPPER(name), 1) IN ('0','1','2','3','4','5','6','7','8','9') 
+                       THEN 1 ELSE 0 END AS num, 
+         CASE WHEN LEFT(UPPER(name), 1) IN ('0','1','2','3','4','5','6','7','8','9') 
+                       THEN 0 ELSE 1 END AS letter
+      FROM accounts) t1
+
+Vypíše počet firiem začínajúcich na samohlásku a spoluhlásku
+
+SELECT SUM(vowels) AS vowels, SUM(novowels) AS novowels
+FROM (SELECT name, 
+     			CASE WHEN LEFT (UPPER(name),1) IN ('A', 'E', 'I', 'O', 'U')
+      			THEN 1 ELSE 0 END AS vowels,
+      			CASE WHEN LEFT (UPPER(name),1) IN ('A', 'E', 'I', 'O', 'U')
+      			THEN 0 ELSE 1 END AS novowels
+FROM accounts) t1
+
+

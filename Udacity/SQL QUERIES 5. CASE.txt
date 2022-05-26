@@ -1,0 +1,68 @@
+Write a query to display for each order, the account ID, total amount of the order, and the level of the order - ‘Large’ or ’Small’ - depending on if the order is $3000 or more, or smaller than $3000.
+
+SELECT  account_id, total,
+		CASE WHEN  total > 3000 THEN 'Large'
+    	ELSE 'Small' END AS ORDER_SIZE
+FROM orders
+ORDER BY total DESC
+
+Write a query to display the number of orders in each of three categories, based on the total number of items in each order. The three categories are: 'At Least 2000', 'Between 1000 and 2000' and 'Less than 1000'.
+
+SELECT  account_id, total,
+		CASE WHEN total > 2000 THEN 'At Least 2000'
+        	 WHEN total > 1000 AND total < 2000 THEN 'Between 1000 and 2000' 
+    	ELSE 'Less than 1000' END AS ORDER_SIZE
+FROM orders
+ORDER BY total DESC
+
+Zoradenie zákazníkov do troch kategórií podľa počtu objednávok
+
+SELECT a.name accounts, o.total orders,
+	CASE WHEN o.total > 200 THEN 'TOP' 
+    	 WHEN o.total BETWEEN 100 AND 200 THEN 'MID' 
+         ELSE 'LOW' END AS LEVEL
+FROM accounts a 
+JOIN orders o
+ON a.id = o.account_id
+GROUP BY a.name, o.total
+
+Zadanie ako predchádzajúce + iba v roku 2016 a 2017
+
+SELECT a.name accounts, o.total orders, DATE_PART('year', o.occurred_at) AS OrdYr,
+	CASE WHEN o.total > 200 THEN 'TOP' 
+    	 WHEN o.total BETWEEN 100 AND 200 THEN 
+         'MID' 
+         ELSE 'LOW' END AS LEVEL
+FROM accounts a 
+JOIN orders o
+ON a.id = o.account_id
+WHERE o.occurred_at > '2015-12-31'
+GROUP BY a.name, o.total, o.occurred_at
+
+Zoradenie predajcov podľa predajov a triedenie na TOP
+
+SELECT s.name sales_reps, COUNT(*) AS NumOrd,
+	CASE WHEN COUNT(*) > 200 THEN 'Top' 
+    ELSE 'Not' END AS OrClass 
+FROM sales_reps s
+JOIN accounts a
+ON s.id = a.sales_rep_id
+JOIN orders o
+ON a.id = o.account_id
+GROUP BY s.name
+ORDER BY NumOrd DESC
+
+Rozdelenie predajcov podľa počtu objednávok a ich celkovej hodnoty do troch skupín
+
+SELECT s.name, COUNT(*), SUM(o.total_amt_usd) total_spent, 
+     CASE WHEN COUNT(*) > 200 OR SUM(o.total_amt_usd) > 750000 THEN 'top'
+     WHEN COUNT(*) > 150 OR SUM(o.total_amt_usd) > 500000 THEN 'middle'
+     ELSE 'low' END AS sales_rep_level
+FROM orders o
+JOIN accounts a
+ON o.account_id = a.id 
+JOIN sales_reps s
+ON s.id = a.sales_rep_id
+GROUP BY s.name
+ORDER BY total_spent DESC;
+
