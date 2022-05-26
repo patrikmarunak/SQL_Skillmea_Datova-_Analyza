@@ -1,0 +1,101 @@
+﻿Customer_ID;Customer_Name;Customer_Surname;Gender;Date_Birth;Date_Registered;Country_Code;City;Email;Phone_Prefix;Phone
+C100;Hana;Hrdinová;F;18.5.1992;28.6.2020;CZE;Barchov;;420;743097622
+C101;Hana;Judová;F;16.6.1991;18.7.2020;CZE;Praha - Kobylisy;;420;704298681
+C102;Jindřiška;Jandová;F;6.5.1995;8.4.2020;CZE;  Letovice;;420;718821904
+C103;Petra;Částková;F;15.3.1985;31.10.2020;CZE;Volenice u Březnice;;420;741905763
+C104;Věroslav;Havránek;M;27.7.1967;1.3.2020;CZE;Řimovice;;420;723663056
+C105;Petr;Vejvoda;M;11.4.1979;6.12.2020;CZE;Bánov;;420;743836321
+C106;Juraj;Jirmásek;M;25.3.1968;28.10.2020;CZE;   Praha  Čakovice;;420;739332489
+C107;Iva;Hrozková;F;27.3.1963;8.5.2020;CZE;Benátky nad Jizerou;;420;740618173
+C108;Martina;Petruželová;F;4.7.1994;24.1.2020;CZE;Bukovany;;420;730715163
+C109;Petr;Dvořáček;M;10.1.1965;2.6.2020;CZE;Bukovany;;420;727812566
+C110;Radomír;Vinš;M;27.6.1980;31.10.2020;CZE;Soběšín;;420;701307776
+C111;Petr;Tišler;M;20.5.1980;22.4.2020;CZE; Beroun;717490491;420;
+C112;Anna;Erbenová;F;25.10.1996;30.11.2020;CZE;Beroun;;420;725991533
+C113;Zuzana;Jiráková;F;10.11.1983;3.4.2020;CZE;Beroun;;420;704771184
+C114;Ivana;Plánková;F;17.2.1978;13.5.2020;CZE;Beroun;716932620;420;
+C115;Radek;Krbec;;5.8.1971;7.8.2020;CZE;     Beroun;;420;718102355
+C116;Jana;Švecová;;5.8.1986;18.9.2020;CZE;Brno – Štýřice;;420;726052407
+C117;Josef;Bartoš;;2.8.1986;5.6.2020;CZE;Brno - Trnitá;712085579;420;
+C118;Veronika;Krejčí;F;1.10.1975;13.1.2020;CZE;Brno - Turany;;420;718992164
+C119;Petr;Erbes;M;28.4.1993;3.2.2021;CZE;Brno - Tuřany;;420;721266336
+C120;Otomar;Cipr;M;11.3.1982;2.2.2021;CZE;Plzeň - Jížní předměstí;;420;735107990
+C121;Ivana;Přibylová;;14.6.1976;2.5.2020;CZE;Plzeň - Koterov;;420;725830210
+C122;Lucie;Jelínková;;6.12.1975;25.10.2020;CZE;Plzeň - Krimice;;420;716694173
+C123;Gabriela;Novotná;;27.10.1976;21.7.2020;CZE;  Podebrady;;420;710088074
+C124;Lenka;Cejpová;F;12.2.1964;5.5.2020;CZE;Podebrady;736617379;420;737589713
+C125;Radka;Králová;F;7.12.1970;21.6.2020;CZE;Pohořlice;;420;718214331
+C126;Denisa;Krejčová;F;25.4.1975;28.1.2021;CZE;Praha  17 Řepy;;420;707226866
+C127;Lenka;Fedasková;F;7.2.2000;6.1.2021;CZE;Praha - 18;;420;711038353
+C128;Barbora;Nováčková;F;14.7.1970;15.12.2020;CZE;Praha  19;;420;736171104
+C129;Helena;Martynková;F;3.10.1980;3.8.2020;CZE;Praha  2;;420;716311484
+C130;Miroslava;Michalíčková;F;4.8.1999;27.3.2020;CZE;Praha - Dolní Počerniice;;420;743574619
+C131;Lenka;Kosíková;F;13.12.1972;27.1.2021;CZE;Praha - Dubeč;;420;713480710
+C132;Michaela;Makaturová;F;9.7.1998;30.6.2020;CZE;Praha - Řepy;;420;738850193
+C133;Světlana;Jindříšková;F;10.5.1999;1.10.2020;CZE;Praha - Satalice;;420;722590780
+C134;Petr;Vychop;M;6.9.1991;18.9.2020;CZE;Praha - Skalka;;420;740860451
+C135;Gabriela;Hampejsková;F;5.5.1993;18.1.2021;CZE;Praha - Slivenec;;420;724643497
+C136;František;Sedláček;;4.2.1970;27.12.2020;CZE;Praha - Smíchov;;420;716282392
+C137;Zuzana;Zachardová;F;4.2.1986;17.5.2020;CZE;Pribram;;420;700343782
+C138;Iva;Fialová;F;17.10.1971;12.2.2020;CZE;Pribram VI;;420;727803855
+C139;Eva;Martínková;F;29.5.1988;27.11.2020;CZE;Pribram VII;;420;739790538
+C140;Dana;Hlaváčová;F;15.8.1964;2.9.2020;CZE;Přeckov;;420;730264763
+C141;Miroslava;Dustová;F;25.8.1983;26.2.2020;CZE;Přečaply;;420;718933295
+C142;Petr;Jirásek;M;25.2.1972;3.2.2020;CZE;Radíkov;;420;741035823
+C143;Kamila;Nedvědová;F;21.3.1997;21.3.2020;CZE;Radíkov - Olomouc;;420;741729631
+C144;Stanislava;Špillerová;F;14.5.1970;3.3.2020;CZE;Ŕež;;420;731755348
+C145;Daniel;Krečmer;M;7.4.1966;29.9.2020;CZE;Réžnov pod Radhoštěm;;420;709392199
+C146;Jitka;Šubrtová;F;19.4.1998;9.3.2020;CZE;Ricany;;420;708184407
+C147;Petra;Čurdová;F;13.4.1977;12.8.2020;CZE;Roudnice nad Labem;;420;711470523
+C148;David;Hošťálek;M;12.4.1972;5.9.2020;CZE;Sedlec-Pričice;;420;718632462
+C149;Stanislav;Sedláček;M;16.6.1983;1.7.2020;CZE;Sedlec-Starý Plzenec;;420;705125134
+C150;Petra;Hlávková;F;16.9.1973;9.8.2020;AUT;Asten;;420;716080837
+C151;Pavlína;Kubínová;F;13.3.1988;18.2.2020;AUT;Rohrendorf;;420;731336794
+C152;Anita;Šmahová;F;9.10.1973;31.1.2021;AUT;Rotenturm;;420;724799353
+C153;Petr;Dvořák;M;18.4.1996;26.6.2020;AUT;Neustif;;420;706934184
+C154;Bohumíra;Valmová;F;11.5.1983;13.3.2020;AUT;Pilgersdorf;;420;730705048
+C155;Marika;Olšáková;F;12.7.1977;17.9.2020;AUT;Markt Hartmannsdorf;;420;722770030
+C156;Tereza;Otáhalová;F;6.6.1999;14.4.2020;AUT;Schwoich;;420;712097968
+C157;Jaroslav;Štuk;F;30.8.1988;1.3.2020;SVK;B Bystrica;;420;740745910
+C158;Helena;Zezulková;F;31.8.1967;13.1.2021;SVK;Šútovce;;420;743966593
+C159;Tomáš;Idel;M;10.8.1970;16.8.2020;SVK;Beluj;;420;739610856
+C160;Monika;Daňková;M;24.6.1985;7.11.2020;SVK;Belusa;;420;743515088
+C161;Jitka;Rajtrová;F;19.8.1990;29.6.2020;SVK;Bojničky 7;;420;722290776
+C162;Miluše;Svobodová;M;13.1.1981;19.5.2020;SVK;Bol;;420;721644701
+C163;Roman;Jiřinec;M;17.10.1974;15.6.2020;SVK;Bratislava - Podunajské Biskupice;;420;743655876
+C164;Petra;Cahová;F;20.2.1965;7.7.2020;SVK;Bratislava  Posta 11;;420;719524444
+C165;Jana;Holotová;F;17.2.1983;29.1.2020;SVK;Bratislava - Raca;;420;722646232
+C166;Lenka;Růžičková;F;28.8.1965;29.1.2021;SVK;Bulhary;;420;702541771
+C167;Monika;Chrástecká;F;22.6.1968;5.6.2020;SVK;Bunetice;;420;719000996
+C168;Jana;Válková;F;7.10.1966;29.5.2020;;;;420;726502011
+C169;Petra;Klimentová;F;12.7.1970;3.10.2020;;;;420;718067802
+C170;Jakub;Říha;M;30.9.1969;18.1.2021;;;;420;722700315
+C171;Jan;Malíský;M;12.12.1981;12.1.2021;;;;420;700575555
+C172;Petr;Hofbauer;M;26.2.1973;1.3.2020;SVK;Žilina-Solinky;;420;706878538
+C173;Hana;Havlová;F;23.1.1999;18.2.2020;SVK;Žilina-Strážov;;420;708827456
+C174;Dagmar;Nováková;F;1.2.1993;30.1.2021;;;;420;717199347
+C175;Oldřich;Vejřík;M;4.5.1972;26.1.2021;;;;420;702593598
+C176;Lenka;Hniková;F;15.3.1965;31.1.2021;;;;420;723147175
+C177;Veronika;Konečná;F;2.4.1969;8.3.2020;;;;420;707321564
+C178;Lukáš;Škvarda;M;6.10.1977;29.7.2020;;;;420;702474310
+C179;Aleš;Poslušný;M;18.12.2000;10.4.2020;;;;420;732890223
+C180;Marcela;Špalková;F;23.2.1965;13.12.2020;DEU;Asendorf;;420;728643753
+C181;Petr;Potáček;M;13.9.1964;26.4.2020;DEU;Kiel;;420;713114482
+C182;Jitka;Maťátková;F;10.9.1996;20.12.2020;DEU;Holdorf;;420;732906985
+C183;Adam;Steklý;M;24.4.1989;2.8.2020;DEU;Weitramsdorf;;420;705026892
+C184;Lenka;Musilová;F;23.10.1991;19.6.2020;;;711210623;420;
+C185;Hana;Hrabovská;F;12.8.1986;28.6.2020;;;;420;727826478
+C186;Barbora;Sedláková;F;22.3.1977;20.5.2020;CZE;Slany;;;
+C187;Barbora;Sedláková;F;22.3.1977;20.5.2020;CZE;Slaný;;;
+C188;Lucie;Chalusová;F;13.5.1983;15.1.2021;;;;420;723885490
+C189;Cecílie;Merganičová;F;19.11.1997;6.1.2021;;;712774487;420;
+C190;Renata;Kinská;F;30.12.1964;29.2.2020;;;;420;729159356
+C191;Miroslava;Kováčová;F;15.4.1960;4.8.2020;CZE;Staré Brno;;420;726337240
+C192;Miroslava;Kováčová;F;30.9.1989;26.7.2020;CZE;Srbec;;420;729738645
+C193;Kateřina;Černá;F;11.10.2000;31.12.2020;;;;420;741289529
+C194;Jiří;Vašek;M;17.7.1966;11.5.2020;;;;420;725694238
+C195;Pavel;Němec;M;13.3.1968;23.12.2020;;;;420;737707623
+C230;Barbora;Boturová;F;11.2.1982;23.5.2020;;;;420;719047469
+C231;Michaela;Dušánková;F;17.5.1980;31.1.2021;;;;420;731773327
+C232;Pavel;Lecher;M;1.1.1980;11.7.2020;;;;420;730362337
+C233;Anna;Erbenová;F;;;;;;;

@@ -1,0 +1,2 @@
+ALTER TABLE [csv].CustomerType
+ALTER COLUMN CustomerType_Name NVARCHAR(100) NOT NULL;
