@@ -1,0 +1,17 @@
+﻿TrainingName,TrainingType,ValidityMonths,Description,Provider
+BOZP – vstupné školenie,Safety,24,Povinné školenie bezpečnosti a ochrany zdravia pri práci pre všetkých zamestnancov.,BE-SOFT a.s.
+Ochrana pred požiarmi,Safety,24,Periodické školenie o ochrane pred požiarmi podľa zákona č. 314/2001 Z. z.,BE-SOFT a.s.
+Prvá pomoc na pracovisku,Safety,24,Praktický kurz poskytovania prvej pomoci s nácvikom resuscitácie.,Slovenský Červený kríž
+GDPR a ochrana osobných údajov,Mandatory,12,Ročné školenie o spracúvaní osobných údajov a povinnostiach podľa GDPR.,Interné – Právne oddelenie
+Kybernetická bezpečnosť,Mandatory,12,"Phishing, heslá, bezpečná práca s firemnými dátami a zariadeniami.",ESET Academy
+Etický kódex a compliance,Mandatory,24,Školenie o etickom kódexe spoločnosti a protikorupčných pravidlách.,Interné – HR
+Vodič referentského vozidla,Mandatory,24,"Povinné školenie vodičov služobných vozidiel do 3,5 t.",Autoškola Centrum
+Práca vo výškach,Safety,12,"Odborná spôsobilosť pre prácu vo výške nad 1,5 m – výrobné pozície.",TÜV SÜD Slovakia
+Obsluha VZV (vysokozdvižný vozík),Certification,60,Preukaz obsluhy motorových vozíkov triedy I a II.,TÜV SÜD Slovakia
+ISO 9001 interný audítor,Certification,36,Certifikačný kurz interného audítora systému manažérstva kvality.,SGS Slovakia
+Scrum Master I (PSM I),Certification,0,Certifikácia Professional Scrum Master – bez exspirácie.,Scrum.org
+Microsoft Azure Fundamentals (AZ-900),Certification,0,Základná certifikácia Microsoft Azure – bez exspirácie.,Microsoft Learn
+Excel pre pokročilých,Optional,0,"Kontingenčné tabuľky, Power Query, pokročilé vzorce.",Learn2Code
+Power BI základy,Optional,0,Tvorba reportov a dashboardov v Power BI Desktop.,Learn2Code
+Prezentačné zručnosti,Optional,0,Soft-skills tréning prezentovania a vystupovania.,FBE Bratislava
+Anglický jazyk B2 – konverzácie,Optional,0,Polročný konverzačný kurz angličtiny pre stredne pokročilých.,Empire English School
