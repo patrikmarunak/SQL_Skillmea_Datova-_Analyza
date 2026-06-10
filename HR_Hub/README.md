@@ -8,6 +8,7 @@ code app bežiacej v Microsoft Teams so SharePoint listami na komunikačnom site
 
 ```
 HR_Hub/
+├── app/                           # aplikácia HR Hub (React + TS + Vite) – pozri app/README.md
 ├── data/                          # CSV súbory pripravené na import
 │   ├── Departments.csv            # 8 oddelení
 │   ├── Positions.csv              # 20 pozícií
@@ -17,6 +18,7 @@ HR_Hub/
 │   └── AuditLog.csv               # 40 audit záznamov
 └── scripts/
     ├── generate_data.py           # generátor dát (Python 3, deterministický seed)
+    ├── csv_to_mockdata.py         # CSV -> app/src/data/mockData.ts (mock vrstva appky)
     └── Provision-HRHubLists.ps1   # PnP.PowerShell – vytvorenie listov + import
 ```
 
