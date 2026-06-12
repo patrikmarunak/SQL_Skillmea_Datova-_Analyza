@@ -1,0 +1,78 @@
+[
+  {
+    "IsSampleData": false,
+    "IsWritable": true,
+    "Name": "colEmployees",
+    "Schema": {
+      "Type": {
+        "EnumString": "",
+        "Kind": "Table",
+        "Name": "Root",
+        "Type": [
+          {
+            "EnumString": "",
+            "Kind": "Number",
+            "Name": "ID",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "EmployeeID",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "FullName",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Email",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Department",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "DepartmentCode",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Position",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "ManagerEmail",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "DateTime",
+            "Name": "HireDate",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Status",
+            "Type": []
+          }
+        ]
+      },
+      "Version": "1.290"
+    },
+    "Type": "CollectionDataSourceInfo"
+  }
+]

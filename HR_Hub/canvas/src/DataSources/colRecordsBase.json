@@ -1,0 +1,60 @@
+[
+  {
+    "IsSampleData": false,
+    "IsWritable": true,
+    "Name": "colRecordsBase",
+    "Schema": {
+      "Type": {
+        "EnumString": "",
+        "Kind": "Table",
+        "Name": "Root",
+        "Type": [
+          {
+            "EnumString": "",
+            "Kind": "Number",
+            "Name": "ID",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Emp",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "Number",
+            "Name": "Tr",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "Number",
+            "Name": "Off",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "Boolean",
+            "Name": "Pl",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Cert",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Notes",
+            "Type": []
+          }
+        ]
+      },
+      "Version": "1.290"
+    },
+    "Type": "CollectionDataSourceInfo"
+  }
+]

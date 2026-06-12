@@ -1,0 +1,70 @@
+{
+  "FormatVersion": "0.30",
+  "Header": {
+    "DocVersion": "1.290",
+    "MinVersionToLoad": "1.290",
+    "MSAppStructureVersion": "2.0"
+  },
+  "Properties": {
+    "AppCreationSource": "AppFromScratch",
+    "AppDescription": "HR Hub – správa zamestnancov a školení (demo canvas app)",
+    "AppPreviewFlagsKey": [
+      "delayloadscreens",
+      "errorhandling",
+      "projectionmapping",
+      "usedisplaynamemetadata",
+      "usenonblockingonstartrule",
+      "enhancedgroupcontrol",
+      "useguiddatatypes",
+      "useexperimentalcdsconnector",
+      "useenforcesavedatalimits",
+      "componentauthoring",
+      "reliableconcurrent",
+      "dataTableV2Control",
+      "nativecdsexperimental",
+      "useexperimentalsqlconnector",
+      "enablecdsfileandlargeimage",
+      "keeprecentscreensloaded",
+      "aibuilderserviceenrollment"
+    ],
+    "Author": "",
+    "ContainsThirdPartyPcfControls": false,
+    "DefaultConnectedDataSourceMaxGetRowsCount": 500,
+    "DocumentAppType": "Phone",
+    "DocumentLayoutHeight": 1136,
+    "DocumentLayoutLockOrientation": true,
+    "DocumentLayoutMaintainAspectRatio": true,
+    "DocumentLayoutOrientation": "portrait",
+    "DocumentLayoutScaleToFit": true,
+    "DocumentLayoutWidth": 640,
+    "DocumentType": "App",
+    "EnableInstrumentation": false,
+    "FileID": "0ff5b8c5-8762-4289-a525-4c793c20b753",
+    "Id": "3173f637-b5a2-46be-a230-35f1548977df",
+    "InstrumentationKey": "",
+    "LastControlUniqueId": 172,
+    "LocalDatabaseReferences": "{}",
+    "Name": "HRHub.msapp",
+    "OriginatingVersion": "1.281"
+  },
+  "PublishInfo": {
+    "AppName": "HR Hub",
+    "BackgroundColor": "rgba(91, 95, 199, 1)",
+    "IconColor": "",
+    "LogoFileName": "",
+    "PublishDataLocally": false,
+    "PublishResourcesLocally": false,
+    "PublishTarget": "player",
+    "UserLocale": "en-US"
+  },
+  "ScreenOrder": [
+    "scrHome",
+    "scrEmployees",
+    "scrEmployeeDetail",
+    "scrCatalog",
+    "scrRecords",
+    "scrAddRecord",
+    "scrMyTrainings",
+    "scrReports"
+  ]
+}

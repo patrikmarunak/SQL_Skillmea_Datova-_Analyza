@@ -1,0 +1,214 @@
+App As appinfo:
+    OnStart: |-
+        =// HR Hub – demo dáta zrkadlia SharePoint listy (HR_Hub/data/*.csv).
+        // Po napojení na SharePoint nahraďte kolekcie priamym čítaním listov.
+        ClearCollect(colNav,
+            {Ord:1, Title:"Domov", Icon:"⌂", Tag:"home", EmpVisible:true},
+            {Ord:2, Title:"Zamestnanci", Icon:"👥", Tag:"emps", EmpVisible:false},
+            {Ord:3, Title:"Katalóg školení", Icon:"📚", Tag:"cat", EmpVisible:false},
+            {Ord:4, Title:"Záznamy školení", Icon:"📋", Tag:"recs", EmpVisible:false},
+            {Ord:5, Title:"Moje školenia", Icon:"🎓", Tag:"my", EmpVisible:true},
+            {Ord:6, Title:"Reporty", Icon:"📊", Tag:"rep", EmpVisible:false}
+        );
+        ClearCollect(colStatuses,
+            {S:"Valid", L:"Platné"},
+            {S:"Expiring", L:"Čoskoro exspiruje"},
+            {S:"Expired", L:"Exspirované"},
+            {S:"Planned", L:"Naplánované"}
+        );
+        ClearCollect(colEmployees,
+            {ID:1, EmployeeID:"EMP0001", FullName:"Katarína Bieliková", Email:"katarina.bielikova@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR manažér", ManagerEmail:"", HireDate:DateAdd(Today(), -2321, TimeUnit.Days), Status:"Active"},
+            {ID:2, EmployeeID:"EMP0006", FullName:"Milan Urban", Email:"milan.urban@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Vedúci prevádzky", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -3082, TimeUnit.Days), Status:"Active"},
+            {ID:3, EmployeeID:"EMP0002", FullName:"Peter Šimko", Email:"peter.simko@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"IT manažér", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -2224, TimeUnit.Days), Status:"Active"},
+            {ID:4, EmployeeID:"EMP0034", FullName:"Štefan Lukáč", Email:"stefan.lukac@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Majster výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -823, TimeUnit.Days), Status:"Active"},
+            {ID:5, EmployeeID:"EMP0035", FullName:"Silvia Sedláková", Email:"silvia.sedlakova@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Operátor výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -534, TimeUnit.Days), Status:"Active"},
+            {ID:6, EmployeeID:"EMP0036", FullName:"Juraj Fabian", Email:"juraj.fabian@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Majster výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -1758, TimeUnit.Days), Status:"Active"},
+            {ID:7, EmployeeID:"EMP0037", FullName:"Filip Baláž", Email:"filip.balaz@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Operátor výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -2676, TimeUnit.Days), Status:"Active"},
+            {ID:8, EmployeeID:"EMP0039", FullName:"Mária Gajdošová", Email:"maria.gajdosova@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Operátor výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -3659, TimeUnit.Days), Status:"Active"},
+            {ID:9, EmployeeID:"EMP0012", FullName:"Igor Bednár", Email:"igor.bednar@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"Systémový administrátor", ManagerEmail:"peter.simko@contoso.sk", HireDate:DateAdd(Today(), -2329, TimeUnit.Days), Status:"Active"},
+            {ID:10, EmployeeID:"EMP0013", FullName:"Adriana Balážová", Email:"adriana.balazova@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"Senior softvérový vývojár", ManagerEmail:"peter.simko@contoso.sk", HireDate:DateAdd(Today(), -3195, TimeUnit.Days), Status:"Active"},
+            {ID:11, EmployeeID:"EMP0014", FullName:"Barbora Poláková", Email:"barbora.polakova@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"Systémový administrátor", ManagerEmail:"peter.simko@contoso.sk", HireDate:DateAdd(Today(), -3426, TimeUnit.Days), Status:"Active"},
+            {ID:12, EmployeeID:"EMP0010", FullName:"Marek Molnár", Email:"marek.molnar@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR generalista", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -1862, TimeUnit.Days), Status:"Active"},
+            {ID:13, EmployeeID:"EMP0011", FullName:"Monika Šusterová", Email:"monika.susterova@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR generalista", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -3263, TimeUnit.Days), Status:"Active"},
+            {ID:14, EmployeeID:"EMP0009", FullName:"Juraj Sedlák", Email:"juraj.sedlak@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR generalista", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -975, TimeUnit.Days), Status:"Inactive"}
+        );
+        ClearCollect(colDepartments,
+            {ID:1, DepartmentName:"Ľudské zdroje", DepartmentCode:"HR", Manager:"Katarína Bieliková"},
+            {ID:2, DepartmentName:"Informačné technológie", DepartmentCode:"IT", Manager:"Peter Šimko"},
+            {ID:3, DepartmentName:"Financie", DepartmentCode:"FIN", Manager:"Martina Kováčová"},
+            {ID:4, DepartmentName:"Obchod", DepartmentCode:"SAL", Manager:"Ján Hruška"},
+            {ID:5, DepartmentName:"Marketing", DepartmentCode:"MKT", Manager:"Lucia Vargová"},
+            {ID:6, DepartmentName:"Výroba a prevádzka", DepartmentCode:"OPS", Manager:"Milan Urban"},
+            {ID:7, DepartmentName:"Kvalita", DepartmentCode:"QA", Manager:"Eva Tóthová"},
+            {ID:8, DepartmentName:"Právne oddelenie", DepartmentCode:"LEG", Manager:"Tomáš Sokol"}
+        );
+        ClearCollect(colTrainingsCatalog,
+            {ID:1, TrainingName:"BOZP – vstupné školenie", TrainingType:"Safety", ValidityMonths:24, Provider:"BE-SOFT a.s."},
+            {ID:2, TrainingName:"Ochrana pred požiarmi", TrainingType:"Safety", ValidityMonths:24, Provider:"BE-SOFT a.s."},
+            {ID:3, TrainingName:"Prvá pomoc na pracovisku", TrainingType:"Safety", ValidityMonths:24, Provider:"Slovenský Červený kríž"},
+            {ID:4, TrainingName:"GDPR a ochrana osobných údajov", TrainingType:"Mandatory", ValidityMonths:12, Provider:"Interné – Právne oddelenie"},
+            {ID:5, TrainingName:"Kybernetická bezpečnosť", TrainingType:"Mandatory", ValidityMonths:12, Provider:"ESET Academy"},
+            {ID:6, TrainingName:"Etický kódex a compliance", TrainingType:"Mandatory", ValidityMonths:24, Provider:"Interné – HR"},
+            {ID:7, TrainingName:"Vodič referentského vozidla", TrainingType:"Mandatory", ValidityMonths:24, Provider:"Autoškola Centrum"},
+            {ID:8, TrainingName:"Práca vo výškach", TrainingType:"Safety", ValidityMonths:12, Provider:"TÜV SÜD Slovakia"},
+            {ID:9, TrainingName:"Obsluha VZV (vysokozdvižný vozík)", TrainingType:"Certification", ValidityMonths:60, Provider:"TÜV SÜD Slovakia"},
+            {ID:10, TrainingName:"ISO 9001 interný audítor", TrainingType:"Certification", ValidityMonths:36, Provider:"SGS Slovakia"},
+            {ID:11, TrainingName:"Scrum Master I (PSM I)", TrainingType:"Certification", ValidityMonths:0, Provider:"Scrum.org"},
+            {ID:12, TrainingName:"Microsoft Azure Fundamentals (AZ-900)", TrainingType:"Certification", ValidityMonths:0, Provider:"Microsoft Learn"},
+            {ID:13, TrainingName:"Excel pre pokročilých", TrainingType:"Optional", ValidityMonths:0, Provider:"Learn2Code"},
+            {ID:14, TrainingName:"Power BI základy", TrainingType:"Optional", ValidityMonths:0, Provider:"Learn2Code"},
+            {ID:15, TrainingName:"Prezentačné zručnosti", TrainingType:"Optional", ValidityMonths:0, Provider:"FBE Bratislava"},
+            {ID:16, TrainingName:"Anglický jazyk B2 – konverzácie", TrainingType:"Optional", ValidityMonths:0, Provider:"Empire English School"}
+        );
+        ClearCollect(colRecordsBase,
+            {ID:1, Emp:"EMP0001", Tr:1, Off:-707, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0001_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:2, Emp:"EMP0001", Tr:2, Off:-584, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0001_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:3, Emp:"EMP0001", Tr:4, Off:-264, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0001_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:""},
+            {ID:4, Emp:"EMP0001", Tr:5, Off:-450, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0001_Kyberneticka_bezpecnost.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:5, Emp:"EMP0001", Tr:6, Off:-728, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0001_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:6, Emp:"EMP0001", Tr:3, Off:-570, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0001_Prva_pomoc_na_pracovisku.pdf", Notes:""},
+            {ID:7, Emp:"EMP0001", Tr:13, Off:47, Pl:true, Cert:"", Notes:"Naplánovaný termín cez HR."},
+            {ID:8, Emp:"EMP0001", Tr:16, Off:-274, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0001_Anglicky_jazyk_B2_-_konverzacie.pdf", Notes:""},
+            {ID:9, Emp:"EMP0002", Tr:1, Off:-558, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0002_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:10, Emp:"EMP0002", Tr:2, Off:-870, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0002_Ochrana_pred_poziarmi.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:11, Emp:"EMP0002", Tr:4, Off:-422, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0002_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:12, Emp:"EMP0002", Tr:5, Off:15, Pl:true, Cert:"", Notes:"Naplánovaný termín cez HR."},
+            {ID:13, Emp:"EMP0002", Tr:6, Off:-255, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0002_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:14, Emp:"EMP0002", Tr:11, Off:-613, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0002_Scrum_Master_I_(PSM_I).pdf", Notes:""},
+            {ID:15, Emp:"EMP0002", Tr:12, Off:-638, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0002_Microsoft_Azure_Fundamentals_(AZ-900).pdf", Notes:""},
+            {ID:16, Emp:"EMP0002", Tr:13, Off:-244, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0002_Excel_pre_pokrocilych.pdf", Notes:""},
+            {ID:17, Emp:"EMP0006", Tr:1, Off:-223, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0006_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:18, Emp:"EMP0006", Tr:2, Off:-285, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0006_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:19, Emp:"EMP0006", Tr:4, Off:-143, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0006_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:""},
+            {ID:20, Emp:"EMP0006", Tr:5, Off:-41, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0006_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:21, Emp:"EMP0006", Tr:6, Off:-848, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0006_Eticky_kodex_a_compliance.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:22, Emp:"EMP0006", Tr:8, Off:-37, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0006_Praca_vo_vyskach.pdf", Notes:""},
+            {ID:23, Emp:"EMP0006", Tr:9, Off:23, Pl:true, Cert:"", Notes:"Naplánovaný termín cez HR."},
+            {ID:24, Emp:"EMP0006", Tr:3, Off:-283, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0006_Prva_pomoc_na_pracovisku.pdf", Notes:""},
+            {ID:25, Emp:"EMP0006", Tr:16, Off:-312, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0006_Anglicky_jazyk_B2_-_konverzacie.pdf", Notes:""},
+            {ID:26, Emp:"EMP0009", Tr:2, Off:-863, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0009_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:27, Emp:"EMP0009", Tr:6, Off:-870, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0009_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:28, Emp:"EMP0010", Tr:1, Off:-40, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0010_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:29, Emp:"EMP0010", Tr:2, Off:-825, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0010_Ochrana_pred_poziarmi.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:30, Emp:"EMP0010", Tr:4, Off:-225, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0010_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:""},
+            {ID:31, Emp:"EMP0010", Tr:5, Off:-142, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0010_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:32, Emp:"EMP0010", Tr:6, Off:-704, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0010_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:33, Emp:"EMP0010", Tr:3, Off:-406, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0010_Prva_pomoc_na_pracovisku.pdf", Notes:""},
+            {ID:34, Emp:"EMP0010", Tr:13, Off:-511, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0010_Excel_pre_pokrocilych.pdf", Notes:""},
+            {ID:35, Emp:"EMP0010", Tr:15, Off:-209, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0010_Prezentacne_zrucnosti.pdf", Notes:""},
+            {ID:36, Emp:"EMP0011", Tr:1, Off:-704, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0011_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:37, Emp:"EMP0011", Tr:2, Off:-243, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0011_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:38, Emp:"EMP0011", Tr:4, Off:31, Pl:true, Cert:"", Notes:"Naplánovaný termín cez HR."},
+            {ID:39, Emp:"EMP0011", Tr:5, Off:-157, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0011_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:40, Emp:"EMP0011", Tr:6, Off:-300, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0011_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:41, Emp:"EMP0011", Tr:3, Off:-536, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0011_Prva_pomoc_na_pracovisku.pdf", Notes:""},
+            {ID:42, Emp:"EMP0011", Tr:13, Off:-579, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0011_Excel_pre_pokrocilych.pdf", Notes:""},
+            {ID:43, Emp:"EMP0011", Tr:14, Off:-89, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0011_Power_BI_zaklady.pdf", Notes:""},
+            {ID:44, Emp:"EMP0012", Tr:1, Off:-282, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0012_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:45, Emp:"EMP0012", Tr:2, Off:-807, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0012_Ochrana_pred_poziarmi.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:46, Emp:"EMP0012", Tr:4, Off:83, Pl:true, Cert:"", Notes:"Naplánovaný termín cez HR."},
+            {ID:47, Emp:"EMP0012", Tr:5, Off:-175, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0012_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:48, Emp:"EMP0012", Tr:6, Off:-538, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0012_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:49, Emp:"EMP0012", Tr:11, Off:-620, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0012_Scrum_Master_I_(PSM_I).pdf", Notes:""},
+            {ID:50, Emp:"EMP0012", Tr:12, Off:-75, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0012_Microsoft_Azure_Fundamentals_(AZ-900).pdf", Notes:""},
+            {ID:51, Emp:"EMP0013", Tr:1, Off:75, Pl:true, Cert:"", Notes:"Naplánovaný termín cez HR."},
+            {ID:52, Emp:"EMP0013", Tr:2, Off:-216, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0013_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:53, Emp:"EMP0013", Tr:4, Off:-50, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0013_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:""},
+            {ID:54, Emp:"EMP0013", Tr:5, Off:-184, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0013_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:55, Emp:"EMP0013", Tr:6, Off:-142, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0013_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:56, Emp:"EMP0013", Tr:11, Off:-337, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0013_Scrum_Master_I_(PSM_I).pdf", Notes:""},
+            {ID:57, Emp:"EMP0013", Tr:12, Off:-448, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0013_Microsoft_Azure_Fundamentals_(AZ-900).pdf", Notes:""},
+            {ID:58, Emp:"EMP0013", Tr:15, Off:-313, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0013_Prezentacne_zrucnosti.pdf", Notes:""},
+            {ID:59, Emp:"EMP0014", Tr:1, Off:-847, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0014_BOZP_-_vstupne_skolenie.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:60, Emp:"EMP0014", Tr:2, Off:-403, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0014_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:61, Emp:"EMP0014", Tr:4, Off:-104, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0014_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:""},
+            {ID:62, Emp:"EMP0014", Tr:5, Off:-169, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0014_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:63, Emp:"EMP0014", Tr:6, Off:-15, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0014_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:64, Emp:"EMP0014", Tr:11, Off:-245, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0014_Scrum_Master_I_(PSM_I).pdf", Notes:""},
+            {ID:65, Emp:"EMP0014", Tr:12, Off:-623, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0014_Microsoft_Azure_Fundamentals_(AZ-900).pdf", Notes:""},
+            {ID:66, Emp:"EMP0034", Tr:1, Off:-718, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0034_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:67, Emp:"EMP0034", Tr:2, Off:-743, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0034_Ochrana_pred_poziarmi.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:68, Emp:"EMP0034", Tr:4, Off:-79, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0034_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:""},
+            {ID:69, Emp:"EMP0034", Tr:5, Off:-363, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0034_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:70, Emp:"EMP0034", Tr:6, Off:-144, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0034_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:71, Emp:"EMP0034", Tr:8, Off:-266, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0034_Praca_vo_vyskach.pdf", Notes:""},
+            {ID:72, Emp:"EMP0034", Tr:9, Off:-823, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0034_Obsluha_VZV_(vysokozdvizny_vozik).pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:73, Emp:"EMP0034", Tr:3, Off:-495, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0034_Prva_pomoc_na_pracovisku.pdf", Notes:""},
+            {ID:74, Emp:"EMP0035", Tr:1, Off:-90, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0035_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:75, Emp:"EMP0035", Tr:2, Off:-90, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0035_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:76, Emp:"EMP0035", Tr:4, Off:-48, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0035_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:""},
+            {ID:77, Emp:"EMP0035", Tr:5, Off:-52, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0035_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:78, Emp:"EMP0035", Tr:6, Off:-69, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0035_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:79, Emp:"EMP0035", Tr:8, Off:-519, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0035_Praca_vo_vyskach.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:80, Emp:"EMP0035", Tr:9, Off:-189, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0035_Obsluha_VZV_(vysokozdvizny_vozik).pdf", Notes:""},
+            {ID:81, Emp:"EMP0035", Tr:3, Off:-136, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0035_Prva_pomoc_na_pracovisku.pdf", Notes:""},
+            {ID:82, Emp:"EMP0036", Tr:1, Off:-625, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0036_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:83, Emp:"EMP0036", Tr:2, Off:-246, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0036_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:84, Emp:"EMP0036", Tr:4, Off:-209, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0036_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:""},
+            {ID:85, Emp:"EMP0036", Tr:5, Off:-241, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0036_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:86, Emp:"EMP0036", Tr:6, Off:-711, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0036_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:87, Emp:"EMP0036", Tr:8, Off:-171, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0036_Praca_vo_vyskach.pdf", Notes:""},
+            {ID:88, Emp:"EMP0036", Tr:9, Off:-138, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0036_Obsluha_VZV_(vysokozdvizny_vozik).pdf", Notes:""},
+            {ID:89, Emp:"EMP0036", Tr:3, Off:-116, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0036_Prva_pomoc_na_pracovisku.pdf", Notes:""},
+            {ID:90, Emp:"EMP0037", Tr:1, Off:-723, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0037_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:91, Emp:"EMP0037", Tr:2, Off:-727, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0037_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:92, Emp:"EMP0037", Tr:4, Off:-419, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0037_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:"Potrebné obnoviť školenie."},
+            {ID:93, Emp:"EMP0037", Tr:5, Off:-95, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0037_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:94, Emp:"EMP0037", Tr:6, Off:64, Pl:true, Cert:"", Notes:"Naplánovaný termín cez HR."},
+            {ID:95, Emp:"EMP0037", Tr:8, Off:-255, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0037_Praca_vo_vyskach.pdf", Notes:""},
+            {ID:96, Emp:"EMP0037", Tr:9, Off:-1818, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0037_Obsluha_VZV_(vysokozdvizny_vozik).pdf", Notes:""},
+            {ID:97, Emp:"EMP0037", Tr:3, Off:-720, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0037_Prva_pomoc_na_pracovisku.pdf", Notes:""},
+            {ID:98, Emp:"EMP0039", Tr:1, Off:-655, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0039_BOZP_-_vstupne_skolenie.pdf", Notes:""},
+            {ID:99, Emp:"EMP0039", Tr:2, Off:-217, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0039_Ochrana_pred_poziarmi.pdf", Notes:""},
+            {ID:100, Emp:"EMP0039", Tr:4, Off:-293, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0039_GDPR_a_ochrana_osobnych_udajov.pdf", Notes:""},
+            {ID:101, Emp:"EMP0039", Tr:5, Off:-360, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0039_Kyberneticka_bezpecnost.pdf", Notes:""},
+            {ID:102, Emp:"EMP0039", Tr:6, Off:-160, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0039_Eticky_kodex_a_compliance.pdf", Notes:""},
+            {ID:103, Emp:"EMP0039", Tr:8, Off:28, Pl:true, Cert:"", Notes:"Naplánovaný termín cez HR."},
+            {ID:104, Emp:"EMP0039", Tr:9, Off:-1233, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0039_Obsluha_VZV_(vysokozdvizny_vozik).pdf", Notes:""},
+            {ID:105, Emp:"EMP0039", Tr:3, Off:-597, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0039_Prva_pomoc_na_pracovisku.pdf", Notes:""}
+        );
+        // zamestnancov: 14, záznamov: 105
+        // Join lookupov + ExpirationDate = DateAdd(CompletionDate, ValidityMonths, Months)
+        // + LiveStatus prepočítaný k dnešku (zelená/jantárová/červená/sivá logika)
+        ClearCollect(colRecords,
+            AddColumns(
+                AddColumns(
+                    AddColumns(colRecordsBase,
+                        "EmployeeID", Emp,
+                        "EmployeeName", LookUp(colEmployees, EmployeeID = Emp, FullName),
+                        "DepartmentCode", LookUp(colEmployees, EmployeeID = Emp, DepartmentCode),
+                        "ManagerEmail", LookUp(colEmployees, EmployeeID = Emp, ManagerEmail),
+                        "TrainingName", LookUp(colTrainingsCatalog, ID = Tr, TrainingName),
+                        "TrainingType", LookUp(colTrainingsCatalog, ID = Tr, TrainingType),
+                        "ValidityMonths", LookUp(colTrainingsCatalog, ID = Tr, ValidityMonths),
+                        "CompletionDate", DateAdd(Today(), Off, TimeUnit.Days)
+                    ),
+                    "ExpirationDate", If(Pl || ValidityMonths = 0, Blank(), DateAdd(CompletionDate, ValidityMonths, TimeUnit.Months))
+                ),
+                "LiveStatus", If(
+                    Pl, "Planned",
+                    IsBlank(ExpirationDate), "Valid",
+                    ExpirationDate < Today(), "Expired",
+                    ExpirationDate <= DateAdd(Today(), 30, TimeUnit.Days), "Expiring",
+                    "Valid"
+                )
+            )
+        );
+        ClearCollect(colAudit,
+            {ID:1, Action:"Create", EntityType:"TrainingRecord", EntityID:"EMP0034", ChangedBy:"katarina.bielikova@contoso.sk", ChangedOn:DateAdd(Now(), -26, TimeUnit.Hours), Details:"Pridaný záznam školenia 'Ochrana pred požiarmi' pre zamestnanca Štefan Lukáč (EMP0034)."},
+            {ID:2, Action:"Update", EntityType:"Employee", EntityID:"EMP0035", ChangedBy:"katarina.bielikova@contoso.sk", ChangedOn:DateAdd(Now(), -49, TimeUnit.Hours), Details:"Aktualizovaný profil zamestnanca Silvia Sedláková (EMP0035)."},
+            {ID:3, Action:"Create", EntityType:"Employee", EntityID:"EMP0040", ChangedBy:"katarina.bielikova@contoso.sk", ChangedOn:DateAdd(Now(), -120, TimeUnit.Hours), Details:"Založený profil zamestnanca (EMP0040)."}
+        );
+        // Demo rola – v produkcii podľa Entra ID skupín voči User().Email
+        Set(varCurrentUser, LookUp(colEmployees, EmployeeID = "EMP0001"));
+        Set(varRole, "admin");
+        Set(varSearch, "");
+        Set(varDeptFilter, Blank());
+        Set(varStatusFilter, Blank());
+        Set(varNavTag, "home");
+        Set(varSelEmployee, Blank());
+        Set(varEditRecord, Blank());
+        Set(varPickedEmp, Blank());
+        Set(varPickedTraining, Blank());
+        Set(varCatType, "Mandatory")
+

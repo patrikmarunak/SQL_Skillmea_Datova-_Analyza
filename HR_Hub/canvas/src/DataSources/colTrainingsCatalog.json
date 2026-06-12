@@ -1,0 +1,48 @@
+[
+  {
+    "IsSampleData": false,
+    "IsWritable": true,
+    "Name": "colTrainingsCatalog",
+    "Schema": {
+      "Type": {
+        "EnumString": "",
+        "Kind": "Table",
+        "Name": "Root",
+        "Type": [
+          {
+            "EnumString": "",
+            "Kind": "Number",
+            "Name": "ID",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "TrainingName",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "TrainingType",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "Number",
+            "Name": "ValidityMonths",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Provider",
+            "Type": []
+          }
+        ]
+      },
+      "Version": "1.290"
+    },
+    "Type": "CollectionDataSourceInfo"
+  }
+]

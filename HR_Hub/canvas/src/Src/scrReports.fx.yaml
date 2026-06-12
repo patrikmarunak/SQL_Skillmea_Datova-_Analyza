@@ -1,0 +1,229 @@
+scrReports As screen:
+    Fill: =RGBA(245, 245, 245, 1)
+    OnVisible: |-
+        =Set(varNavTag, "rep");
+        Set(varRepBy, Sort(AddColumns(RenameColumns(colDepartments, "DepartmentCode", "DC"), "Cnt", CountRows(Filter(colRecords, DepartmentCode = DC))), Cnt, SortOrder.Descending));
+        Set(varRepMax, Max(Max(varRepBy, Cnt), 1));
+        Set(varRepExp, Sort(AddColumns(RenameColumns(colDepartments, "DepartmentCode", "DC"), "Cnt", CountRows(Filter(colRecords, DepartmentCode = DC && LiveStatus = "Expiring"))), Cnt, SortOrder.Descending));
+        Set(varRepExpMax, Max(Max(varRepExp, Cnt), 1));
+        Set(varRepComp, Sort(AddColumns(RenameColumns(colDepartments, "DepartmentCode", "DC"), "Pct", With({t: CountRows(Filter(colRecords, DepartmentCode = DC && LiveStatus <> "Planned"))}, If(t = 0, 100, Round(CountRows(Filter(colRecords, DepartmentCode = DC && LiveStatus <> "Planned" && LiveStatus <> "Expired")) / t * 100, 0)))), Pct, SortOrder.Ascending))
+
+    recRailP As rectangle:
+        Fill: =RGBA(255, 255, 255, 1)
+        Height: =Parent.Height
+        Width: =220
+        ZIndex: =1
+
+    lblBrandP As label:
+        Color: =RGBA(91, 95, 199, 1)
+        FontWeight: =FontWeight.Bold
+        PaddingLeft: =20
+        Size: =15
+        Text: ="HR Hub"
+        Width: =200
+        Y: =12
+        ZIndex: =2
+
+    galNavP As gallery.galleryVertical:
+        Height: =Parent.Height - 64
+        Items: =Filter(colNav, varRole <> "employee" || EmpVisible)
+        ShowScrollbar: =false
+        TemplatePadding: =0
+        TemplateSize: =46
+        Width: =220
+        Y: =64
+        ZIndex: =3
+
+        lblNavItemP As label:
+            Color: =If(ThisItem.Tag = varNavTag, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
+            Fill: =If(ThisItem.Tag = varNavTag, RGBA(237, 237, 237, 1), RGBA(0, 0, 0, 0))
+            FontWeight: =If(ThisItem.Tag = varNavTag, FontWeight.Semibold, FontWeight.Normal)
+            Height: =Parent.TemplateHeight
+            OnSelect: =Switch(ThisItem.Tag, "home", Navigate(scrHome, ScreenTransition.None), "emps", Navigate(scrEmployees, ScreenTransition.None), "cat", Navigate(scrCatalog, ScreenTransition.None), "recs", Navigate(scrRecords, ScreenTransition.None), "my", Navigate(scrMyTrainings, ScreenTransition.None), Navigate(scrReports, ScreenTransition.None))
+            PaddingLeft: =20
+            Size: =12
+            Text: =ThisItem.Icon & "  " & ThisItem.Title
+            Width: =Parent.TemplateWidth
+            ZIndex: =1
+
+    lblTitleP As label:
+        FontWeight: =FontWeight.Bold
+        Size: =20
+        Text: ="Reporty"
+        Width: =600
+        X: =250
+        Y: =20
+        ZIndex: =4
+
+    lblSubP As label:
+        Color: =RGBA(92, 92, 92, 1)
+        Height: =28
+        Size: =11
+        Text: ="Školenia podľa oddelení a miera súladu jednotlivých tímov (% neexspirovaných)."
+        Width: =760
+        X: =250
+        Y: =58
+        ZIndex: =4
+
+    recChart1P As rectangle:
+        BorderColor: =RGBA(209, 209, 209, 1)
+        BorderThickness: =1
+        Fill: =RGBA(255, 255, 255, 1)
+        Height: =290
+        Width: =530
+        X: =250
+        Y: =100
+        ZIndex: =4
+
+    recChart2P As rectangle:
+        BorderColor: =RGBA(209, 209, 209, 1)
+        BorderThickness: =1
+        Fill: =RGBA(255, 255, 255, 1)
+        Height: =290
+        Width: =530
+        X: =806
+        Y: =100
+        ZIndex: =4
+
+    recChart3P As rectangle:
+        BorderColor: =RGBA(209, 209, 209, 1)
+        BorderThickness: =1
+        Fill: =RGBA(255, 255, 255, 1)
+        Height: =290
+        Width: =530
+        X: =250
+        Y: =410
+        ZIndex: =4
+
+    lblCh1P As label:
+        FontWeight: =FontWeight.Semibold
+        Height: =26
+        Size: =12
+        Text: ="Počet školení podľa oddelenia"
+        Width: =420
+        X: =266
+        Y: =108
+        ZIndex: =5
+
+    galChart1P As gallery.galleryVertical:
+        Height: =240
+        Items: =varRepBy
+        ShowScrollbar: =false
+        TemplatePadding: =1
+        TemplateSize: =30
+        Width: =498
+        X: =266
+        Y: =142
+        ZIndex: =5
+
+        lblChName1P As label:
+            Height: =Parent.TemplateHeight
+            Size: =9
+            Text: =ThisItem.DepartmentName
+            ZIndex: =1
+
+        recChBar1P As rectangle:
+            Fill: =RGBA(91, 95, 199, 1)
+            Height: =14
+            Width: =Max(4, ThisItem.Cnt / varRepMax * 260)
+            X: =156
+            Y: =8
+            ZIndex: =1
+
+        lblChVal1P As label:
+            FontWeight: =FontWeight.Semibold
+            Height: =Parent.TemplateHeight
+            Size: =9
+            Text: =ThisItem.Cnt
+            Width: =60
+            X: =430
+            ZIndex: =1
+
+    lblCh2P As label:
+        FontWeight: =FontWeight.Semibold
+        Height: =26
+        Size: =12
+        Text: ="Exspiruje do 30 dní"
+        Width: =420
+        X: =822
+        Y: =108
+        ZIndex: =5
+
+    galChart2P As gallery.galleryVertical:
+        Height: =240
+        Items: =varRepExp
+        ShowScrollbar: =false
+        TemplatePadding: =1
+        TemplateSize: =30
+        Width: =498
+        X: =822
+        Y: =142
+        ZIndex: =5
+
+        lblChName2P As label:
+            Height: =Parent.TemplateHeight
+            Size: =9
+            Text: =ThisItem.DepartmentName
+            ZIndex: =1
+
+        recChBar2P As rectangle:
+            Fill: =RGBA(122, 82, 0, 1)
+            Height: =14
+            Width: =Max(4, ThisItem.Cnt / varRepExpMax * 260)
+            X: =156
+            Y: =8
+            ZIndex: =1
+
+        lblChVal2P As label:
+            FontWeight: =FontWeight.Semibold
+            Height: =Parent.TemplateHeight
+            Size: =9
+            Text: =ThisItem.Cnt
+            Width: =60
+            X: =430
+            ZIndex: =1
+
+    lblCh3P As label:
+        FontWeight: =FontWeight.Semibold
+        Height: =26
+        Size: =12
+        Text: ="Miera súladu podľa oddelenia"
+        Width: =420
+        X: =266
+        Y: =418
+        ZIndex: =5
+
+    galChart3P As gallery.galleryVertical:
+        Height: =240
+        Items: =varRepComp
+        ShowScrollbar: =false
+        TemplatePadding: =1
+        TemplateSize: =30
+        Width: =498
+        X: =266
+        Y: =452
+        ZIndex: =5
+
+        lblChName3P As label:
+            Height: =Parent.TemplateHeight
+            Size: =9
+            Text: =ThisItem.DepartmentName
+            ZIndex: =1
+
+        recChBar3P As rectangle:
+            Fill: =If(ThisItem.Pct >= 90, RGBA(14, 107, 14, 1), ThisItem.Pct >= 75, RGBA(122, 82, 0, 1), RGBA(164, 38, 44, 1))
+            Height: =14
+            Width: =Max(4, ThisItem.Pct / 100 * 260)
+            X: =156
+            Y: =8
+            ZIndex: =1
+
+        lblChVal3P As label:
+            FontWeight: =FontWeight.Semibold
+            Height: =Parent.TemplateHeight
+            Size: =9
+            Text: =ThisItem.Pct & " %"
+            Width: =60
+            X: =430
+            ZIndex: =1
+

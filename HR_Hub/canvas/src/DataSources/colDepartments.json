@@ -1,0 +1,42 @@
+[
+  {
+    "IsSampleData": false,
+    "IsWritable": true,
+    "Name": "colDepartments",
+    "Schema": {
+      "Type": {
+        "EnumString": "",
+        "Kind": "Table",
+        "Name": "Root",
+        "Type": [
+          {
+            "EnumString": "",
+            "Kind": "Number",
+            "Name": "ID",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "DepartmentName",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "DepartmentCode",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Manager",
+            "Type": []
+          }
+        ]
+      },
+      "Version": "1.290"
+    },
+    "Type": "CollectionDataSourceInfo"
+  }
+]

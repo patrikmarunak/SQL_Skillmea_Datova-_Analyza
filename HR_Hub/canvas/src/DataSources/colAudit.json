@@ -1,0 +1,60 @@
+[
+  {
+    "IsSampleData": false,
+    "IsWritable": true,
+    "Name": "colAudit",
+    "Schema": {
+      "Type": {
+        "EnumString": "",
+        "Kind": "Table",
+        "Name": "Root",
+        "Type": [
+          {
+            "EnumString": "",
+            "Kind": "Number",
+            "Name": "ID",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Action",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "EntityType",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "EntityID",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "ChangedBy",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "DateTime",
+            "Name": "ChangedOn",
+            "Type": []
+          },
+          {
+            "EnumString": "",
+            "Kind": "String",
+            "Name": "Details",
+            "Type": []
+          }
+        ]
+      },
+      "Version": "1.290"
+    },
+    "Type": "CollectionDataSourceInfo"
+  }
+]

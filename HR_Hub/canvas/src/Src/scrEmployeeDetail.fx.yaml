@@ -1,0 +1,252 @@
+scrEmployeeDetail As screen:
+    Fill: =RGBA(245, 245, 245, 1)
+    OnVisible: =Set(varNavTag, "emps")
+
+    recRailD As rectangle:
+        Fill: =RGBA(255, 255, 255, 1)
+        Height: =Parent.Height
+        Width: =220
+        ZIndex: =1
+
+    lblBrandD As label:
+        Color: =RGBA(91, 95, 199, 1)
+        FontWeight: =FontWeight.Bold
+        PaddingLeft: =20
+        Size: =15
+        Text: ="HR Hub"
+        Width: =200
+        Y: =12
+        ZIndex: =2
+
+    galNavD As gallery.galleryVertical:
+        Height: =Parent.Height - 64
+        Items: =Filter(colNav, varRole <> "employee" || EmpVisible)
+        ShowScrollbar: =false
+        TemplatePadding: =0
+        TemplateSize: =46
+        Width: =220
+        Y: =64
+        ZIndex: =3
+
+        lblNavItemD As label:
+            Color: =If(ThisItem.Tag = varNavTag, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
+            Fill: =If(ThisItem.Tag = varNavTag, RGBA(237, 237, 237, 1), RGBA(0, 0, 0, 0))
+            FontWeight: =If(ThisItem.Tag = varNavTag, FontWeight.Semibold, FontWeight.Normal)
+            Height: =Parent.TemplateHeight
+            OnSelect: =Switch(ThisItem.Tag, "home", Navigate(scrHome, ScreenTransition.None), "emps", Navigate(scrEmployees, ScreenTransition.None), "cat", Navigate(scrCatalog, ScreenTransition.None), "recs", Navigate(scrRecords, ScreenTransition.None), "my", Navigate(scrMyTrainings, ScreenTransition.None), Navigate(scrReports, ScreenTransition.None))
+            PaddingLeft: =20
+            Size: =12
+            Text: =ThisItem.Icon & "  " & ThisItem.Title
+            Width: =Parent.TemplateWidth
+            ZIndex: =1
+
+    lblBackD As label:
+        Color: =RGBA(91, 95, 199, 1)
+        Height: =28
+        OnSelect: =Navigate(scrEmployees, ScreenTransition.None)
+        Size: =11
+        Text: ="← Späť na zoznam"
+        Width: =220
+        X: =250
+        Y: =12
+        ZIndex: =4
+
+    recHeadD As rectangle:
+        BorderColor: =RGBA(209, 209, 209, 1)
+        BorderThickness: =1
+        Fill: =RGBA(255, 255, 255, 1)
+        Height: =110
+        Width: =1086
+        X: =250
+        Y: =46
+        ZIndex: =4
+
+    lblInfoD As label:
+        Color: =RGBA(92, 92, 92, 1)
+        Height: =26
+        Size: =10
+        Text: |-
+            ="E-mail: " & varSelEmployee.Email & "      Manažér: " & If(varSelEmployee.ManagerEmail = "", "—", varSelEmployee.ManagerEmail) & "      Nástup: " & Text(varSelEmployee.HireDate, "d.m.yyyy")
+        Width: =1086
+        X: =250
+        Y: =162
+        ZIndex: =4
+
+    lblSecTrD As label:
+        FontWeight: =FontWeight.Semibold
+        Height: =28
+        Size: =13
+        Text: ="Školenia"
+        Width: =300
+        X: =250
+        Y: =196
+        ZIndex: =4
+
+    galRecsD As gallery.galleryVertical:
+        Height: =330
+        Items: =Sort(Filter(colRecords, EmployeeID = varSelEmployee.EmployeeID), CompletionDate, SortOrder.Descending)
+        TemplatePadding: =3
+        TemplateSize: =60
+        Width: =1086
+        X: =250
+        Y: =228
+        ZIndex: =4
+
+        recRecCardD As rectangle:
+            BorderColor: =RGBA(209, 209, 209, 1)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =Parent.TemplateHeight - 6
+            Width: =Parent.TemplateWidth
+            Y: =3
+            ZIndex: =1
+
+        lblRecTrD As label:
+            FontWeight: =FontWeight.Semibold
+            Height: =26
+            Size: =11
+            Text: =ThisItem.TrainingName
+            Width: =330
+            X: =16
+            Y: =8
+            ZIndex: =2
+
+        lblRecDatesD As label:
+            Color: =RGBA(92, 92, 92, 1)
+            Height: =20
+            Size: =9
+            Text: |-
+                =If(ThisItem.Pl, "Plán: ", "Absolvované: ") & Text(ThisItem.CompletionDate, "d.m.yyyy") & "   Platí do: " & If(IsBlank(ThisItem.ExpirationDate), "—", Text(ThisItem.ExpirationDate, "d.m.yyyy"))
+            Width: =360
+            X: =16
+            Y: =32
+            ZIndex: =2
+
+        lblRecPillD As label:
+            Align: =Align.Center
+            Color: =Switch(ThisItem.LiveStatus, "Valid", RGBA(14, 107, 14, 1), "Expiring", RGBA(122, 82, 0, 1), "Expired", RGBA(164, 38, 44, 1), RGBA(77, 77, 77, 1))
+            Fill: =Switch(ThisItem.LiveStatus, "Valid", RGBA(223, 246, 221, 1), "Expiring", RGBA(255, 244, 206, 1), "Expired", RGBA(253, 231, 233, 1), RGBA(237, 237, 237, 1))
+            FontWeight: =FontWeight.Semibold
+            Height: =26
+            Size: =10
+            Text: =LookUp(colStatuses, S = ThisItem.LiveStatus, L)
+            X: =870
+            Y: =15
+            ZIndex: =2
+
+        lblRecCertD As label:
+            Color: =RGBA(91, 95, 199, 1)
+            Height: =26
+            Size: =10
+            Text: =If(ThisItem.Cert = "", "", "PDF")
+            Width: =50
+            X: =1030
+            Y: =15
+            ZIndex: =2
+
+        lblRecEditD As label:
+            Color: =RGBA(91, 95, 199, 1)
+            FontWeight: =FontWeight.Semibold
+            Height: =26
+            OnSelect: =Set(varEditRecord, ThisItem); Set(varPickedEmp, LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID)); Set(varPickedTraining, LookUp(colTrainingsCatalog, TrainingName = ThisItem.TrainingName)); Navigate(scrAddRecord, ScreenTransition.None)
+            Size: =10
+            Text: ="Upraviť"
+            Visible: =varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email)
+            Width: =70
+            X: =950
+            Y: =15
+            ZIndex: =3
+
+    lblSecAuD As label:
+        FontWeight: =FontWeight.Semibold
+        Height: =28
+        Size: =13
+        Text: ="História zmien (AuditLog)"
+        Width: =400
+        X: =250
+        Y: =570
+        ZIndex: =4
+
+    galAuditD As gallery.galleryVertical:
+        Height: =150
+        Items: =Sort(Filter(colAudit, EntityID = varSelEmployee.EmployeeID), ChangedOn, SortOrder.Descending)
+        TemplatePadding: =2
+        TemplateSize: =36
+        Width: =1086
+        X: =250
+        Y: =602
+        ZIndex: =4
+
+        lblAuditRowD As label:
+            Color: =RGBA(92, 92, 92, 1)
+            Height: =Parent.TemplateHeight
+            Size: =9
+            Text: |-
+                =Text(ThisItem.ChangedOn, "d.m.yyyy hh:mm") & "  •  " & ThisItem.Action & "  •  " & ThisItem.Details & "  (" & ThisItem.ChangedBy & ")"
+            Width: =Parent.TemplateWidth
+            ZIndex: =1
+
+    lblInitD As label:
+        Align: =Align.Center
+        Color: =RGBA(255, 255, 255, 1)
+        Fill: =RGBA(91, 95, 199, 1)
+        FontWeight: =FontWeight.Bold
+        Height: =64
+        Size: =20
+        Text: =Upper(Left(varSelEmployee.FullName, 1)) & Upper(Left(Last(Split(varSelEmployee.FullName, " ")).Value, 1))
+        Width: =64
+        X: =270
+        Y: =68
+        ZIndex: =5
+
+    lblNameD As label:
+        FontWeight: =FontWeight.Bold
+        Height: =34
+        Size: =18
+        Text: =varSelEmployee.FullName
+        Width: =520
+        X: =352
+        Y: =58
+        ZIndex: =5
+
+    lblMetaD As label:
+        Color: =RGBA(92, 92, 92, 1)
+        Height: =24
+        Size: =11
+        Text: =varSelEmployee.Position & " · " & varSelEmployee.Department & " · " & varSelEmployee.EmployeeID
+        Width: =560
+        X: =352
+        Y: =92
+        ZIndex: =5
+
+    lblStatusD As label:
+        Align: =Align.Center
+        Color: =If(varSelEmployee.Status = "Active", RGBA(14, 107, 14, 1), RGBA(77, 77, 77, 1))
+        Fill: =If(varSelEmployee.Status = "Active", RGBA(223, 246, 221, 1), RGBA(237, 237, 237, 1))
+        FontWeight: =FontWeight.Semibold
+        Height: =26
+        Size: =10
+        Text: =If(varSelEmployee.Status = "Active", "Aktívny", "Neaktívny")
+        Width: =110
+        X: =352
+        Y: =118
+        ZIndex: =5
+
+    btnDeactD As button:
+        BorderColor: =RGBA(164, 38, 44, 1)
+        BorderThickness: =1
+        Color: =RGBA(164, 38, 44, 1)
+        Fill: =RGBA(255, 255, 255, 1)
+        FontWeight: =FontWeight.Semibold
+        Height: =36
+        HoverFill: =RGBA(253, 231, 233, 1)
+        OnSelect: |-
+            =Patch(colEmployees, LookUp(colEmployees, EmployeeID = varSelEmployee.EmployeeID), {Status: "Inactive"}); Set(varSelEmployee, LookUp(colEmployees, EmployeeID = varSelEmployee.EmployeeID)); Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "Employee", EntityID: varSelEmployee.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Zmena stavu zamestnanca " & varSelEmployee.FullName & " na Inactive (soft-delete)."}); Notify("Zamestnanec bol deaktivovaný (soft-delete, záznamy ostávajú).", NotificationType.Success, 2500)
+        Size: =11
+        Text: ="Deaktivovať"
+        Visible: =varRole = "admin" && varSelEmployee.Status = "Active"
+        Width: =140
+        X: =1176
+        Y: =82
+        ZIndex: =5
+
