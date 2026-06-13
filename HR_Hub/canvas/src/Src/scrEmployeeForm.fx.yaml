@@ -1,0 +1,385 @@
+scrEmployeeForm As screen:
+    Fill: =RGBA(243, 243, 243, 1)
+    OnVisible: |-
+        =Set(varNavTag, "emps");
+        Reset(txtEmpId); Reset(txtFullName); Reset(txtEmail); Reset(txtMgrEmail); Reset(txtHireDate); Reset(txtPhoto)
+
+    frameEmployeeForm As groupContainer.horizontalAutoLayoutContainer:
+        Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Stretch
+        Width: =Parent.Width
+        ZIndex: =1
+
+        navRailEmployeeForm As groupContainer.verticalAutoLayoutContainer:
+            BorderColor: =RGBA(225, 225, 225, 1)
+            Fill: =RGBA(255, 255, 255, 1)
+            FillPortions: =0
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =4
+            PaddingBottom: =12
+            PaddingLeft: =8
+            PaddingRight: =8
+            PaddingTop: =12
+            Width: =220
+            ZIndex: =1
+
+            navBrandEmployeeForm As label:
+                Color: =RGBA(91, 95, 199, 1)
+                FontWeight: =FontWeight.Bold
+                Height: =44
+                PaddingLeft: =12
+                Size: =16
+                Text: ="HR Hub"
+                ZIndex: =1
+
+            navGalEmployeeForm As gallery.galleryVertical:
+                Items: =Filter(colNav, varRole <> "employee" || EmpVisible)
+                Layout: =Layout.Vertical
+                ShowScrollbar: =false
+                TemplatePadding: =0
+                TemplateSize: =46
+                ZIndex: =2
+
+                navItemEmployeeForm As label:
+                    Color: =If(ThisItem.Tag = varNavTag, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
+                    Fill: =If(ThisItem.Tag = varNavTag, RGBA(237, 237, 237, 1), RGBA(0,0,0,0))
+                    FillPortions: =0
+                    FontWeight: =If(ThisItem.Tag = varNavTag, FontWeight.Semibold, FontWeight.Normal)
+                    Height: =Parent.TemplateHeight
+                    OnSelect: =Switch(ThisItem.Tag, "home", Navigate(scrHome, ScreenTransition.None), "emps", Navigate(scrEmployees, ScreenTransition.None), "cat", Navigate(scrCatalog, ScreenTransition.None), "recs", Navigate(scrRecords, ScreenTransition.None), "my", Navigate(scrMyTrainings, ScreenTransition.None), Navigate(scrReports, ScreenTransition.None))
+                    PaddingLeft: =12
+                    Size: =12
+                    Text: =ThisItem.Icon & "   " & ThisItem.Title
+                    Width: =Parent.TemplateWidth
+                    ZIndex: =1
+
+            navRoleEmployeeForm As label:
+                Color: =RGBA(97, 97, 97, 1)
+                Height: =26
+                PaddingLeft: =12
+                Size: =10
+                Text: |-
+                    ="Rola: " & Switch(varRole, "admin", "HR Admin", "manager", "Manažér", "Zamestnanec")
+                ZIndex: =3
+
+        mainEmployeeForm As groupContainer.verticalAutoLayoutContainer:
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =16
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =20
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =20
+            ZIndex: =2
+
+            hdrEmployeeForm As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =64
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =12
+                LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                ZIndex: =1
+
+                hdrTitleEmployeeForm As groupContainer.verticalAutoLayoutContainer:
+                    LayoutGap: =2
+                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                    ZIndex: =1
+
+                    hdrTitleLblEmployeeForm As label:
+                        FontWeight: =FontWeight.Bold
+                        Height: =30
+                        Size: =21
+                        Text: =If(IsBlank(varEditEmployee), "Nový zamestnanec", "Upraviť zamestnanca")
+                        ZIndex: =1
+
+                    hdrSubLblEmployeeForm As label:
+                        Color: =RGBA(97, 97, 97, 1)
+                        Height: =20
+                        Size: =11
+                        Text: ="Profil zamestnanca a zaradenie. Oddelenie a pozícia sa vyberajú z číselníkov."
+                        ZIndex: =2
+
+            empForm As groupContainer.verticalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.Start
+                FillPortions: =0
+                LayoutAlignItems: =LayoutAlignItems.Stretch
+                LayoutGap: =8
+                Width: =680
+                ZIndex: =2
+
+                empRow1 As groupContainer.horizontalAutoLayoutContainer:
+                    FillPortions: =0
+                    Height: =62
+                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                    LayoutGap: =12
+                    ZIndex: =1
+
+                    empIdCol As groupContainer.verticalAutoLayoutContainer:
+                        LayoutGap: =4
+                        ZIndex: =1
+
+                        lblEmpId As label:
+                            FontWeight: =FontWeight.Semibold
+                            Height: =22
+                            Size: =11
+                            Text: ="Osobné číslo (EmployeeID)"
+                            ZIndex: =1
+
+                        txtEmpId As text:
+                            BorderColor: =RGBA(225, 225, 225, 1)
+                            Color: =RGBA(36, 36, 36, 1)
+                            Default: =If(IsBlank(varEditEmployee), "", varEditEmployee.EmployeeID)
+                            DisplayMode: =If(IsBlank(varEditEmployee), DisplayMode.Edit, DisplayMode.View)
+                            HintText: ="napr. EMP0048"
+                            Size: =11
+                            ZIndex: =2
+
+                    empHireCol As groupContainer.verticalAutoLayoutContainer:
+                        LayoutGap: =4
+                        ZIndex: =2
+
+                        lblHire As label:
+                            FontWeight: =FontWeight.Semibold
+                            Height: =22
+                            Size: =11
+                            Text: ="Dátum nástupu (d.m.rrrr)"
+                            ZIndex: =1
+
+                        txtHireDate As text:
+                            BorderColor: =RGBA(225, 225, 225, 1)
+                            Color: =RGBA(36, 36, 36, 1)
+                            Default: =If(IsBlank(varEditEmployee), Text(Today(), "d.m.yyyy"), Text(varEditEmployee.HireDate, "d.m.yyyy"))
+                            Size: =11
+                            ZIndex: =2
+
+                lblFullName As label:
+                    FontWeight: =FontWeight.Semibold
+                    Height: =22
+                    Size: =11
+                    Text: ="Meno a priezvisko"
+                    ZIndex: =2
+
+                txtFullName As text:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    Color: =RGBA(36, 36, 36, 1)
+                    Default: =If(IsBlank(varEditEmployee), "", varEditEmployee.FullName)
+                    HintText: ="napr. Jana Nováková"
+                    Size: =11
+                    ZIndex: =3
+
+                lblEmail As label:
+                    FontWeight: =FontWeight.Semibold
+                    Height: =22
+                    Size: =11
+                    Text: ="E-mail"
+                    ZIndex: =4
+
+                txtEmail As text:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    Color: =RGBA(36, 36, 36, 1)
+                    Default: =If(IsBlank(varEditEmployee), "", varEditEmployee.Email)
+                    HintText: ="meno.priezvisko@firma.sk"
+                    Size: =11
+                    ZIndex: =5
+
+                lblMgr As label:
+                    FontWeight: =FontWeight.Semibold
+                    Height: =22
+                    Size: =11
+                    Text: ="E-mail manažéra (pre rolu Manažér)"
+                    ZIndex: =6
+
+                txtMgrEmail As text:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    Color: =RGBA(36, 36, 36, 1)
+                    Default: =If(IsBlank(varEditEmployee), "", varEditEmployee.ManagerEmail)
+                    HintText: ="manazer@firma.sk (prázdne = bez manažéra)"
+                    Size: =11
+                    ZIndex: =7
+
+                empRow2 As groupContainer.horizontalAutoLayoutContainer:
+                    FillPortions: =0
+                    Height: =180
+                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                    LayoutGap: =12
+                    ZIndex: =8
+
+                    deptPickCol As groupContainer.verticalAutoLayoutContainer:
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutGap: =4
+                        ZIndex: =1
+
+                        deptPickCap As label:
+                            FontWeight: =FontWeight.Semibold
+                            Height: =22
+                            Size: =11
+                            Text: ="Oddelenie"
+                            ZIndex: =1
+
+                        deptPickGal As gallery.galleryVertical:
+                            BorderColor: =RGBA(225, 225, 225, 1)
+                            BorderThickness: =1
+                            Fill: =RGBA(255, 255, 255, 1)
+                            FillPortions: =0
+                            Height: =150
+                            Items: =colDepartments
+                            Layout: =Layout.Vertical
+                            TemplatePadding: =0
+                            TemplateSize: =32
+                            ZIndex: =2
+
+                            deptPickRow As label:
+                                Color: =If(varEmpDept.ID = ThisItem.ID, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
+                                Fill: =If(varEmpDept.ID = ThisItem.ID, RGBA(237, 237, 237, 1), RGBA(255, 255, 255, 1))
+                                FillPortions: =0
+                                FontWeight: =If(varEmpDept.ID = ThisItem.ID, FontWeight.Semibold, FontWeight.Normal)
+                                Height: =Parent.TemplateHeight
+                                OnSelect: =Set(varEmpDept, ThisItem)
+                                PaddingLeft: =12
+                                Size: =10
+                                Text: =ThisItem.DepartmentName
+                                Width: =Parent.TemplateWidth
+                                ZIndex: =1
+
+                    posPickCol As groupContainer.verticalAutoLayoutContainer:
+                        LayoutAlignItems: =LayoutAlignItems.Stretch
+                        LayoutGap: =4
+                        ZIndex: =2
+
+                        posPickCap As label:
+                            FontWeight: =FontWeight.Semibold
+                            Height: =22
+                            Size: =11
+                            Text: ="Pozícia"
+                            ZIndex: =1
+
+                        posPickGal As gallery.galleryVertical:
+                            BorderColor: =RGBA(225, 225, 225, 1)
+                            BorderThickness: =1
+                            Fill: =RGBA(255, 255, 255, 1)
+                            FillPortions: =0
+                            Height: =150
+                            Items: =SortByColumns(colPositions, "PositionName")
+                            Layout: =Layout.Vertical
+                            TemplatePadding: =0
+                            TemplateSize: =32
+                            ZIndex: =2
+
+                            posPickRow As label:
+                                Color: =If(varEmpPos.ID = ThisItem.ID, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
+                                Fill: =If(varEmpPos.ID = ThisItem.ID, RGBA(237, 237, 237, 1), RGBA(255, 255, 255, 1))
+                                FillPortions: =0
+                                FontWeight: =If(varEmpPos.ID = ThisItem.ID, FontWeight.Semibold, FontWeight.Normal)
+                                Height: =Parent.TemplateHeight
+                                OnSelect: =Set(varEmpPos, ThisItem)
+                                PaddingLeft: =12
+                                Size: =10
+                                Text: =ThisItem.PositionName
+                                Width: =Parent.TemplateWidth
+                                ZIndex: =1
+
+                lblPhoto As label:
+                    FontWeight: =FontWeight.Semibold
+                    Height: =22
+                    Size: =11
+                    Text: ="Odkaz na fotografiu (PhotoUrl)"
+                    ZIndex: =9
+
+                txtPhoto As text:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    Color: =RGBA(36, 36, 36, 1)
+                    Default: =If(IsBlank(varEditEmployee), "", varEditEmployee.PhotoUrl)
+                    HintText: |-
+                        ="https://…/photo.jpg (nepovinné)"
+                    Size: =11
+                    ZIndex: =10
+
+                lblStatusCap As label:
+                    FontWeight: =FontWeight.Semibold
+                    Height: =22
+                    Size: =11
+                    Text: ="Stav"
+                    ZIndex: =11
+
+                statusRow As groupContainer.horizontalAutoLayoutContainer:
+                    FillPortions: =0
+                    Height: =40
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: =8
+                    ZIndex: =12
+
+                    btnStActive As button:
+                        BorderColor: =RGBA(225, 225, 225, 1)
+                        BorderThickness: =1
+                        Color: =If(varEmpStatus = "Active", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                        Fill: =If(varEmpStatus = "Active", RGBA(14, 107, 14, 1), RGBA(255, 255, 255, 1))
+                        Height: =34
+                        HoverFill: =RGBA(237, 237, 237, 1)
+                        OnSelect: =Set(varEmpStatus, "Active")
+                        RadiusBottomLeft: =17
+                        RadiusBottomRight: =17
+                        RadiusTopLeft: =17
+                        RadiusTopRight: =17
+                        Size: =10
+                        Text: ="Aktívny"
+                        Width: =130
+                        ZIndex: =1
+
+                    btnStInactive As button:
+                        BorderColor: =RGBA(225, 225, 225, 1)
+                        BorderThickness: =1
+                        Color: =If(varEmpStatus = "Inactive", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                        Fill: =If(varEmpStatus = "Inactive", RGBA(77, 77, 77, 1), RGBA(255, 255, 255, 1))
+                        Height: =34
+                        HoverFill: =RGBA(237, 237, 237, 1)
+                        OnSelect: =Set(varEmpStatus, "Inactive")
+                        RadiusBottomLeft: =17
+                        RadiusBottomRight: =17
+                        RadiusTopLeft: =17
+                        RadiusTopRight: =17
+                        Size: =10
+                        Text: ="Neaktívny"
+                        Width: =130
+                        ZIndex: =2
+
+                empBtnRow As groupContainer.horizontalAutoLayoutContainer:
+                    FillPortions: =0
+                    Height: =48
+                    LayoutGap: =10
+                    LayoutJustifyContent: =LayoutJustifyContent.End
+                    PaddingTop: =8
+                    ZIndex: =13
+
+                    btnCancelEmp As button:
+                        BorderColor: =RGBA(225, 225, 225, 1)
+                        BorderThickness: =1
+                        Color: =RGBA(36, 36, 36, 1)
+                        Fill: =RGBA(255, 255, 255, 1)
+                        HoverFill: =RGBA(237, 237, 237, 1)
+                        OnSelect: =Navigate(scrEmployees, ScreenTransition.None)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="Zrušiť"
+                        Width: =120
+                        ZIndex: =1
+
+                    btnSaveEmp As button:
+                        BorderColor: =RGBA(91, 95, 199, 1)
+                        Fill: =RGBA(91, 95, 199, 1)
+                        FontWeight: =FontWeight.Semibold
+                        HoverFill: =RGBA(79, 82, 178, 1)
+                        OnSelect: |-
+                            =If(IsBlank(varEditEmployee) && IsBlank(txtEmpId.Text), Notify("Zadajte osobné číslo (EmployeeID).", NotificationType.Error, 2500), IsBlank(varEditEmployee) && !IsBlank(LookUp(colEmployees, EmployeeID = txtEmpId.Text)), Notify("Zamestnanec s týmto EmployeeID už existuje.", NotificationType.Error, 3000), IsBlank(txtFullName.Text), Notify("Zadajte meno a priezvisko.", NotificationType.Error, 2500), !IsMatch(txtEmail.Text, Match.Email), Notify("Zadajte platný e-mail.", NotificationType.Error, 2500), IsBlank(varEmpDept) || IsBlank(varEmpPos), Notify("Vyberte oddelenie aj pozíciu.", NotificationType.Error, 2500), IsError(DateValue(txtHireDate.Text)), Notify("Zadajte platný dátum nástupu (d.m.rrrr).", NotificationType.Error, 2500), If(IsBlank(varEditEmployee), Collect(colEmployees, {ID: Max(colEmployees, ID) + 1, EmployeeID: txtEmpId.Text, FullName: txtFullName.Text, Email: txtEmail.Text, Department: varEmpDept.DepartmentName, DepartmentCode: varEmpDept.DepartmentCode, Position: varEmpPos.PositionName, ManagerEmail: txtMgrEmail.Text, HireDate: DateValue(txtHireDate.Text), Status: varEmpStatus, PhotoUrl: txtPhoto.Text}); /* LIVE: Patch(Employees, Defaults(Employees), {Title: txtFullName.Text, EmployeeID: txtEmpId.Text, Email: txtEmail.Text, Department: {Id: varEmpDept.ID, Value: varEmpDept.DepartmentName}, Position: {Id: varEmpPos.ID, Value: varEmpPos.PositionName}, ManagerEmail: txtMgrEmail.Text, HireDate: DateValue(txtHireDate.Text), Status: {Value: varEmpStatus}, PhotoUrl: txtPhoto.Text}); */ Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Create", EntityType: "Employee", EntityID: txtEmpId.Text, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Založený profil zamestnanca " & txtFullName.Text & " (" & txtEmpId.Text & ")."}), Patch(colEmployees, LookUp(colEmployees, EmployeeID = varEditEmployee.EmployeeID), {FullName: txtFullName.Text, Email: txtEmail.Text, Department: varEmpDept.DepartmentName, DepartmentCode: varEmpDept.DepartmentCode, Position: varEmpPos.PositionName, ManagerEmail: txtMgrEmail.Text, HireDate: DateValue(txtHireDate.Text), Status: varEmpStatus, PhotoUrl: txtPhoto.Text}); /* LIVE: Patch(Employees, LookUp(Employees, EmployeeID = varEditEmployee.EmployeeID), {Title: txtFullName.Text, Email: txtEmail.Text, Department: {Id: varEmpDept.ID, Value: varEmpDept.DepartmentName}, Position: {Id: varEmpPos.ID, Value: varEmpPos.PositionName}, ManagerEmail: txtMgrEmail.Text, HireDate: DateValue(txtHireDate.Text), Status: {Value: varEmpStatus}, PhotoUrl: txtPhoto.Text}); */ Set(varSelEmployee, LookUp(colEmployees, EmployeeID = varEditEmployee.EmployeeID)); Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "Employee", EntityID: varEditEmployee.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Upravený profil zamestnanca " & txtFullName.Text}) ); Notify("Zamestnanec bol uložený.", NotificationType.Success, 2000); Navigate(scrEmployees, ScreenTransition.None))
+                        PressedFill: =RGBA(79, 82, 178, 1)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: =If(IsBlank(varEditEmployee), "Vytvoriť zamestnanca", "Uložiť zmeny")
+                        Width: =190
+                        ZIndex: =2
+

@@ -97,6 +97,31 @@ scrEmployees As screen:
                         Text: ="Vyhľadávanie podľa začiatku mena alebo osobného čísla (delegovateľné StartsWith)."
                         ZIndex: =2
 
+                hdrActionsEmployees As groupContainer.horizontalAutoLayoutContainer:
+                    FillPortions: =0
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: =8
+                    LayoutJustifyContent: =LayoutJustifyContent.End
+                    Width: =200
+                    ZIndex: =2
+
+                    btnNewEmp As button:
+                        BorderColor: =RGBA(91, 95, 199, 1)
+                        Fill: =RGBA(91, 95, 199, 1)
+                        FontWeight: =FontWeight.Semibold
+                        HoverFill: =RGBA(79, 82, 178, 1)
+                        OnSelect: =Set(varEditEmployee, Blank()); Set(varEmpDept, Blank()); Set(varEmpPos, Blank()); Set(varEmpStatus, "Active"); Navigate(scrEmployeeForm, ScreenTransition.None)
+                        PressedFill: =RGBA(79, 82, 178, 1)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="+ Nový zamestnanec"
+                        Visible: =varRole = "admin"
+                        Width: =190
+                        ZIndex: =1
+
             toolbarEmp As groupContainer.horizontalAutoLayoutContainer:
                 FillPortions: =0
                 Height: =44

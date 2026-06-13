@@ -110,7 +110,7 @@ scrRecords As screen:
                         Fill: =RGBA(91, 95, 199, 1)
                         FontWeight: =FontWeight.Semibold
                         HoverFill: =RGBA(79, 82, 178, 1)
-                        OnSelect: =Set(varEditRecord, Blank()); Set(varPickedEmp, Blank()); Set(varPickedTraining, Blank()); Navigate(scrAddRecord, ScreenTransition.None)
+                        OnSelect: =Set(varEditRecord, Blank()); Set(varPickedEmp, Blank()); Set(varPickedTraining, Blank()); Clear(colPickedEmps); Navigate(scrAddRecord, ScreenTransition.None)
                         PressedFill: =RGBA(79, 82, 178, 1)
                         RadiusBottomLeft: =6
                         RadiusBottomRight: =6
@@ -280,18 +280,57 @@ scrRecords As screen:
                     Y: =Parent.TemplateHeight/2 - 13
                     ZIndex: =7
 
+                recDoneRec As label:
+                    Align: =Align.Center
+                    Color: =RGBA(14, 107, 14, 1)
+                    FillPortions: =0
+                    FontWeight: =FontWeight.Semibold
+                    Height: =26
+                    OnSelect: |-
+                        =Set(varTmpId, ThisItem.ID); Set(varTmpEmp, ThisItem.EmployeeID); Set(varTmpTr, ThisItem.TrainingName); Patch(colRecordsBase, LookUp(colRecordsBase, ID = varTmpId), {Off: 0, Pl: false}); /* LIVE: Patch(TrainingRecords, LookUp(TrainingRecords, ID = varTmpId), {CompletionDate: Today(), Status: {Value: "Valid"}}); */ Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "TrainingRecord", EntityID: varTmpEmp, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Označené ako absolvované (dnes): " & varTmpTr}); ClearCollect(colRecords,
+                            AddColumns(
+                                AddColumns(
+                                    AddColumns(colRecordsBase,
+                                        "EmployeeID", Emp,
+                                        "EmployeeName", LookUp(colEmployees, EmployeeID = Emp, FullName),
+                                        "DepartmentCode", LookUp(colEmployees, EmployeeID = Emp, DepartmentCode),
+                                        "ManagerEmail", LookUp(colEmployees, EmployeeID = Emp, ManagerEmail),
+                                        "TrainingName", LookUp(colTrainingsCatalog, ID = Tr, TrainingName),
+                                        "TrainingType", LookUp(colTrainingsCatalog, ID = Tr, TrainingType),
+                                        "ValidityMonths", LookUp(colTrainingsCatalog, ID = Tr, ValidityMonths),
+                                        "CompletionDate", DateAdd(Today(), Off, TimeUnit.Days)
+                                    ),
+                                    "ExpirationDate", If(Pl || ValidityMonths = 0, Blank(), DateAdd(CompletionDate, ValidityMonths, TimeUnit.Months))
+                                ),
+                                "LiveStatus", If(
+                                    Pl, "Planned",
+                                    IsBlank(ExpirationDate), "Valid",
+                                    ExpirationDate < Today(), "Expired",
+                                    ExpirationDate <= DateAdd(Today(), 30, TimeUnit.Days), "Expiring",
+                                    "Valid"
+                                )
+                            )
+                        ); Notify("Školenie označené ako absolvované dnes.", NotificationType.Success, 2000)
+                    Size: =10
+                    Text: ="✓ Absolvované"
+                    Visible: =ThisItem.Pl && (varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email))
+                    Width: =140
+                    X: =Parent.TemplateWidth - 480
+                    Y: =Parent.TemplateHeight/2 - 13
+                    ZIndex: =8
+
                 recEditRec As label:
                     Align: =Align.Center
                     Color: =RGBA(91, 95, 199, 1)
                     FillPortions: =0
                     FontWeight: =FontWeight.Semibold
                     Height: =26
-                    OnSelect: =Set(varEditRecord, ThisItem); Set(varPickedEmp, LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID)); Set(varPickedTraining, LookUp(colTrainingsCatalog, ID = ThisItem.Tr)); Navigate(scrAddRecord, ScreenTransition.None)
+                    OnSelect: =Set(varEditRecord, ThisItem); Set(varPickedEmp, LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID)); Set(varPickedTraining, LookUp(colTrainingsCatalog, ID = ThisItem.Tr)); Clear(colPickedEmps); Navigate(scrAddRecord, ScreenTransition.None)
                     Size: =10
                     Text: ="Upraviť"
                     Visible: =varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email)
                     Width: =90
                     X: =Parent.TemplateWidth - 100
                     Y: =Parent.TemplateHeight/2 - 13
-                    ZIndex: =8
+                    ZIndex: =9
 

@@ -4,6 +4,16 @@ Canvas verzia HR Hub. **`HRHub.msapp`** je hotový balíček, adresár **`src/`*
 sú rozbalené PASopa zdroje (`Src/*.fx.yaml` + metadáta). Generuje sa skriptom
 `../scripts/build_canvas.py`.
 
+**9 obrazoviek:** Domov, Zamestnanci, Detail zamestnanca, **Nový/Upraviť
+zamestnanec** (`scrEmployeeForm` – plný CRUD profilu s číselníkmi Oddelenie/
+Pozícia, validáciou e-mailu a unikátnosti EmployeeID, Audit + LIVE Patch),
+Katalóg školení, Záznamy školení, Pridať záznam, Moje školenia, Reporty.
+
+**Nice-to-have:** hromadné priradenie školenia viacerým zamestnancom naraz
+(multi-select combobox → `colPickedEmps`), jednoklikové **„✓ Absolvované"** na
+naplánovaných záznamoch (Planned → Valid k dnešku), pole na odkaz certifikátu
+v záznamoch.
+
 ## Import do Power Apps
 
 1. https://make.powerapps.com → **Apps** → **Upload a canvas app** → `HRHub.msapp`.
@@ -68,6 +78,9 @@ pripravená. Postup:
    ClearCollect(colDepartments,
        ShowColumns(AddColumns(Departments, "DepartmentName", Title),
                    "ID", "DepartmentName", "DepartmentCode", "Manager"));
+   ClearCollect(colPositions,
+       ShowColumns(AddColumns(Positions, "PositionName", Title, "Level", Level.Value),
+                   "ID", "PositionName", "Level"));
    ClearCollect(colTrainingsCatalog,
        ShowColumns(AddColumns(TrainingsCatalog,
                        "TrainingName", Title, "TrainingType", TrainingType.Value),
@@ -80,7 +93,7 @@ pripravená. Postup:
              Department: e.Department.Value,
              DepartmentCode: LookUp(colDepartments, DepartmentName = e.Department.Value, DepartmentCode),
              Position: e.Position.Value, ManagerEmail: e.ManagerEmail,
-             HireDate: e.HireDate, Status: e.Status.Value }));
+             HireDate: e.HireDate, Status: e.Status.Value, PhotoUrl: e.PhotoUrl }));
    ```
 
 3. **`colRecords`** v LIVE režime načítaj priamo s reálnymi dátumami (demo

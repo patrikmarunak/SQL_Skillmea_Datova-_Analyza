@@ -219,7 +219,20 @@ CAN_EDIT = ('varRole = "admin" || (varRole = "manager" && '
 EDIT_SEL = ('Set(varEditRecord, ThisItem); '
             'Set(varPickedEmp, LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID)); '
             'Set(varPickedTraining, LookUp(colTrainingsCatalog, ID = ThisItem.Tr)); '
+            'Clear(colPickedEmps); '
             'Navigate(scrAddRecord, ScreenTransition.None)')
+
+# Jednoklikové „Označiť ako absolvované" – cez temp premenné, lebo po REFRESH-i
+# (ClearCollect colRecords) by ThisItem prestal platiť.
+MARK_DONE = (
+    'Set(varTmpId, ThisItem.ID); Set(varTmpEmp, ThisItem.EmployeeID); Set(varTmpTr, ThisItem.TrainingName); '
+    'Patch(colRecordsBase, LookUp(colRecordsBase, ID = varTmpId), {Off: 0, Pl: false}); '
+    '/* LIVE: Patch(TrainingRecords, LookUp(TrainingRecords, ID = varTmpId), {CompletionDate: Today(), Status: {Value: "Valid"}}); */ '
+    'Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "TrainingRecord", '
+    'EntityID: varTmpEmp, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), '
+    'Details: "Označené ako absolvované (dnes): " & varTmpTr}); '
+    + REFRESH_RECORDS + '; '
+    'Notify("Školenie označené ako absolvované dnes.", NotificationType.Success, 2000)')
 
 
 def record_row(prefix, show_emp):
@@ -258,6 +271,10 @@ def record_row(prefix, show_emp):
         label(f"recCert{prefix}", 'If(ThisItem.Cert = "", "", "PDF")', {
             "Color": PURPLE, "Size": "10", "Height": "26", "Align": "Align.Center",
             "Width": "60", "X": "Parent.TemplateWidth - 168", "Y": "Parent.TemplateHeight/2 - 13"}),
+        label(f"recDone{prefix}", '"✓ Absolvované"', {
+            "Color": G_FG, "FontWeight": "FontWeight.Semibold", "Size": "10", "Height": "26", "Align": "Align.Center",
+            "Width": "140", "X": "Parent.TemplateWidth - 480", "Y": "Parent.TemplateHeight/2 - 13",
+            "Visible": "ThisItem.Pl && (" + CAN_EDIT + ")", "OnSelect": MARK_DONE}),
         label(f"recEdit{prefix}", '"Upraviť"', {
             "Color": PURPLE, "FontWeight": "FontWeight.Semibold", "Size": "10", "Height": "26",
             "Align": "Align.Center", "Width": "90", "X": "Parent.TemplateWidth - 100",
@@ -287,6 +304,7 @@ def build_onstart():
     recs = _read("TrainingRecords.csv")
     trains = _read("TrainingsCatalog.csv")
     deps = _read("Departments.csv")
+    pos = _read("Positions.csv")
     by_id = {e["EmployeeID"]: e for e in emps}
 
     # výber demo zamestnancov: HR admin + OPS mgr&podriadení + IT mgr&pár + HR podriadení + 1 neaktívny
@@ -308,11 +326,14 @@ def build_onstart():
             f'Email:{_fx(e["Email"])}, Department:{_fx(dep_name[e["Department"]])}, '
             f'DepartmentCode:{_fx(e["Department"])}, Position:{_fx(e["Position"])}, '
             f'ManagerEmail:{_fx(e["ManagerEmail"])}, HireDate:DateAdd(Today(), {_offset(e["HireDate"])}, TimeUnit.Days), '
-            f'Status:{_fx(e["Status"])}}}')
+            f'Status:{_fx(e["Status"])}, PhotoUrl:{_fx(e["PhotoUrl"])}}}')
 
     dr = [f'{{ID:{i+1}, DepartmentName:{_fx(d["DepartmentName"])}, '
           f'DepartmentCode:{_fx(d["DepartmentCode"])}, Manager:{_fx(d["Manager"])}}}'
           for i, d in enumerate(deps)]
+
+    pr = [f'{{ID:{i+1}, PositionName:{_fx(p["PositionName"])}, Level:{_fx(p["Level"])}}}'
+          for i, p in enumerate(pos)]
 
     tr = [f'{{ID:{i+1}, TrainingName:{_fx(t["TrainingName"])}, TrainingType:{_fx(t["TrainingType"])}, '
           f'ValidityMonths:{t["ValidityMonths"]}, Provider:{_fx(t["Provider"])}}}'
@@ -340,6 +361,7 @@ def build_onstart():
 // === LIVE REŽIM (po pridaní SharePoint listov ako dátových zdrojov v Studiu) ===
 // Nahraď DEMO blok nižšie týmto (mapuje interné stĺpce listov na kolekcie):
 //   ClearCollect(colDepartments, ShowColumns(Departments, "ID","DepartmentName","DepartmentCode","Manager"));
+//   ClearCollect(colPositions, ShowColumns(Positions, "ID","PositionName","Level"));
 //   ClearCollect(colTrainingsCatalog, ShowColumns(TrainingsCatalog, "ID","TrainingName","TrainingType","ValidityMonths","Provider"));
 //   ClearCollect(colEmployees, AddColumns(Employees, "DepartmentCode", Department.Value /* lookup */, ...));
 //   ClearCollect(colRecordsBase, AddColumns(TrainingRecords, "Emp", Employee.EmployeeID, "Tr", Training.ID, ...));
@@ -362,6 +384,7 @@ ClearCollect(colStatuses,
 
 // === DEMO ZDROJ (v LIVE režime zmaž celý tento blok) ===
 {block("colDepartments", dr)}
+{block("colPositions", pr)}
 {block("colTrainingsCatalog", tr)}
 {block("colEmployees", er)}
 {block("colRecordsBase", rr)}
@@ -386,7 +409,12 @@ Set(varEditRecord, Blank());
 Set(varPickedEmp, Blank());
 Set(varPickedTraining, Blank());
 Set(varTab, "trainings");
-Set(varCatType, "Mandatory")"""
+Set(varCatType, "Mandatory");
+Set(varEditEmployee, Blank());
+Set(varEmpDept, Blank());
+Set(varEmpPos, Blank());
+Set(varEmpStatus, "Active");
+Clear(colPickedEmps)"""
 
     onstart_body = "\n".join((" " * 8 + ("=" + ln if i == 0 else ln))
                              for i, ln in enumerate(onstart.split("\n")))
@@ -577,8 +605,14 @@ def build_screens():
             "OnSelect": "Set(varSelEmployee, galEmps.Selected); Set(varTab, \"trainings\"); Navigate(scrEmployeeDetail, ScreenTransition.None)"},
           emp_row),
     ]
+    emp_actions = (200, [
+        btn("btnNewEmp", '"+ Nový zamestnanec"', {
+            "Width": "190", "Visible": 'varRole = "admin"',
+            "OnSelect": ('Set(varEditEmployee, Blank()); Set(varEmpDept, Blank()); Set(varEmpPos, Blank()); '
+                         'Set(varEmpStatus, "Active"); Navigate(scrEmployeeForm, ScreenTransition.None)')},
+            primary=True)])
     out["scrEmployees"] = screen(
-        "scrEmployees", "emps", emp_body,
+        "scrEmployees", "emps", emp_body, actions=emp_actions,
         title_text='"Zamestnanci"',
         subtitle='"Vyhľadávanie podľa začiatku mena alebo osobného čísla (delegovateľné StartsWith)."')
 
@@ -604,10 +638,17 @@ def build_screens_rest(out):
              'Patch(AuditLog, Defaults(AuditLog), {Title:"Update", EntityType:{Value:"Employee"}, EntityID: varSelEmployee.EmployeeID, ChangedBy: User().Email, ChangedOn: Now(), Details:"soft-delete"}); */ '
              'Notify("Zamestnanec bol deaktivovaný (soft-delete, záznamy ostávajú).", NotificationType.Success, 2500)')
 
-    detail_actions = (160, [
+    edit_emp_sel = ('Set(varEditEmployee, varSelEmployee); '
+                    'Set(varEmpDept, LookUp(colDepartments, DepartmentName = varSelEmployee.Department)); '
+                    'Set(varEmpPos, LookUp(colPositions, PositionName = varSelEmployee.Position)); '
+                    'Set(varEmpStatus, varSelEmployee.Status); '
+                    'Navigate(scrEmployeeForm, ScreenTransition.None)')
+    detail_actions = (290, [
+        btn("btnEditDetail", '"Upraviť profil"', {
+            "Width": "130", "Visible": 'varRole = "admin"', "OnSelect": edit_emp_sel}, primary=True),
         btn("btnDeactDetail", '"Deaktivovať"', {
             "Color": R_FG, "Fill": WHITE, "BorderColor": R_FG, "BorderThickness": "1", "HoverFill": R_BG,
-            "FontWeight": "FontWeight.Semibold", "Width": "150",
+            "FontWeight": "FontWeight.Semibold", "Width": "140",
             "Visible": 'varRole = "admin" && varSelEmployee.Status = "Active"',
             "OnSelect": deact})])
 
@@ -762,7 +803,8 @@ def build_screens_rest(out):
         btn("btnAddRec", '"+ Pridať záznam"', {
             "Width": "180",
             "OnSelect": ('Set(varEditRecord, Blank()); Set(varPickedEmp, Blank()); '
-                         'Set(varPickedTraining, Blank()); Navigate(scrAddRecord, ScreenTransition.None)')},
+                         'Set(varPickedTraining, Blank()); Clear(colPickedEmps); '
+                         'Navigate(scrAddRecord, ScreenTransition.None)')},
             primary=True)])
     rec_body = [
         gc_h("toolbarRec", {"FillPortions": "0", "Height": "44", "LayoutGap": "8",
@@ -798,6 +840,7 @@ def build_screens_rest(out):
         subtitle='If(varRole = "manager", "Záznamy vašich priamych podriadených.", "Všetky záznamy školení vo firme.")')
 
     _build_add_record(out)
+    _build_employee_form(out)
     _build_my_trainings(out)
     _build_reports(out)
     return out
@@ -808,8 +851,11 @@ def _build_add_record(out):
                    'chkPlanned.Value, "— (doplní sa po absolvovaní)", '
                    'varPickedTraining.ValidityMonths = 0, "neobmedzená", '
                    'Text(DateAdd(DateValue(txtDateAdd.Text), varPickedTraining.ValidityMonths, TimeUnit.Months), "d.m.yyyy"))')
-    save = ('If(IsBlank(varPickedEmp) || IsBlank(varPickedTraining), '
-            'Notify("Vyberte zamestnanca aj školenie.", NotificationType.Error, 2500), '
+    save = ('If('
+            # --- validácia ---
+            'IsBlank(varEditRecord) && CountRows(colPickedEmps) = 0, '
+            'Notify("Vyberte aspoň jedného zamestnanca.", NotificationType.Error, 2500), '
+            'IsBlank(varPickedTraining), Notify("Vyberte školenie.", NotificationType.Error, 2500), '
             'IsError(DateValue(txtDateAdd.Text)), '
             'Notify("Zadajte platný dátum v tvare d.m.rrrr.", NotificationType.Error, 2500), '
             '!chkPlanned.Value && DateValue(txtDateAdd.Text) > Today(), '
@@ -817,39 +863,62 @@ def _build_add_record(out):
             'chkPlanned.Value && DateValue(txtDateAdd.Text) <= Today(), '
             'Notify("Plánovaný termín musí byť v budúcnosti.", NotificationType.Error, 2500), '
             'If(IsBlank(varEditRecord), '
-            # nový – do colRecordsBase
-            'Collect(colRecordsBase, {ID: Max(colRecordsBase, ID) + 1, Emp: varPickedEmp.EmployeeID, '
-            'Tr: varPickedTraining.ID, Off: DateDiff(Today(), DateValue(txtDateAdd.Text), TimeUnit.Days), '
-            'Pl: chkPlanned.Value, Cert: "", Notes: txtNotesAdd.Text}); '
-            '/* LIVE: Patch(TrainingRecords, Defaults(TrainingRecords), {Employee: {Id: varPickedEmp.ID, Value: varPickedEmp.FullName}, '
-            'Training: {Id: varPickedTraining.ID, Value: varPickedTraining.TrainingName}, '
-            'CompletionDate: DateValue(txtDateAdd.Text), Status: {Value: If(chkPlanned.Value, "Planned", "Valid")}}); */ '
-            'Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Create", EntityType: "TrainingRecord", '
-            'EntityID: varPickedEmp.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), '
-            'Details: "Pridaný záznam školenia " & varPickedTraining.TrainingName & " pre " & varPickedEmp.FullName}), '
-            # úprava existujúceho
+            # --- HROMADNÉ vytvorenie pre všetkých vybraných (Sequence+Index = bezpečné naprieč verziami) ---
+            'Collect(colRecordsBase, ForAll(Sequence(CountRows(colPickedEmps)) As s, '
+            'With({pe: Index(colPickedEmps, s.Value)}, '
+            '{ID: Max(colRecordsBase, ID) + s.Value, Emp: pe.EmployeeID, Tr: varPickedTraining.ID, '
+            'Off: DateDiff(Today(), DateValue(txtDateAdd.Text), TimeUnit.Days), Pl: chkPlanned.Value, '
+            'Cert: txtCertLink.Text, Notes: txtNotesAdd.Text}))); '
+            '/* LIVE: ForAll(colPickedEmps As pe, Patch(TrainingRecords, Defaults(TrainingRecords), '
+            '{Employee: {Id: pe.ID, Value: pe.FullName}, Training: {Id: varPickedTraining.ID, Value: varPickedTraining.TrainingName}, '
+            'CompletionDate: DateValue(txtDateAdd.Text), CertificateLink: txtCertLink.Text, '
+            'Status: {Value: If(chkPlanned.Value, "Planned", "Valid")}})); */ '
+            'Collect(colAudit, ForAll(Sequence(CountRows(colPickedEmps)) As s, '
+            'With({pe: Index(colPickedEmps, s.Value)}, '
+            '{ID: Max(colAudit, ID) + s.Value, Action: "Create", EntityType: "TrainingRecord", EntityID: pe.EmployeeID, '
+            'ChangedBy: varCurrentUser.Email, ChangedOn: Now(), '
+            'Details: "Pridaný záznam školenia " & varPickedTraining.TrainingName & " pre " & pe.FullName}))), '
+            # --- úprava jedného existujúceho ---
             'Patch(colRecordsBase, LookUp(colRecordsBase, ID = varEditRecord.ID), '
-            '{Off: DateDiff(Today(), DateValue(txtDateAdd.Text), TimeUnit.Days), Pl: chkPlanned.Value, Notes: txtNotesAdd.Text}); '
-            '/* LIVE: Patch(TrainingRecords, LookUp(TrainingRecords, ID = varEditRecord.ID), {CompletionDate: DateValue(txtDateAdd.Text)}); */ '
+            '{Off: DateDiff(Today(), DateValue(txtDateAdd.Text), TimeUnit.Days), Pl: chkPlanned.Value, '
+            'Cert: txtCertLink.Text, Notes: txtNotesAdd.Text}); '
+            '/* LIVE: Patch(TrainingRecords, LookUp(TrainingRecords, ID = varEditRecord.ID), '
+            '{CompletionDate: DateValue(txtDateAdd.Text), CertificateLink: txtCertLink.Text, '
+            'Status: {Value: If(chkPlanned.Value, "Planned", "Valid")}}); */ '
             'Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "TrainingRecord", '
             'EntityID: varEditRecord.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), '
             'Details: "Upravený záznam školenia " & varEditRecord.TrainingName}) '
             '); ' + REFRESH_RECORDS + '; '  # refresh dotknutej kolekcie
-            'Notify("Záznam školenia bol uložený.", NotificationType.Success, 2000); '
-            'Navigate(scrRecords, ScreenTransition.None))')
+            'Notify(If(IsBlank(varEditRecord), "Uložených " & CountRows(colPickedEmps) & " záznamov školenia.", '
+            '"Záznam školenia bol uložený."), NotificationType.Success, 2000); '
+            'Clear(colPickedEmps); Navigate(scrRecords, ScreenTransition.None))')
 
+    # multi-select našeptávač: klik pridá zamestnanca do colPickedEmps (bez duplicít)
     emp_sug = C("galEmpSug", "gallery.galleryVertical", {
         "FillPortions": "0", "Height": "150", "Layout": "Layout.Vertical",
         "Fill": WHITE, "BorderColor": BORDER, "BorderThickness": "1",
-        "Items": ('FirstN(Filter(colEmployees, Status = "Active" '
-                  '&& (varRole <> "manager" || ManagerEmail = varCurrentUser.Email) '
-                  '&& (StartsWith(FullName, txtEmpSearch.Text) || StartsWith(EmployeeID, txtEmpSearch.Text))), 5)'),
-        "Visible": '!IsBlank(txtEmpSearch.Text) && (IsBlank(varPickedEmp) || txtEmpSearch.Text <> varPickedEmp.FullName)',
-        "TemplatePadding": "0", "TemplateSize": "36", "ShowScrollbar": "false"},
+        "Items": ('FirstN(Filter(colEmployees As e, e.Status = "Active" '
+                  '&& (varRole <> "manager" || e.ManagerEmail = varCurrentUser.Email) '
+                  '&& IsBlank(LookUp(colPickedEmps, EmployeeID = e.EmployeeID)) '
+                  '&& (StartsWith(e.FullName, txtEmpSearch.Text) || StartsWith(e.EmployeeID, txtEmpSearch.Text))), 6)'),
+        "Visible": 'IsBlank(varEditRecord) && !IsBlank(txtEmpSearch.Text)',
+        "TemplatePadding": "0", "TemplateSize": "36", "ShowScrollbar": "true"},
       [label("empSugRow", 'ThisItem.FullName & "  (" & ThisItem.EmployeeID & ")"', {
           "Fill": WHITE, "Height": "Parent.TemplateHeight", "Width": "Parent.TemplateWidth", "PaddingLeft": "12",
           "Size": "10", "VerticalAlign": "VerticalAlign.Middle",
-          "OnSelect": "Set(varPickedEmp, ThisItem); Reset(txtEmpSearch)"})])
+          "OnSelect": ("If(IsBlank(LookUp(colPickedEmps, EmployeeID = ThisItem.EmployeeID)), "
+                       "Collect(colPickedEmps, ThisItem)); Reset(txtEmpSearch)")})])
+
+    # chipy už vybraných zamestnancov (len v režime vytvárania), klik = odobrať
+    picked_chips = C("galPickedEmps", "gallery.galleryHorizontal", {
+        "FillPortions": "0", "Height": "40", "Layout": "Layout.Horizontal", "Items": "colPickedEmps",
+        "TemplatePadding": "0", "TemplateSize": "190", "ShowScrollbar": "false",
+        "Visible": "IsBlank(varEditRecord) && CountRows(colPickedEmps) > 0"},
+      [btn("galPickedEmpsBtn", 'ThisItem.FullName & "   ✕"', {
+          "Color": WHITE, "Fill": PURPLE, "BorderColor": PURPLE, "BorderThickness": "1", "Height": "32", "Size": "9",
+          "RadiusTopLeft": "16", "RadiusTopRight": "16", "RadiusBottomLeft": "16", "RadiusBottomRight": "16",
+          "Width": "Parent.TemplateWidth - 6", "X": "0", "Y": "4",
+          "OnSelect": "RemoveIf(colPickedEmps, EmployeeID = ThisItem.EmployeeID)"})])
 
     train_pick = C("galTrainPick", "gallery.galleryVertical", {
         "FillPortions": "0", "Height": "150", "Layout": "Layout.Vertical",
@@ -867,14 +936,16 @@ def _build_add_record(out):
     form = gc_v("addForm", {
         "FillPortions": "0", "Width": "640", "AlignInContainer": "AlignInContainer.Start",
         "LayoutGap": "8", "LayoutAlignItems": "LayoutAlignItems.Stretch"}, [
-        label("lblEmpCap", '"Zamestnanec"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+        label("lblEmpCap",
+              'If(IsBlank(varEditRecord), "Zamestnanci (môžeš vybrať viacerých)", "Zamestnanec")',
+              {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
         textinput("txtEmpSearch", {
-            "Default": 'If(IsBlank(varPickedEmp), "", varPickedEmp.FullName)',
-            "DisplayMode": "If(IsBlank(varEditRecord), DisplayMode.Edit, DisplayMode.View)",
+            "Default": '""', "Visible": "IsBlank(varEditRecord)",
             "HintText": '"Začnite písať meno alebo osobné číslo…"'}),
         emp_sug,
-        label("lblPicked", '"Vybraný: " & If(IsBlank(varPickedEmp), "—", varPickedEmp.FullName & " (" & varPickedEmp.EmployeeID & ")")',
-              {"Color": MUTED, "Size": "10", "Height": "22"}),
+        picked_chips,
+        label("lblPickedEdit", '"Zamestnanec: " & varEditRecord.EmployeeName & " (" & varEditRecord.EmployeeID & ")"',
+              {"Color": MUTED, "Size": "10", "Height": "22", "Visible": "!IsBlank(varEditRecord)"}),
         label("lblTrCap", '"Školenie"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
         train_pick,
         C("chkPlanned", "checkbox", {"FillPortions": "0", "Height": "36", "Size": "11",
@@ -887,6 +958,11 @@ def _build_add_record(out):
                                      "Default": 'If(IsBlank(varEditRecord), Text(Today(), "d.m.yyyy"), Text(varEditRecord.CompletionDate, "d.m.yyyy"))'}),
             label("lblExpPrev", '"Platnosť do: " & ' + exp_preview, {"FillPortions": "1", "Color": MUTED, "Size": "10", "Height": "26"}),
         ]),
+        label("lblCertCap", '"Certifikát – odkaz na PDF v knižnici Certificates"',
+              {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+        textinput("txtCertLink", {
+            "Default": 'If(IsBlank(varEditRecord), "", varEditRecord.Cert)',
+            "HintText": '"/sites/HRHub/Certificates/…​.pdf  (nahraj PDF do knižnice a vlož odkaz)"'}),
         label("lblNotesCap", '"Poznámky"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
         textinput("txtNotesAdd", {"Height": "80", "Mode": "TextMode.MultiLine",
                                   "Default": 'If(IsBlank(varEditRecord), "", varEditRecord.Notes)'}),
@@ -901,6 +977,129 @@ def _build_add_record(out):
         "scrAddRecord", "recs", [form],
         title_text='If(IsBlank(varEditRecord), "Nový záznam školenia", "Upraviť záznam školenia")',
         subtitle='"Výberom zamestnanca a školenia sa platnosť dopočíta automaticky z katalógu."')
+
+
+def _build_employee_form(out):
+    # číselníkový picker (Oddelenie / Pozícia) ako malá vertikálna galéria
+    def picker(cap, name, items, disp, selvar, idexpr):
+        return gc_v(name + "Col", {"FillPortions": "1", "LayoutGap": "4",
+                                   "LayoutAlignItems": "LayoutAlignItems.Stretch"}, [
+            label(name + "Cap", cap, {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+            C(name + "Gal", "gallery.galleryVertical", {
+                "FillPortions": "0", "Height": "150", "Layout": "Layout.Vertical",
+                "Fill": WHITE, "BorderColor": BORDER, "BorderThickness": "1", "Items": items,
+                "TemplatePadding": "0", "TemplateSize": "32", "ShowScrollbar": "true"},
+              [label(name + "Row", "ThisItem." + disp, {
+                  "Color": "If(" + idexpr + " = ThisItem.ID, " + PURPLE + ", " + TEXT + ")",
+                  "Fill": "If(" + idexpr + " = ThisItem.ID, " + N_BG + ", " + WHITE + ")",
+                  "FontWeight": "If(" + idexpr + " = ThisItem.ID, FontWeight.Semibold, FontWeight.Normal)",
+                  "Height": "Parent.TemplateHeight", "Width": "Parent.TemplateWidth", "PaddingLeft": "12",
+                  "Size": "10", "VerticalAlign": "VerticalAlign.Middle",
+                  "OnSelect": "Set(" + selvar + ", ThisItem)"})]),
+        ])
+
+    save = (
+        'If('
+        'IsBlank(varEditEmployee) && IsBlank(txtEmpId.Text), '
+        'Notify("Zadajte osobné číslo (EmployeeID).", NotificationType.Error, 2500), '
+        'IsBlank(varEditEmployee) && !IsBlank(LookUp(colEmployees, EmployeeID = txtEmpId.Text)), '
+        'Notify("Zamestnanec s týmto EmployeeID už existuje.", NotificationType.Error, 3000), '
+        'IsBlank(txtFullName.Text), Notify("Zadajte meno a priezvisko.", NotificationType.Error, 2500), '
+        '!IsMatch(txtEmail.Text, Match.Email), Notify("Zadajte platný e-mail.", NotificationType.Error, 2500), '
+        'IsBlank(varEmpDept) || IsBlank(varEmpPos), Notify("Vyberte oddelenie aj pozíciu.", NotificationType.Error, 2500), '
+        'IsError(DateValue(txtHireDate.Text)), Notify("Zadajte platný dátum nástupu (d.m.rrrr).", NotificationType.Error, 2500), '
+        'If(IsBlank(varEditEmployee), '
+        # --- vytvorenie ---
+        'Collect(colEmployees, {ID: Max(colEmployees, ID) + 1, EmployeeID: txtEmpId.Text, FullName: txtFullName.Text, '
+        'Email: txtEmail.Text, Department: varEmpDept.DepartmentName, DepartmentCode: varEmpDept.DepartmentCode, '
+        'Position: varEmpPos.PositionName, ManagerEmail: txtMgrEmail.Text, HireDate: DateValue(txtHireDate.Text), '
+        'Status: varEmpStatus, PhotoUrl: txtPhoto.Text}); '
+        '/* LIVE: Patch(Employees, Defaults(Employees), {Title: txtFullName.Text, EmployeeID: txtEmpId.Text, Email: txtEmail.Text, '
+        'Department: {Id: varEmpDept.ID, Value: varEmpDept.DepartmentName}, Position: {Id: varEmpPos.ID, Value: varEmpPos.PositionName}, '
+        'ManagerEmail: txtMgrEmail.Text, HireDate: DateValue(txtHireDate.Text), Status: {Value: varEmpStatus}, PhotoUrl: txtPhoto.Text}); */ '
+        'Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Create", EntityType: "Employee", EntityID: txtEmpId.Text, '
+        'ChangedBy: varCurrentUser.Email, ChangedOn: Now(), '
+        'Details: "Založený profil zamestnanca " & txtFullName.Text & " (" & txtEmpId.Text & ")."}), '
+        # --- úprava ---
+        'Patch(colEmployees, LookUp(colEmployees, EmployeeID = varEditEmployee.EmployeeID), {FullName: txtFullName.Text, '
+        'Email: txtEmail.Text, Department: varEmpDept.DepartmentName, DepartmentCode: varEmpDept.DepartmentCode, '
+        'Position: varEmpPos.PositionName, ManagerEmail: txtMgrEmail.Text, HireDate: DateValue(txtHireDate.Text), '
+        'Status: varEmpStatus, PhotoUrl: txtPhoto.Text}); '
+        '/* LIVE: Patch(Employees, LookUp(Employees, EmployeeID = varEditEmployee.EmployeeID), {Title: txtFullName.Text, Email: txtEmail.Text, '
+        'Department: {Id: varEmpDept.ID, Value: varEmpDept.DepartmentName}, Position: {Id: varEmpPos.ID, Value: varEmpPos.PositionName}, '
+        'ManagerEmail: txtMgrEmail.Text, HireDate: DateValue(txtHireDate.Text), Status: {Value: varEmpStatus}, PhotoUrl: txtPhoto.Text}); */ '
+        'Set(varSelEmployee, LookUp(colEmployees, EmployeeID = varEditEmployee.EmployeeID)); '
+        'Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "Employee", '
+        'EntityID: varEditEmployee.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), '
+        'Details: "Upravený profil zamestnanca " & txtFullName.Text}) '
+        '); '
+        'Notify("Zamestnanec bol uložený.", NotificationType.Success, 2000); '
+        'Navigate(scrEmployees, ScreenTransition.None))')
+
+    status_chip = gc_h("statusRow", {"FillPortions": "0", "Height": "40", "LayoutGap": "8",
+                                     "LayoutAlignItems": "LayoutAlignItems.Center"}, [
+        btn("btnStActive", '"Aktívny"', {
+            "Color": 'If(varEmpStatus = "Active", ' + WHITE + ", " + TEXT + ")",
+            "Fill": 'If(varEmpStatus = "Active", ' + G_FG + ", " + WHITE + ")",
+            "BorderColor": BORDER, "BorderThickness": "1", "Width": "130", "Height": "34", "Size": "10",
+            "RadiusTopLeft": "17", "RadiusTopRight": "17", "RadiusBottomLeft": "17", "RadiusBottomRight": "17",
+            "OnSelect": 'Set(varEmpStatus, "Active")'}),
+        btn("btnStInactive", '"Neaktívny"', {
+            "Color": 'If(varEmpStatus = "Inactive", ' + WHITE + ", " + TEXT + ")",
+            "Fill": 'If(varEmpStatus = "Inactive", ' + N_FG + ", " + WHITE + ")",
+            "BorderColor": BORDER, "BorderThickness": "1", "Width": "130", "Height": "34", "Size": "10",
+            "RadiusTopLeft": "17", "RadiusTopRight": "17", "RadiusBottomLeft": "17", "RadiusBottomRight": "17",
+            "OnSelect": 'Set(varEmpStatus, "Inactive")'}),
+    ])
+
+    form = gc_v("empForm", {
+        "FillPortions": "0", "Width": "680", "AlignInContainer": "AlignInContainer.Start",
+        "LayoutGap": "8", "LayoutAlignItems": "LayoutAlignItems.Stretch"}, [
+        gc_h("empRow1", {"FillPortions": "0", "Height": "62", "LayoutGap": "12",
+                         "LayoutAlignItems": "LayoutAlignItems.Stretch"}, [
+            gc_v("empIdCol", {"FillPortions": "1", "LayoutGap": "4"}, [
+                label("lblEmpId", '"Osobné číslo (EmployeeID)"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+                textinput("txtEmpId", {
+                    "Default": 'If(IsBlank(varEditEmployee), "", varEditEmployee.EmployeeID)',
+                    "DisplayMode": "If(IsBlank(varEditEmployee), DisplayMode.Edit, DisplayMode.View)",
+                    "HintText": '"napr. EMP0048"'})]),
+            gc_v("empHireCol", {"FillPortions": "1", "LayoutGap": "4"}, [
+                label("lblHire", '"Dátum nástupu (d.m.rrrr)"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+                textinput("txtHireDate", {
+                    "Default": 'If(IsBlank(varEditEmployee), Text(Today(), "d.m.yyyy"), Text(varEditEmployee.HireDate, "d.m.yyyy"))'})]),
+        ]),
+        label("lblFullName", '"Meno a priezvisko"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+        textinput("txtFullName", {"Default": 'If(IsBlank(varEditEmployee), "", varEditEmployee.FullName)',
+                                  "HintText": '"napr. Jana Nováková"'}),
+        label("lblEmail", '"E-mail"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+        textinput("txtEmail", {"Default": 'If(IsBlank(varEditEmployee), "", varEditEmployee.Email)',
+                               "HintText": '"meno.priezvisko@firma.sk"'}),
+        label("lblMgr", '"E-mail manažéra (pre rolu Manažér)"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+        textinput("txtMgrEmail", {"Default": 'If(IsBlank(varEditEmployee), "", varEditEmployee.ManagerEmail)',
+                                  "HintText": '"manazer@firma.sk (prázdne = bez manažéra)"'}),
+        gc_h("empRow2", {"FillPortions": "0", "Height": "180", "LayoutGap": "12",
+                         "LayoutAlignItems": "LayoutAlignItems.Stretch"}, [
+            picker('"Oddelenie"', "deptPick", "colDepartments", "DepartmentName", "varEmpDept", "varEmpDept.ID"),
+            picker('"Pozícia"', "posPick", 'SortByColumns(colPositions, "PositionName")', "PositionName", "varEmpPos", "varEmpPos.ID"),
+        ]),
+        label("lblPhoto", '"Odkaz na fotografiu (PhotoUrl)"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+        textinput("txtPhoto", {"Default": 'If(IsBlank(varEditEmployee), "", varEditEmployee.PhotoUrl)',
+                               "HintText": '"https://…/photo.jpg (nepovinné)"'}),
+        label("lblStatusCap", '"Stav"', {"FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "22"}),
+        status_chip,
+        gc_h("empBtnRow", {"FillPortions": "0", "Height": "48", "LayoutGap": "10", "PaddingTop": "8",
+                           "LayoutJustifyContent": "LayoutJustifyContent.End"}, [
+            btn("btnCancelEmp", '"Zrušiť"', {"Width": "120", "OnSelect": "Navigate(scrEmployees, ScreenTransition.None)"}),
+            btn("btnSaveEmp", 'If(IsBlank(varEditEmployee), "Vytvoriť zamestnanca", "Uložiť zmeny")',
+                {"Width": "190", "OnSelect": save}, primary=True),
+        ]),
+    ])
+    reset = ("Reset(txtEmpId); Reset(txtFullName); Reset(txtEmail); Reset(txtMgrEmail); "
+             "Reset(txtHireDate); Reset(txtPhoto)")
+    out["scrEmployeeForm"] = screen(
+        "scrEmployeeForm", "emps", [form], onvisible_extra=reset,
+        title_text='If(IsBlank(varEditEmployee), "Nový zamestnanec", "Upraviť zamestnanca")',
+        subtitle='"Profil zamestnanca a zaradenie. Oddelenie a pozícia sa vyberajú z číselníkov."')
 
 
 def _build_my_trainings(out):
@@ -1005,8 +1204,8 @@ def main():
     import json
     mf = SRC.parent / "CanvasManifest.json"
     m = json.load(open(mf))
-    m["ScreenOrder"] = ["scrHome", "scrEmployees", "scrEmployeeDetail", "scrCatalog",
-                        "scrRecords", "scrAddRecord", "scrMyTrainings", "scrReports"]
+    m["ScreenOrder"] = ["scrHome", "scrEmployees", "scrEmployeeDetail", "scrEmployeeForm",
+                        "scrCatalog", "scrRecords", "scrAddRecord", "scrMyTrainings", "scrReports"]
     # Responzívne rozloženie: vypnúť scale-to-fit a fixný pomer strán, landscape canvas,
     # nech Screen.Width/Height sledujú okno a kontajnery sa preusporiadajú (Teams desktop aj mobil).
     m["Properties"].update({

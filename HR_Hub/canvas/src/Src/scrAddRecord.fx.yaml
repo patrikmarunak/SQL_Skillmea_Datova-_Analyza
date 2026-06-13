@@ -109,16 +109,16 @@ scrAddRecord As screen:
                     FontWeight: =FontWeight.Semibold
                     Height: =22
                     Size: =11
-                    Text: ="Zamestnanec"
+                    Text: =If(IsBlank(varEditRecord), "Zamestnanci (môžeš vybrať viacerých)", "Zamestnanec")
                     ZIndex: =1
 
                 txtEmpSearch As text:
                     BorderColor: =RGBA(225, 225, 225, 1)
                     Color: =RGBA(36, 36, 36, 1)
-                    Default: =If(IsBlank(varPickedEmp), "", varPickedEmp.FullName)
-                    DisplayMode: =If(IsBlank(varEditRecord), DisplayMode.Edit, DisplayMode.View)
+                    Default: =""
                     HintText: ="Začnite písať meno alebo osobné číslo…"
                     Size: =11
+                    Visible: =IsBlank(varEditRecord)
                     ZIndex: =2
 
                 galEmpSug As gallery.galleryVertical:
@@ -127,39 +127,67 @@ scrAddRecord As screen:
                     Fill: =RGBA(255, 255, 255, 1)
                     FillPortions: =0
                     Height: =150
-                    Items: =FirstN(Filter(colEmployees, Status = "Active" && (varRole <> "manager" || ManagerEmail = varCurrentUser.Email) && (StartsWith(FullName, txtEmpSearch.Text) || StartsWith(EmployeeID, txtEmpSearch.Text))), 5)
+                    Items: =FirstN(Filter(colEmployees As e, e.Status = "Active" && (varRole <> "manager" || e.ManagerEmail = varCurrentUser.Email) && IsBlank(LookUp(colPickedEmps, EmployeeID = e.EmployeeID)) && (StartsWith(e.FullName, txtEmpSearch.Text) || StartsWith(e.EmployeeID, txtEmpSearch.Text))), 6)
                     Layout: =Layout.Vertical
-                    ShowScrollbar: =false
                     TemplatePadding: =0
                     TemplateSize: =36
-                    Visible: =!IsBlank(txtEmpSearch.Text) && (IsBlank(varPickedEmp) || txtEmpSearch.Text <> varPickedEmp.FullName)
+                    Visible: =IsBlank(varEditRecord) && !IsBlank(txtEmpSearch.Text)
                     ZIndex: =3
 
                     empSugRow As label:
                         Fill: =RGBA(255, 255, 255, 1)
                         FillPortions: =0
                         Height: =Parent.TemplateHeight
-                        OnSelect: =Set(varPickedEmp, ThisItem); Reset(txtEmpSearch)
+                        OnSelect: =If(IsBlank(LookUp(colPickedEmps, EmployeeID = ThisItem.EmployeeID)), Collect(colPickedEmps, ThisItem)); Reset(txtEmpSearch)
                         PaddingLeft: =12
                         Size: =10
                         Text: =ThisItem.FullName & "  (" & ThisItem.EmployeeID & ")"
                         Width: =Parent.TemplateWidth
                         ZIndex: =1
 
-                lblPicked As label:
+                galPickedEmps As gallery.galleryHorizontal:
+                    FillPortions: =0
+                    Height: =40
+                    Items: =colPickedEmps
+                    ShowScrollbar: =false
+                    TemplatePadding: =0
+                    TemplateSize: =190
+                    Visible: =IsBlank(varEditRecord) && CountRows(colPickedEmps) > 0
+                    ZIndex: =4
+
+                    galPickedEmpsBtn As button:
+                        BorderColor: =RGBA(91, 95, 199, 1)
+                        BorderThickness: =1
+                        Fill: =RGBA(91, 95, 199, 1)
+                        FillPortions: =0
+                        Height: =32
+                        HoverFill: =RGBA(237, 237, 237, 1)
+                        OnSelect: =RemoveIf(colPickedEmps, EmployeeID = ThisItem.EmployeeID)
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        Size: =9
+                        Text: =ThisItem.FullName & "   ✕"
+                        Width: =Parent.TemplateWidth - 6
+                        Y: =4
+                        ZIndex: =1
+
+                lblPickedEdit As label:
                     Color: =RGBA(97, 97, 97, 1)
                     Height: =22
                     Size: =10
                     Text: |-
-                        ="Vybraný: " & If(IsBlank(varPickedEmp), "—", varPickedEmp.FullName & " (" & varPickedEmp.EmployeeID & ")")
-                    ZIndex: =4
+                        ="Zamestnanec: " & varEditRecord.EmployeeName & " (" & varEditRecord.EmployeeID & ")"
+                    Visible: =!IsBlank(varEditRecord)
+                    ZIndex: =5
 
                 lblTrCap As label:
                     FontWeight: =FontWeight.Semibold
                     Height: =22
                     Size: =11
                     Text: ="Školenie"
-                    ZIndex: =5
+                    ZIndex: =6
 
                 galTrainPick As gallery.galleryVertical:
                     BorderColor: =RGBA(225, 225, 225, 1)
@@ -171,7 +199,7 @@ scrAddRecord As screen:
                     Layout: =Layout.Vertical
                     TemplatePadding: =0
                     TemplateSize: =34
-                    ZIndex: =6
+                    ZIndex: =7
 
                     trainPickRow As label:
                         Color: =If(varPickedTraining.ID = ThisItem.ID, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
@@ -190,21 +218,21 @@ scrAddRecord As screen:
                     Height: =36
                     Size: =11
                     Text: ="Naplánované školenie (budúci termín)"
-                    ZIndex: =7
+                    ZIndex: =8
 
                 lblDateCap As label:
                     FontWeight: =FontWeight.Semibold
                     Height: =22
                     Size: =11
                     Text: =If(chkPlanned.Value, "Plánovaný termín (d.m.rrrr)", "Dátum absolvovania (d.m.rrrr)")
-                    ZIndex: =8
+                    ZIndex: =9
 
                 dateRow As groupContainer.horizontalAutoLayoutContainer:
                     FillPortions: =0
                     Height: =40
                     LayoutAlignItems: =LayoutAlignItems.Center
                     LayoutGap: =12
-                    ZIndex: =9
+                    ZIndex: =10
 
                     txtDateAdd As text:
                         BorderColor: =RGBA(225, 225, 225, 1)
@@ -223,12 +251,27 @@ scrAddRecord As screen:
                             ="Platnosť do: " & If(IsBlank(varPickedTraining) || IsError(DateValue(txtDateAdd.Text)), "—", chkPlanned.Value, "— (doplní sa po absolvovaní)", varPickedTraining.ValidityMonths = 0, "neobmedzená", Text(DateAdd(DateValue(txtDateAdd.Text), varPickedTraining.ValidityMonths, TimeUnit.Months), "d.m.yyyy"))
                         ZIndex: =2
 
+                lblCertCap As label:
+                    FontWeight: =FontWeight.Semibold
+                    Height: =22
+                    Size: =11
+                    Text: ="Certifikát – odkaz na PDF v knižnici Certificates"
+                    ZIndex: =11
+
+                txtCertLink As text:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    Color: =RGBA(36, 36, 36, 1)
+                    Default: =If(IsBlank(varEditRecord), "", varEditRecord.Cert)
+                    HintText: ="/sites/HRHub/Certificates/…​.pdf  (nahraj PDF do knižnice a vlož odkaz)"
+                    Size: =11
+                    ZIndex: =12
+
                 lblNotesCap As label:
                     FontWeight: =FontWeight.Semibold
                     Height: =22
                     Size: =11
                     Text: ="Poznámky"
-                    ZIndex: =10
+                    ZIndex: =13
 
                 txtNotesAdd As text:
                     BorderColor: =RGBA(225, 225, 225, 1)
@@ -237,7 +280,7 @@ scrAddRecord As screen:
                     Height: =80
                     Mode: =TextMode.MultiLine
                     Size: =11
-                    ZIndex: =11
+                    ZIndex: =14
 
                 addBtnRow As groupContainer.horizontalAutoLayoutContainer:
                     FillPortions: =0
@@ -245,7 +288,7 @@ scrAddRecord As screen:
                     LayoutGap: =10
                     LayoutJustifyContent: =LayoutJustifyContent.End
                     PaddingTop: =8
-                    ZIndex: =12
+                    ZIndex: =15
 
                     btnCancelAdd As button:
                         BorderColor: =RGBA(225, 225, 225, 1)
@@ -269,7 +312,7 @@ scrAddRecord As screen:
                         FontWeight: =FontWeight.Semibold
                         HoverFill: =RGBA(79, 82, 178, 1)
                         OnSelect: |-
-                            =If(IsBlank(varPickedEmp) || IsBlank(varPickedTraining), Notify("Vyberte zamestnanca aj školenie.", NotificationType.Error, 2500), IsError(DateValue(txtDateAdd.Text)), Notify("Zadajte platný dátum v tvare d.m.rrrr.", NotificationType.Error, 2500), !chkPlanned.Value && DateValue(txtDateAdd.Text) > Today(), Notify("Dátum absolvovania nemôže byť v budúcnosti. Označte Naplánované školenie.", NotificationType.Error, 3000), chkPlanned.Value && DateValue(txtDateAdd.Text) <= Today(), Notify("Plánovaný termín musí byť v budúcnosti.", NotificationType.Error, 2500), If(IsBlank(varEditRecord), Collect(colRecordsBase, {ID: Max(colRecordsBase, ID) + 1, Emp: varPickedEmp.EmployeeID, Tr: varPickedTraining.ID, Off: DateDiff(Today(), DateValue(txtDateAdd.Text), TimeUnit.Days), Pl: chkPlanned.Value, Cert: "", Notes: txtNotesAdd.Text}); /* LIVE: Patch(TrainingRecords, Defaults(TrainingRecords), {Employee: {Id: varPickedEmp.ID, Value: varPickedEmp.FullName}, Training: {Id: varPickedTraining.ID, Value: varPickedTraining.TrainingName}, CompletionDate: DateValue(txtDateAdd.Text), Status: {Value: If(chkPlanned.Value, "Planned", "Valid")}}); */ Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Create", EntityType: "TrainingRecord", EntityID: varPickedEmp.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Pridaný záznam školenia " & varPickedTraining.TrainingName & " pre " & varPickedEmp.FullName}), Patch(colRecordsBase, LookUp(colRecordsBase, ID = varEditRecord.ID), {Off: DateDiff(Today(), DateValue(txtDateAdd.Text), TimeUnit.Days), Pl: chkPlanned.Value, Notes: txtNotesAdd.Text}); /* LIVE: Patch(TrainingRecords, LookUp(TrainingRecords, ID = varEditRecord.ID), {CompletionDate: DateValue(txtDateAdd.Text)}); */ Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "TrainingRecord", EntityID: varEditRecord.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Upravený záznam školenia " & varEditRecord.TrainingName}) ); ClearCollect(colRecords,
+                            =If(IsBlank(varEditRecord) && CountRows(colPickedEmps) = 0, Notify("Vyberte aspoň jedného zamestnanca.", NotificationType.Error, 2500), IsBlank(varPickedTraining), Notify("Vyberte školenie.", NotificationType.Error, 2500), IsError(DateValue(txtDateAdd.Text)), Notify("Zadajte platný dátum v tvare d.m.rrrr.", NotificationType.Error, 2500), !chkPlanned.Value && DateValue(txtDateAdd.Text) > Today(), Notify("Dátum absolvovania nemôže byť v budúcnosti. Označte Naplánované školenie.", NotificationType.Error, 3000), chkPlanned.Value && DateValue(txtDateAdd.Text) <= Today(), Notify("Plánovaný termín musí byť v budúcnosti.", NotificationType.Error, 2500), If(IsBlank(varEditRecord), Collect(colRecordsBase, ForAll(Sequence(CountRows(colPickedEmps)) As s, With({pe: Index(colPickedEmps, s.Value)}, {ID: Max(colRecordsBase, ID) + s.Value, Emp: pe.EmployeeID, Tr: varPickedTraining.ID, Off: DateDiff(Today(), DateValue(txtDateAdd.Text), TimeUnit.Days), Pl: chkPlanned.Value, Cert: txtCertLink.Text, Notes: txtNotesAdd.Text}))); /* LIVE: ForAll(colPickedEmps As pe, Patch(TrainingRecords, Defaults(TrainingRecords), {Employee: {Id: pe.ID, Value: pe.FullName}, Training: {Id: varPickedTraining.ID, Value: varPickedTraining.TrainingName}, CompletionDate: DateValue(txtDateAdd.Text), CertificateLink: txtCertLink.Text, Status: {Value: If(chkPlanned.Value, "Planned", "Valid")}})); */ Collect(colAudit, ForAll(Sequence(CountRows(colPickedEmps)) As s, With({pe: Index(colPickedEmps, s.Value)}, {ID: Max(colAudit, ID) + s.Value, Action: "Create", EntityType: "TrainingRecord", EntityID: pe.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Pridaný záznam školenia " & varPickedTraining.TrainingName & " pre " & pe.FullName}))), Patch(colRecordsBase, LookUp(colRecordsBase, ID = varEditRecord.ID), {Off: DateDiff(Today(), DateValue(txtDateAdd.Text), TimeUnit.Days), Pl: chkPlanned.Value, Cert: txtCertLink.Text, Notes: txtNotesAdd.Text}); /* LIVE: Patch(TrainingRecords, LookUp(TrainingRecords, ID = varEditRecord.ID), {CompletionDate: DateValue(txtDateAdd.Text), CertificateLink: txtCertLink.Text, Status: {Value: If(chkPlanned.Value, "Planned", "Valid")}}); */ Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "TrainingRecord", EntityID: varEditRecord.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Upravený záznam školenia " & varEditRecord.TrainingName}) ); ClearCollect(colRecords,
                                 AddColumns(
                                     AddColumns(
                                         AddColumns(colRecordsBase,
@@ -292,7 +335,7 @@ scrAddRecord As screen:
                                         "Valid"
                                     )
                                 )
-                            ); Notify("Záznam školenia bol uložený.", NotificationType.Success, 2000); Navigate(scrRecords, ScreenTransition.None))
+                            ); Notify(If(IsBlank(varEditRecord), "Uložených " & CountRows(colPickedEmps) & " záznamov školenia.", "Záznam školenia bol uložený."), NotificationType.Success, 2000); Clear(colPickedEmps); Navigate(scrRecords, ScreenTransition.None))
                         PressedFill: =RGBA(79, 82, 178, 1)
                         RadiusBottomLeft: =6
                         RadiusBottomRight: =6

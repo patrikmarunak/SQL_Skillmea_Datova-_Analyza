@@ -104,8 +104,25 @@ scrEmployeeDetail As screen:
                     LayoutAlignItems: =LayoutAlignItems.Center
                     LayoutGap: =8
                     LayoutJustifyContent: =LayoutJustifyContent.End
-                    Width: =160
+                    Width: =290
                     ZIndex: =2
+
+                    btnEditDetail As button:
+                        BorderColor: =RGBA(91, 95, 199, 1)
+                        Fill: =RGBA(91, 95, 199, 1)
+                        FontWeight: =FontWeight.Semibold
+                        HoverFill: =RGBA(79, 82, 178, 1)
+                        OnSelect: =Set(varEditEmployee, varSelEmployee); Set(varEmpDept, LookUp(colDepartments, DepartmentName = varSelEmployee.Department)); Set(varEmpPos, LookUp(colPositions, PositionName = varSelEmployee.Position)); Set(varEmpStatus, varSelEmployee.Status); Navigate(scrEmployeeForm, ScreenTransition.None)
+                        PressedFill: =RGBA(79, 82, 178, 1)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="Upraviť profil"
+                        Visible: =varRole = "admin"
+                        Width: =130
+                        ZIndex: =1
 
                     btnDeactDetail As button:
                         BorderColor: =RGBA(164, 38, 44, 1)
@@ -123,8 +140,8 @@ scrEmployeeDetail As screen:
                         Size: =11
                         Text: ="Deaktivovať"
                         Visible: =varRole = "admin" && varSelEmployee.Status = "Active"
-                        Width: =150
-                        ZIndex: =1
+                        Width: =140
+                        ZIndex: =2
 
             tabsDetail As groupContainer.horizontalAutoLayoutContainer:
                 BorderColor: =RGBA(225, 225, 225, 1)
@@ -402,20 +419,59 @@ scrEmployeeDetail As screen:
                     Y: =Parent.TemplateHeight/2 - 13
                     ZIndex: =5
 
+                recDoneDet As label:
+                    Align: =Align.Center
+                    Color: =RGBA(14, 107, 14, 1)
+                    FillPortions: =0
+                    FontWeight: =FontWeight.Semibold
+                    Height: =26
+                    OnSelect: |-
+                        =Set(varTmpId, ThisItem.ID); Set(varTmpEmp, ThisItem.EmployeeID); Set(varTmpTr, ThisItem.TrainingName); Patch(colRecordsBase, LookUp(colRecordsBase, ID = varTmpId), {Off: 0, Pl: false}); /* LIVE: Patch(TrainingRecords, LookUp(TrainingRecords, ID = varTmpId), {CompletionDate: Today(), Status: {Value: "Valid"}}); */ Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "TrainingRecord", EntityID: varTmpEmp, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Označené ako absolvované (dnes): " & varTmpTr}); ClearCollect(colRecords,
+                            AddColumns(
+                                AddColumns(
+                                    AddColumns(colRecordsBase,
+                                        "EmployeeID", Emp,
+                                        "EmployeeName", LookUp(colEmployees, EmployeeID = Emp, FullName),
+                                        "DepartmentCode", LookUp(colEmployees, EmployeeID = Emp, DepartmentCode),
+                                        "ManagerEmail", LookUp(colEmployees, EmployeeID = Emp, ManagerEmail),
+                                        "TrainingName", LookUp(colTrainingsCatalog, ID = Tr, TrainingName),
+                                        "TrainingType", LookUp(colTrainingsCatalog, ID = Tr, TrainingType),
+                                        "ValidityMonths", LookUp(colTrainingsCatalog, ID = Tr, ValidityMonths),
+                                        "CompletionDate", DateAdd(Today(), Off, TimeUnit.Days)
+                                    ),
+                                    "ExpirationDate", If(Pl || ValidityMonths = 0, Blank(), DateAdd(CompletionDate, ValidityMonths, TimeUnit.Months))
+                                ),
+                                "LiveStatus", If(
+                                    Pl, "Planned",
+                                    IsBlank(ExpirationDate), "Valid",
+                                    ExpirationDate < Today(), "Expired",
+                                    ExpirationDate <= DateAdd(Today(), 30, TimeUnit.Days), "Expiring",
+                                    "Valid"
+                                )
+                            )
+                        ); Notify("Školenie označené ako absolvované dnes.", NotificationType.Success, 2000)
+                    Size: =10
+                    Text: ="✓ Absolvované"
+                    Visible: =ThisItem.Pl && (varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email))
+                    Width: =140
+                    X: =Parent.TemplateWidth - 480
+                    Y: =Parent.TemplateHeight/2 - 13
+                    ZIndex: =6
+
                 recEditDet As label:
                     Align: =Align.Center
                     Color: =RGBA(91, 95, 199, 1)
                     FillPortions: =0
                     FontWeight: =FontWeight.Semibold
                     Height: =26
-                    OnSelect: =Set(varEditRecord, ThisItem); Set(varPickedEmp, LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID)); Set(varPickedTraining, LookUp(colTrainingsCatalog, ID = ThisItem.Tr)); Navigate(scrAddRecord, ScreenTransition.None)
+                    OnSelect: =Set(varEditRecord, ThisItem); Set(varPickedEmp, LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID)); Set(varPickedTraining, LookUp(colTrainingsCatalog, ID = ThisItem.Tr)); Clear(colPickedEmps); Navigate(scrAddRecord, ScreenTransition.None)
                     Size: =10
                     Text: ="Upraviť"
                     Visible: =varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email)
                     Width: =90
                     X: =Parent.TemplateWidth - 100
                     Y: =Parent.TemplateHeight/2 - 13
-                    ZIndex: =6
+                    ZIndex: =7
 
             galCertsDetail As gallery.galleryVertical:
                 Items: =Filter(colRecords, EmployeeID = varSelEmployee.EmployeeID && Cert <> "")

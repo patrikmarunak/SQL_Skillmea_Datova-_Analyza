@@ -8,6 +8,7 @@ App As appinfo:
         // === LIVE REŽIM (po pridaní SharePoint listov ako dátových zdrojov v Studiu) ===
         // Nahraď DEMO blok nižšie týmto (mapuje interné stĺpce listov na kolekcie):
         //   ClearCollect(colDepartments, ShowColumns(Departments, "ID","DepartmentName","DepartmentCode","Manager"));
+        //   ClearCollect(colPositions, ShowColumns(Positions, "ID","PositionName","Level"));
         //   ClearCollect(colTrainingsCatalog, ShowColumns(TrainingsCatalog, "ID","TrainingName","TrainingType","ValidityMonths","Provider"));
         //   ClearCollect(colEmployees, AddColumns(Employees, "DepartmentCode", Department.Value /* lookup */, ...));
         //   ClearCollect(colRecordsBase, AddColumns(TrainingRecords, "Emp", Employee.EmployeeID, "Tr", Training.ID, ...));
@@ -39,6 +40,28 @@ App As appinfo:
             {ID:7, DepartmentName:"Kvalita", DepartmentCode:"QA", Manager:"Eva Tóthová"},
             {ID:8, DepartmentName:"Právne oddelenie", DepartmentCode:"LEG", Manager:"Tomáš Sokol"}
         );
+        ClearCollect(colPositions,
+            {ID:1, PositionName:"HR generalista", Level:"Specialist"},
+            {ID:2, PositionName:"HR manažér", Level:"Manager"},
+            {ID:3, PositionName:"Softvérový vývojár", Level:"Specialist"},
+            {ID:4, PositionName:"Senior softvérový vývojár", Level:"Senior"},
+            {ID:5, PositionName:"IT manažér", Level:"Manager"},
+            {ID:6, PositionName:"Systémový administrátor", Level:"Specialist"},
+            {ID:7, PositionName:"Účtovník", Level:"Specialist"},
+            {ID:8, PositionName:"Finančný kontrolór", Level:"Senior"},
+            {ID:9, PositionName:"Finančný manažér", Level:"Manager"},
+            {ID:10, PositionName:"Obchodný zástupca", Level:"Specialist"},
+            {ID:11, PositionName:"Key Account Manager", Level:"Senior"},
+            {ID:12, PositionName:"Obchodný riaditeľ", Level:"Manager"},
+            {ID:13, PositionName:"Marketingový špecialista", Level:"Specialist"},
+            {ID:14, PositionName:"Marketingový manažér", Level:"Manager"},
+            {ID:15, PositionName:"Operátor výroby", Level:"Junior"},
+            {ID:16, PositionName:"Majster výroby", Level:"Senior"},
+            {ID:17, PositionName:"Vedúci prevádzky", Level:"Manager"},
+            {ID:18, PositionName:"Špecialista kvality", Level:"Specialist"},
+            {ID:19, PositionName:"Manažér kvality", Level:"Manager"},
+            {ID:20, PositionName:"Právnik", Level:"Senior"}
+        );
         ClearCollect(colTrainingsCatalog,
             {ID:1, TrainingName:"BOZP – vstupné školenie", TrainingType:"Safety", ValidityMonths:24, Provider:"BE-SOFT a.s."},
             {ID:2, TrainingName:"Ochrana pred požiarmi", TrainingType:"Safety", ValidityMonths:24, Provider:"BE-SOFT a.s."},
@@ -58,20 +81,20 @@ App As appinfo:
             {ID:16, TrainingName:"Anglický jazyk B2 – konverzácie", TrainingType:"Optional", ValidityMonths:0, Provider:"Empire English School"}
         );
         ClearCollect(colEmployees,
-            {ID:1, EmployeeID:"EMP0001", FullName:"Katarína Bieliková", Email:"katarina.bielikova@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR manažér", ManagerEmail:"", HireDate:DateAdd(Today(), -2321, TimeUnit.Days), Status:"Active"},
-            {ID:2, EmployeeID:"EMP0006", FullName:"Milan Urban", Email:"milan.urban@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Vedúci prevádzky", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -3082, TimeUnit.Days), Status:"Active"},
-            {ID:3, EmployeeID:"EMP0002", FullName:"Peter Šimko", Email:"peter.simko@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"IT manažér", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -2224, TimeUnit.Days), Status:"Active"},
-            {ID:4, EmployeeID:"EMP0034", FullName:"Štefan Lukáč", Email:"stefan.lukac@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Majster výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -823, TimeUnit.Days), Status:"Active"},
-            {ID:5, EmployeeID:"EMP0035", FullName:"Silvia Sedláková", Email:"silvia.sedlakova@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Operátor výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -534, TimeUnit.Days), Status:"Active"},
-            {ID:6, EmployeeID:"EMP0036", FullName:"Juraj Fabian", Email:"juraj.fabian@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Majster výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -1758, TimeUnit.Days), Status:"Active"},
-            {ID:7, EmployeeID:"EMP0037", FullName:"Filip Baláž", Email:"filip.balaz@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Operátor výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -2676, TimeUnit.Days), Status:"Active"},
-            {ID:8, EmployeeID:"EMP0039", FullName:"Mária Gajdošová", Email:"maria.gajdosova@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Operátor výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -3659, TimeUnit.Days), Status:"Active"},
-            {ID:9, EmployeeID:"EMP0012", FullName:"Igor Bednár", Email:"igor.bednar@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"Systémový administrátor", ManagerEmail:"peter.simko@contoso.sk", HireDate:DateAdd(Today(), -2329, TimeUnit.Days), Status:"Active"},
-            {ID:10, EmployeeID:"EMP0013", FullName:"Adriana Balážová", Email:"adriana.balazova@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"Senior softvérový vývojár", ManagerEmail:"peter.simko@contoso.sk", HireDate:DateAdd(Today(), -3195, TimeUnit.Days), Status:"Active"},
-            {ID:11, EmployeeID:"EMP0014", FullName:"Barbora Poláková", Email:"barbora.polakova@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"Systémový administrátor", ManagerEmail:"peter.simko@contoso.sk", HireDate:DateAdd(Today(), -3426, TimeUnit.Days), Status:"Active"},
-            {ID:12, EmployeeID:"EMP0010", FullName:"Marek Molnár", Email:"marek.molnar@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR generalista", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -1862, TimeUnit.Days), Status:"Active"},
-            {ID:13, EmployeeID:"EMP0011", FullName:"Monika Šusterová", Email:"monika.susterova@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR generalista", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -3263, TimeUnit.Days), Status:"Active"},
-            {ID:14, EmployeeID:"EMP0009", FullName:"Juraj Sedlák", Email:"juraj.sedlak@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR generalista", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -975, TimeUnit.Days), Status:"Inactive"}
+            {ID:1, EmployeeID:"EMP0001", FullName:"Katarína Bieliková", Email:"katarina.bielikova@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR manažér", ManagerEmail:"", HireDate:DateAdd(Today(), -2321, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0001"},
+            {ID:2, EmployeeID:"EMP0006", FullName:"Milan Urban", Email:"milan.urban@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Vedúci prevádzky", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -3082, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0006"},
+            {ID:3, EmployeeID:"EMP0002", FullName:"Peter Šimko", Email:"peter.simko@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"IT manažér", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -2224, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0002"},
+            {ID:4, EmployeeID:"EMP0034", FullName:"Štefan Lukáč", Email:"stefan.lukac@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Majster výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -823, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0034"},
+            {ID:5, EmployeeID:"EMP0035", FullName:"Silvia Sedláková", Email:"silvia.sedlakova@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Operátor výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -534, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0035"},
+            {ID:6, EmployeeID:"EMP0036", FullName:"Juraj Fabian", Email:"juraj.fabian@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Majster výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -1758, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0036"},
+            {ID:7, EmployeeID:"EMP0037", FullName:"Filip Baláž", Email:"filip.balaz@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Operátor výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -2676, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0037"},
+            {ID:8, EmployeeID:"EMP0039", FullName:"Mária Gajdošová", Email:"maria.gajdosova@contoso.sk", Department:"Výroba a prevádzka", DepartmentCode:"OPS", Position:"Operátor výroby", ManagerEmail:"milan.urban@contoso.sk", HireDate:DateAdd(Today(), -3659, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0039"},
+            {ID:9, EmployeeID:"EMP0012", FullName:"Igor Bednár", Email:"igor.bednar@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"Systémový administrátor", ManagerEmail:"peter.simko@contoso.sk", HireDate:DateAdd(Today(), -2329, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0012"},
+            {ID:10, EmployeeID:"EMP0013", FullName:"Adriana Balážová", Email:"adriana.balazova@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"Senior softvérový vývojár", ManagerEmail:"peter.simko@contoso.sk", HireDate:DateAdd(Today(), -3195, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0013"},
+            {ID:11, EmployeeID:"EMP0014", FullName:"Barbora Poláková", Email:"barbora.polakova@contoso.sk", Department:"Informačné technológie", DepartmentCode:"IT", Position:"Systémový administrátor", ManagerEmail:"peter.simko@contoso.sk", HireDate:DateAdd(Today(), -3426, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0014"},
+            {ID:12, EmployeeID:"EMP0010", FullName:"Marek Molnár", Email:"marek.molnar@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR generalista", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -1862, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0010"},
+            {ID:13, EmployeeID:"EMP0011", FullName:"Monika Šusterová", Email:"monika.susterova@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR generalista", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -3263, TimeUnit.Days), Status:"Active", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0011"},
+            {ID:14, EmployeeID:"EMP0009", FullName:"Juraj Sedlák", Email:"juraj.sedlak@contoso.sk", Department:"Ľudské zdroje", DepartmentCode:"HR", Position:"HR generalista", ManagerEmail:"katarina.bielikova@contoso.sk", HireDate:DateAdd(Today(), -975, TimeUnit.Days), Status:"Inactive", PhotoUrl:"https://i.pravatar.cc/150?u=EMP0009"}
         );
         ClearCollect(colRecordsBase,
             {ID:1, Emp:"EMP0001", Tr:1, Off:-707, Pl:false, Cert:"/sites/HRHub/Certificates/EMP0001_BOZP_-_vstupne_skolenie.pdf", Notes:""},
@@ -224,5 +247,10 @@ App As appinfo:
         Set(varPickedEmp, Blank());
         Set(varPickedTraining, Blank());
         Set(varTab, "trainings");
-        Set(varCatType, "Mandatory")
+        Set(varCatType, "Mandatory");
+        Set(varEditEmployee, Blank());
+        Set(varEmpDept, Blank());
+        Set(varEmpPos, Blank());
+        Set(varEmpStatus, "Active");
+        Clear(colPickedEmps)
 

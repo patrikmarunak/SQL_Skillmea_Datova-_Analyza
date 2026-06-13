@@ -61,6 +61,7 @@
     "scrHome",
     "scrEmployees",
     "scrEmployeeDetail",
+    "scrEmployeeForm",
     "scrCatalog",
     "scrRecords",
     "scrAddRecord",
