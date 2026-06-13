@@ -139,6 +139,50 @@ pripravená. Postup:
    `ExpirationDate` môžeš počítať v appke (ako vyššie) alebo ho nechať
    dopočítať Power Automate flowom na liste `TrainingRecords`.
 
+### PDF certifikáty – upload priamo cez formulár (bez flow)
+
+Jediná no-flow cesta v canvas je **Attachments control**. PDF sa uloží ako
+**príloha na položku listu `TrainingRecords`** (do poľa `{Attachments}`), nie do
+samostatnej knižnice „Certificates" – tá by si vyžadovala flow. Príloha na
+zázname je pre certifikáty úplne postačujúca.
+
+Attachments control sa viaže na živý SharePoint zdroj, takže sa pridáva v Studiu
+(nedá sa predzabaliť bez tvojho pripojenia). Postup, ktorý sedí s našou
+kolekcia+Patch architektúrou:
+
+1. List `TrainingRecords` musí mať povolené prílohy (List settings → Advanced
+   settings → Attachments = Enabled; štandardne zapnuté).
+2. Pridaj `TrainingRecords` ako dátový zdroj.
+3. Na obrazovku úpravy záznamu (`scrAddRecord`) vlož **Edit form** `frmRecord`:
+   - `DataSource = TrainingRecords`
+   - `Item = If(IsBlank(varEditRecord), Blank(), LookUp(TrainingRecords, ID = varEditRecord.ID))`
+   - `DefaultMode = If(IsBlank(varEditRecord), FormMode.New, FormMode.Edit)`
+4. Z formu nechaj len **Attachments DataCard** (`typedDataCard.attachmentsEditCard`,
+   `DataField = "{Attachments}"`) – jej attachments control (`DataCardValue2`) je
+   tá drag&drop plocha na PDF. Ostatné karty zmaž/skry.
+5. Ukladanie – dve varianty:
+   - **Cez form (najčistejšie):** daj na form aj karty pre Employee / Training /
+     CompletionDate / Status / Notes a ulož všetko naraz cez `SubmitForm(frmRecord)`;
+     v `OnSuccess` zavolaj refresh `colRecords` + `Navigate`. Príloha sa pripne na
+     práve vytvorenú/upravenú položku.
+   - **Tvoj Patch pattern:** nechaj na forme len attachments kartu a priloženie
+     zahrň do existujúceho Patchu poľom `Attachments`:
+     ```powerappsfx
+     Patch(TrainingRecords,
+           If(IsBlank(varEditRecord), Defaults(TrainingRecords),
+              LookUp(TrainingRecords, ID = varEditRecord.ID)),
+           { Employee: {Id: varPickedEmp.ID, Value: varPickedEmp.FullName},
+             Training: {Id: varPickedTraining.ID, Value: varPickedTraining.TrainingName},
+             CompletionDate: DateValue(txtDateAdd.Text),
+             Status: {Value: If(chkPlanned.Value, "Planned", "Valid")},
+             Attachments: DataCardValue2.Attachments });   // <- prílohy z attachments controlu
+     ```
+6. Hromadné priradenie (viacerým naraz) ostáva bez prílohy – certifikát sa
+   prikladá per-záznam pri úprave; to je aj rozumnejšie UX.
+
+Pole „odkaz na certifikát" (`CertificateLink`) v appke ponechaj ako manuálny
+fallback / pre demo bez pripojeného listu.
+
 ### Delegovateľnosť
 
 Filtre používajú `StartsWith` a rovnosť na indexovaných stĺpcoch. Keďže appka
