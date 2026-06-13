@@ -1,323 +1,370 @@
 scrHome As screen:
-    Fill: =RGBA(245, 245, 245, 1)
+    Fill: =RGBA(243, 243, 243, 1)
     OnVisible: =Set(varNavTag, "home")
 
-    recRailH As rectangle:
-        Fill: =RGBA(255, 255, 255, 1)
+    frameHome As groupContainer.horizontalAutoLayoutContainer:
         Height: =Parent.Height
-        Width: =220
+        LayoutAlignItems: =LayoutAlignItems.Stretch
+        Width: =Parent.Width
         ZIndex: =1
 
-    lblBrandH As label:
-        Color: =RGBA(91, 95, 199, 1)
-        FontWeight: =FontWeight.Bold
-        PaddingLeft: =20
-        Size: =15
-        Text: ="HR Hub"
-        Width: =200
-        Y: =12
-        ZIndex: =2
-
-    galNavH As gallery.galleryVertical:
-        Height: =Parent.Height - 64
-        Items: =Filter(colNav, varRole <> "employee" || EmpVisible)
-        ShowScrollbar: =false
-        TemplatePadding: =0
-        TemplateSize: =46
-        Width: =220
-        Y: =64
-        ZIndex: =3
-
-        lblNavItemH As label:
-            Color: =If(ThisItem.Tag = varNavTag, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
-            Fill: =If(ThisItem.Tag = varNavTag, RGBA(237, 237, 237, 1), RGBA(0, 0, 0, 0))
-            FontWeight: =If(ThisItem.Tag = varNavTag, FontWeight.Semibold, FontWeight.Normal)
-            Height: =Parent.TemplateHeight
-            OnSelect: =Switch(ThisItem.Tag, "home", Navigate(scrHome, ScreenTransition.None), "emps", Navigate(scrEmployees, ScreenTransition.None), "cat", Navigate(scrCatalog, ScreenTransition.None), "recs", Navigate(scrRecords, ScreenTransition.None), "my", Navigate(scrMyTrainings, ScreenTransition.None), Navigate(scrReports, ScreenTransition.None))
-            PaddingLeft: =20
-            Size: =12
-            Text: =ThisItem.Icon & "  " & ThisItem.Title
-            Width: =Parent.TemplateWidth
-            ZIndex: =1
-
-    lblTitleH As label:
-        FontWeight: =FontWeight.Bold
-        Size: =20
-        Text: ="Vitajte, " & First(Split(varCurrentUser.FullName, " ")).Value & " 👋"
-        Width: =600
-        X: =250
-        Y: =20
-        ZIndex: =4
-
-    lblSubH As label:
-        Color: =RGBA(92, 92, 92, 1)
-        Height: =28
-        Size: =11
-        Text: ="Prehľad zamestnancov a stavu školení k dnešnému dňu."
-        Width: =760
-        X: =250
-        Y: =58
-        ZIndex: =4
-
-    recKpi1H As rectangle:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        BorderThickness: =1
-        Fill: =RGBA(255, 255, 255, 1)
-        Height: =104
-        Width: =256
-        X: =250
-        Y: =120
-        ZIndex: =4
-
-    recKpi2H As rectangle:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        BorderThickness: =1
-        Fill: =RGBA(255, 255, 255, 1)
-        Height: =104
-        OnSelect: =Set(varStatusFilter, "Expiring"); If(varRole <> "employee", Navigate(scrRecords, ScreenTransition.None))
-        Width: =256
-        X: =526
-        Y: =120
-        ZIndex: =4
-
-    recKpi3H As rectangle:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        BorderThickness: =1
-        Fill: =RGBA(255, 255, 255, 1)
-        Height: =104
-        OnSelect: =Set(varStatusFilter, "Expired"); If(varRole <> "employee", Navigate(scrRecords, ScreenTransition.None))
-        Width: =256
-        X: =802
-        Y: =120
-        ZIndex: =4
-
-    recKpi4H As rectangle:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        BorderThickness: =1
-        Fill: =RGBA(255, 255, 255, 1)
-        Height: =104
-        Width: =256
-        X: =1078
-        Y: =120
-        ZIndex: =4
-
-    txtSearchH As text:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        HintText: ="Hľadať zamestnanca (meno alebo osobné číslo)…"
-        Size: =11
-        Width: =480
-        X: =250
-        Y: =258
-        ZIndex: =4
-
-    btnSearchH As button:
-        Fill: =RGBA(91, 95, 199, 1)
-        FontWeight: =FontWeight.Semibold
-        HoverFill: =RGBA(79, 82, 178, 1)
-        OnSelect: =Set(varSearch, txtSearchH.Text); If(varRole <> "employee", Navigate(scrEmployees, ScreenTransition.None))
-        Size: =11
-        Text: ="Hľadať"
-        Width: =110
-        X: =742
-        Y: =258
-        ZIndex: =4
-
-    lblDeptsH As label:
-        FontWeight: =FontWeight.Semibold
-        Height: =28
-        Size: =12
-        Text: ="Rýchle filtre podľa oddelenia"
-        Width: =400
-        X: =250
-        Y: =330
-        ZIndex: =4
-
-    galDeptChipsH As gallery.galleryHorizontal:
-        Height: =52
-        Items: =colDepartments
-        ShowScrollbar: =false
-        TemplatePadding: =6
-        TemplateSize: =190
-        Width: =1086
-        X: =250
-        Y: =362
-        ZIndex: =4
-
-        btnDeptChipH As button:
-            BorderColor: =RGBA(209, 209, 209, 1)
-            BorderThickness: =1
-            Color: =RGBA(36, 36, 36, 1)
+        navRailHome As groupContainer.verticalAutoLayoutContainer:
+            BorderColor: =RGBA(225, 225, 225, 1)
             Fill: =RGBA(255, 255, 255, 1)
-            Height: =36
-            HoverFill: =RGBA(237, 237, 237, 1)
-            OnSelect: =Set(varDeptFilter, ThisItem.DepartmentCode); If(varRole <> "employee", Navigate(scrEmployees, ScreenTransition.None))
-            RadiusBottomLeft: =18
-            RadiusBottomRight: =18
-            RadiusTopLeft: =18
-            RadiusTopRight: =18
-            Size: =10
-            Text: =ThisItem.DepartmentName
-            Width: =Parent.TemplateWidth - 8
-            Y: =8
+            FillPortions: =0
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =4
+            PaddingBottom: =12
+            PaddingLeft: =8
+            PaddingRight: =8
+            PaddingTop: =12
+            Width: =220
             ZIndex: =1
 
-    lblKpiVal1H As label:
-        Color: =RGBA(36, 36, 36, 1)
-        FontWeight: =FontWeight.Bold
-        Height: =46
-        PaddingLeft: =16
-        Size: =24
-        Text: =CountRows(Filter(colEmployees, Status = "Active"))
-        Width: =236
-        X: =254
-        Y: =132
-        ZIndex: =5
+            navBrandHome As label:
+                Color: =RGBA(91, 95, 199, 1)
+                FontWeight: =FontWeight.Bold
+                Height: =44
+                PaddingLeft: =12
+                Size: =16
+                Text: ="HR Hub"
+                ZIndex: =1
 
-    lblKpiCap1H As label:
-        Color: =RGBA(92, 92, 92, 1)
-        Height: =24
-        PaddingLeft: =16
-        Size: =10
-        Text: ="Aktívni zamestnanci"
-        Width: =236
-        X: =254
-        Y: =180
-        ZIndex: =5
+            navGalHome As gallery.galleryVertical:
+                Items: =Filter(colNav, varRole <> "employee" || EmpVisible)
+                Layout: =Layout.Vertical
+                ShowScrollbar: =false
+                TemplatePadding: =0
+                TemplateSize: =46
+                ZIndex: =2
 
-    lblKpiVal2H As label:
-        Color: =RGBA(122, 82, 0, 1)
-        FontWeight: =FontWeight.Bold
-        Height: =46
-        OnSelect: =Set(varStatusFilter, "Expiring"); If(varRole <> "employee", Navigate(scrRecords, ScreenTransition.None))
-        PaddingLeft: =16
-        Size: =24
-        Text: =CountRows(Filter(colRecords, LiveStatus = "Expiring"))
-        Width: =236
-        X: =530
-        Y: =132
-        ZIndex: =5
+                navItemHome As label:
+                    Color: =If(ThisItem.Tag = varNavTag, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
+                    Fill: =If(ThisItem.Tag = varNavTag, RGBA(237, 237, 237, 1), RGBA(0,0,0,0))
+                    FillPortions: =0
+                    FontWeight: =If(ThisItem.Tag = varNavTag, FontWeight.Semibold, FontWeight.Normal)
+                    Height: =Parent.TemplateHeight
+                    OnSelect: =Switch(ThisItem.Tag, "home", Navigate(scrHome, ScreenTransition.None), "emps", Navigate(scrEmployees, ScreenTransition.None), "cat", Navigate(scrCatalog, ScreenTransition.None), "recs", Navigate(scrRecords, ScreenTransition.None), "my", Navigate(scrMyTrainings, ScreenTransition.None), Navigate(scrReports, ScreenTransition.None))
+                    PaddingLeft: =12
+                    Size: =12
+                    Text: =ThisItem.Icon & "   " & ThisItem.Title
+                    Width: =Parent.TemplateWidth
+                    ZIndex: =1
 
-    lblKpiCap2H As label:
-        Color: =RGBA(92, 92, 92, 1)
-        Height: =24
-        OnSelect: =Set(varStatusFilter, "Expiring"); If(varRole <> "employee", Navigate(scrRecords, ScreenTransition.None))
-        PaddingLeft: =16
-        Size: =10
-        Text: ="Exspiruje do 30 dní"
-        Width: =236
-        X: =530
-        Y: =180
-        ZIndex: =5
+            navRoleHome As label:
+                Color: =RGBA(97, 97, 97, 1)
+                Height: =26
+                PaddingLeft: =12
+                Size: =10
+                Text: |-
+                    ="Rola: " & Switch(varRole, "admin", "HR Admin", "manager", "Manažér", "Zamestnanec")
+                ZIndex: =3
 
-    lblKpiVal3H As label:
-        Color: =RGBA(164, 38, 44, 1)
-        FontWeight: =FontWeight.Bold
-        Height: =46
-        OnSelect: =Set(varStatusFilter, "Expired"); If(varRole <> "employee", Navigate(scrRecords, ScreenTransition.None))
-        PaddingLeft: =16
-        Size: =24
-        Text: =CountRows(Filter(colRecords, LiveStatus = "Expired"))
-        Width: =236
-        X: =806
-        Y: =132
-        ZIndex: =5
+        mainHome As groupContainer.verticalAutoLayoutContainer:
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =16
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =20
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =20
+            ZIndex: =2
 
-    lblKpiCap3H As label:
-        Color: =RGBA(92, 92, 92, 1)
-        Height: =24
-        OnSelect: =Set(varStatusFilter, "Expired"); If(varRole <> "employee", Navigate(scrRecords, ScreenTransition.None))
-        PaddingLeft: =16
-        Size: =10
-        Text: ="Exspirované školenia"
-        Width: =236
-        X: =806
-        Y: =180
-        ZIndex: =5
+            hdrHome As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =56
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =12
+                LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                ZIndex: =1
 
-    lblKpiVal4H As label:
-        Color: =RGBA(36, 36, 36, 1)
-        FontWeight: =FontWeight.Bold
-        Height: =46
-        PaddingLeft: =16
-        Size: =24
-        Text: |-
-            =With({t: CountRows(Filter(colRecords, LiveStatus <> "Planned"))}, If(t = 0, "100 %", Round(CountRows(Filter(colRecords, LiveStatus = "Valid")) / t * 100, 0) & " %"))
-        Width: =236
-        X: =1082
-        Y: =132
-        ZIndex: =5
+                hdrTitleHome As groupContainer.verticalAutoLayoutContainer:
+                    LayoutGap: =2
+                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                    ZIndex: =1
 
-    lblKpiCap4H As label:
-        Color: =RGBA(92, 92, 92, 1)
-        Height: =24
-        PaddingLeft: =16
-        Size: =10
-        Text: ="Miera splnenia"
-        Width: =236
-        X: =1082
-        Y: =180
-        ZIndex: =5
+                    hdrTitleLblHome As label:
+                        FontWeight: =FontWeight.Bold
+                        Height: =30
+                        Size: =21
+                        Text: ="Vitajte, " & First(Split(varCurrentUser.FullName, " ")).Value & " 👋"
+                        ZIndex: =1
 
-    btnRoleAdmH As button:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        BorderThickness: =1
-        Color: =If(varRole = "admin", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-        Fill: =If(varRole = "admin", RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
-        FontWeight: =FontWeight.Semibold
-        Height: =34
-        HoverFill: =ColorFade(RGBA(91, 95, 199, 1), 60%)
-        OnSelect: |-
-            =Set(varCurrentUser, LookUp(colEmployees, EmployeeID = "EMP0001")); Set(varRole, "admin"); Notify("Demo rola: " & "HR Admin" & " (" & varCurrentUser.FullName & ")", NotificationType.Information, 2000)
-        RadiusBottomLeft: =17
-        RadiusBottomRight: =17
-        RadiusTopLeft: =17
-        RadiusTopRight: =17
-        Size: =10
-        Text: ="HR Admin"
-        Width: =120
-        X: =930
-        Y: =24
-        ZIndex: =6
+                    hdrSubLblHome As label:
+                        Color: =RGBA(97, 97, 97, 1)
+                        Height: =20
+                        Size: =11
+                        Text: ="Prehľad zamestnancov a stavu školení k dnešnému dňu."
+                        ZIndex: =2
 
-    btnRoleMgrH As button:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        BorderThickness: =1
-        Color: =If(varRole = "manager", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-        Fill: =If(varRole = "manager", RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
-        FontWeight: =FontWeight.Semibold
-        Height: =34
-        HoverFill: =ColorFade(RGBA(91, 95, 199, 1), 60%)
-        OnSelect: |-
-            =Set(varCurrentUser, LookUp(colEmployees, EmployeeID = "EMP0006")); Set(varRole, "manager"); Notify("Demo rola: " & "Manažér" & " (" & varCurrentUser.FullName & ")", NotificationType.Information, 2000)
-        RadiusBottomLeft: =17
-        RadiusBottomRight: =17
-        RadiusTopLeft: =17
-        RadiusTopRight: =17
-        Size: =10
-        Text: ="Manažér"
-        Width: =120
-        X: =1062
-        Y: =24
-        ZIndex: =6
+                hdrActionsHome As groupContainer.horizontalAutoLayoutContainer:
+                    FillPortions: =0
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: =8
+                    LayoutJustifyContent: =LayoutJustifyContent.End
+                    Width: =360
+                    ZIndex: =2
 
-    btnRoleEmpH As button:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        BorderThickness: =1
-        Color: =If(varRole = "employee", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-        Fill: =If(varRole = "employee", RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
-        FontWeight: =FontWeight.Semibold
-        Height: =34
-        HoverFill: =ColorFade(RGBA(91, 95, 199, 1), 60%)
-        OnSelect: |-
-            =Set(varCurrentUser, LookUp(colEmployees, EmployeeID = "EMP0035")); Set(varRole, "employee"); Notify("Demo rola: " & "Zamestnanec" & " (" & varCurrentUser.FullName & ")", NotificationType.Information, 2000)
-        RadiusBottomLeft: =17
-        RadiusBottomRight: =17
-        RadiusTopLeft: =17
-        RadiusTopRight: =17
-        Size: =10
-        Text: ="Zamestnanec"
-        Width: =120
-        X: =1194
-        Y: =24
-        ZIndex: =6
+                    homeRoleAdmin As button:
+                        BorderColor: =RGBA(225, 225, 225, 1)
+                        BorderThickness: =1
+                        Color: =If(varRole = "admin", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                        Fill: =If(varRole = "admin", RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
+                        Height: =34
+                        HoverFill: =RGBA(237, 237, 237, 1)
+                        OnSelect: =Set(varCurrentUser, LookUp(colEmployees, EmployeeID = "EMP0001")); Set(varRole, "admin")
+                        RadiusBottomLeft: =17
+                        RadiusBottomRight: =17
+                        RadiusTopLeft: =17
+                        RadiusTopRight: =17
+                        Size: =10
+                        Text: ="HR Admin"
+                        Width: =104
+                        ZIndex: =1
+
+                    homeRoleMgr As button:
+                        BorderColor: =RGBA(225, 225, 225, 1)
+                        BorderThickness: =1
+                        Color: =If(varRole = "manager", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                        Fill: =If(varRole = "manager", RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
+                        Height: =34
+                        HoverFill: =RGBA(237, 237, 237, 1)
+                        OnSelect: =Set(varCurrentUser, LookUp(colEmployees, EmployeeID = "EMP0006")); Set(varRole, "manager")
+                        RadiusBottomLeft: =17
+                        RadiusBottomRight: =17
+                        RadiusTopLeft: =17
+                        RadiusTopRight: =17
+                        Size: =10
+                        Text: ="Manažér"
+                        Width: =100
+                        ZIndex: =2
+
+                    homeRoleEmp As button:
+                        BorderColor: =RGBA(225, 225, 225, 1)
+                        BorderThickness: =1
+                        Color: =If(varRole = "employee", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                        Fill: =If(varRole = "employee", RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
+                        Height: =34
+                        HoverFill: =RGBA(237, 237, 237, 1)
+                        OnSelect: =Set(varCurrentUser, LookUp(colEmployees, EmployeeID = "EMP0035")); Set(varRole, "employee"); Navigate(scrMyTrainings, ScreenTransition.None)
+                        RadiusBottomLeft: =17
+                        RadiusBottomRight: =17
+                        RadiusTopLeft: =17
+                        RadiusTopRight: =17
+                        Size: =10
+                        Text: ="Zamestnanec"
+                        Width: =118
+                        ZIndex: =3
+
+            kpiRowHome As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =112
+                LayoutAlignItems: =LayoutAlignItems.Stretch
+                LayoutGap: =14
+                LayoutOverflowX: =LayoutOverflow.Scroll
+                ZIndex: =2
+
+                kpi1Home As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    BorderThickness: =1
+                    Fill: =RGBA(255, 255, 255, 1)
+                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                    LayoutGap: =2
+                    LayoutMinWidth: =170
+                    PaddingBottom: =18
+                    PaddingLeft: =16
+                    PaddingRight: =16
+                    PaddingTop: =18
+                    RadiusBottomLeft: =8
+                    RadiusBottomRight: =8
+                    RadiusTopLeft: =8
+                    RadiusTopRight: =8
+                    ZIndex: =1
+
+                    kpiVal1Home As label:
+                        Color: =RGBA(36, 36, 36, 1)
+                        FontWeight: =FontWeight.Bold
+                        Height: =42
+                        OnSelect: =If(varRole <> "employee", Navigate(scrEmployees, ScreenTransition.None))
+                        Size: =28
+                        Text: =CountRows(Filter(colEmployees, Status = "Active"))
+                        ZIndex: =1
+
+                    kpiCap1Home As label:
+                        Color: =RGBA(97, 97, 97, 1)
+                        Height: =30
+                        OnSelect: =If(varRole <> "employee", Navigate(scrEmployees, ScreenTransition.None))
+                        Size: =11
+                        Text: ="Aktívni zamestnanci"
+                        ZIndex: =2
+
+                kpi2Home As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    BorderThickness: =1
+                    Fill: =RGBA(255, 255, 255, 1)
+                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                    LayoutGap: =2
+                    LayoutMinWidth: =170
+                    PaddingBottom: =18
+                    PaddingLeft: =16
+                    PaddingRight: =16
+                    PaddingTop: =18
+                    RadiusBottomLeft: =8
+                    RadiusBottomRight: =8
+                    RadiusTopLeft: =8
+                    RadiusTopRight: =8
+                    ZIndex: =2
+
+                    kpiVal2Home As label:
+                        Color: =RGBA(122, 82, 0, 1)
+                        FontWeight: =FontWeight.Bold
+                        Height: =42
+                        OnSelect: =If(varRole <> "employee", Set(varStatusFilter, "Expiring"); Navigate(scrRecords, ScreenTransition.None))
+                        Size: =28
+                        Text: =CountRows(Filter(colRecords, LiveStatus = "Expiring"))
+                        ZIndex: =1
+
+                    kpiCap2Home As label:
+                        Color: =RGBA(97, 97, 97, 1)
+                        Height: =30
+                        OnSelect: =If(varRole <> "employee", Set(varStatusFilter, "Expiring"); Navigate(scrRecords, ScreenTransition.None))
+                        Size: =11
+                        Text: ="Exspiruje do 30 dní"
+                        ZIndex: =2
+
+                kpi3Home As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    BorderThickness: =1
+                    Fill: =RGBA(255, 255, 255, 1)
+                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                    LayoutGap: =2
+                    LayoutMinWidth: =170
+                    PaddingBottom: =18
+                    PaddingLeft: =16
+                    PaddingRight: =16
+                    PaddingTop: =18
+                    RadiusBottomLeft: =8
+                    RadiusBottomRight: =8
+                    RadiusTopLeft: =8
+                    RadiusTopRight: =8
+                    ZIndex: =3
+
+                    kpiVal3Home As label:
+                        Color: =RGBA(164, 38, 44, 1)
+                        FontWeight: =FontWeight.Bold
+                        Height: =42
+                        OnSelect: =If(varRole <> "employee", Set(varStatusFilter, "Expired"); Navigate(scrRecords, ScreenTransition.None))
+                        Size: =28
+                        Text: =CountRows(Filter(colRecords, LiveStatus = "Expired"))
+                        ZIndex: =1
+
+                    kpiCap3Home As label:
+                        Color: =RGBA(97, 97, 97, 1)
+                        Height: =30
+                        OnSelect: =If(varRole <> "employee", Set(varStatusFilter, "Expired"); Navigate(scrRecords, ScreenTransition.None))
+                        Size: =11
+                        Text: ="Exspirované školenia"
+                        ZIndex: =2
+
+                kpi4Home As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    BorderThickness: =1
+                    Fill: =RGBA(255, 255, 255, 1)
+                    LayoutAlignItems: =LayoutAlignItems.Stretch
+                    LayoutGap: =2
+                    LayoutMinWidth: =170
+                    PaddingBottom: =18
+                    PaddingLeft: =16
+                    PaddingRight: =16
+                    PaddingTop: =18
+                    RadiusBottomLeft: =8
+                    RadiusBottomRight: =8
+                    RadiusTopLeft: =8
+                    RadiusTopRight: =8
+                    ZIndex: =4
+
+                    kpiVal4Home As label:
+                        Color: =RGBA(36, 36, 36, 1)
+                        FontWeight: =FontWeight.Bold
+                        Height: =42
+                        Size: =28
+                        Text: |-
+                            =With({t: CountRows(Filter(colRecords, LiveStatus <> "Planned"))}, If(t = 0, "100 %", Round(CountRows(Filter(colRecords, LiveStatus = "Valid")) / t * 100, 0) & " %"))
+                        ZIndex: =1
+
+                    kpiCap4Home As label:
+                        Color: =RGBA(97, 97, 97, 1)
+                        Height: =30
+                        Size: =11
+                        Text: ="Miera splnenia"
+                        ZIndex: =2
+
+            searchRowHome As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =44
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =8
+                ZIndex: =3
+
+                txtSearchHome As text:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    Color: =RGBA(36, 36, 36, 1)
+                    FillPortions: =1
+                    HintText: ="Hľadať zamestnanca (meno alebo osobné číslo)…"
+                    Size: =11
+                    ZIndex: =1
+
+                btnSearchHome As button:
+                    BorderColor: =RGBA(91, 95, 199, 1)
+                    Fill: =RGBA(91, 95, 199, 1)
+                    FontWeight: =FontWeight.Semibold
+                    HoverFill: =RGBA(79, 82, 178, 1)
+                    OnSelect: =Set(varSearch, txtSearchHome.Text); If(varRole <> "employee", Navigate(scrEmployees, ScreenTransition.None))
+                    PressedFill: =RGBA(79, 82, 178, 1)
+                    RadiusBottomLeft: =6
+                    RadiusBottomRight: =6
+                    RadiusTopLeft: =6
+                    RadiusTopRight: =6
+                    Size: =11
+                    Text: ="Hľadať"
+                    Width: =120
+                    ZIndex: =2
+
+            lblDeptsHome As label:
+                FontWeight: =FontWeight.Semibold
+                Height: =26
+                Size: =12
+                Text: ="Rýchle filtre podľa oddelenia"
+                ZIndex: =4
+
+            galDeptHome As gallery.galleryHorizontal:
+                FillPortions: =0
+                Height: =48
+                Items: =colDepartments
+                ShowScrollbar: =false
+                TemplatePadding: =0
+                TemplateSize: =186
+                ZIndex: =5
+
+                galDeptHomeBtn As button:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    BorderThickness: =1
+                    Color: =RGBA(36, 36, 36, 1)
+                    Fill: =RGBA(255, 255, 255, 1)
+                    FillPortions: =0
+                    Height: =36
+                    HoverFill: =RGBA(237, 237, 237, 1)
+                    OnSelect: =Set(varDeptFilter, ThisItem.DepartmentCode); If(varRole <> "employee", Navigate(scrEmployees, ScreenTransition.None))
+                    RadiusBottomLeft: =18
+                    RadiusBottomRight: =18
+                    RadiusTopLeft: =18
+                    RadiusTopRight: =18
+                    Size: =10
+                    Text: =ThisItem.DepartmentName
+                    Width: =Parent.TemplateWidth - 8
+                    Y: =6
+                    ZIndex: =1
+
+            spacerHome As groupContainer.verticalAutoLayoutContainer:
+                ZIndex: =6
 

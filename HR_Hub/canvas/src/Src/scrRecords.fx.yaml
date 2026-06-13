@@ -1,233 +1,297 @@
 scrRecords As screen:
-    Fill: =RGBA(245, 245, 245, 1)
+    Fill: =RGBA(243, 243, 243, 1)
     OnVisible: =Set(varNavTag, "recs")
 
-    recRailR As rectangle:
-        Fill: =RGBA(255, 255, 255, 1)
+    frameRecords As groupContainer.horizontalAutoLayoutContainer:
         Height: =Parent.Height
-        Width: =220
+        LayoutAlignItems: =LayoutAlignItems.Stretch
+        Width: =Parent.Width
         ZIndex: =1
 
-    lblBrandR As label:
-        Color: =RGBA(91, 95, 199, 1)
-        FontWeight: =FontWeight.Bold
-        PaddingLeft: =20
-        Size: =15
-        Text: ="HR Hub"
-        Width: =200
-        Y: =12
-        ZIndex: =2
-
-    galNavR As gallery.galleryVertical:
-        Height: =Parent.Height - 64
-        Items: =Filter(colNav, varRole <> "employee" || EmpVisible)
-        ShowScrollbar: =false
-        TemplatePadding: =0
-        TemplateSize: =46
-        Width: =220
-        Y: =64
-        ZIndex: =3
-
-        lblNavItemR As label:
-            Color: =If(ThisItem.Tag = varNavTag, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
-            Fill: =If(ThisItem.Tag = varNavTag, RGBA(237, 237, 237, 1), RGBA(0, 0, 0, 0))
-            FontWeight: =If(ThisItem.Tag = varNavTag, FontWeight.Semibold, FontWeight.Normal)
-            Height: =Parent.TemplateHeight
-            OnSelect: =Switch(ThisItem.Tag, "home", Navigate(scrHome, ScreenTransition.None), "emps", Navigate(scrEmployees, ScreenTransition.None), "cat", Navigate(scrCatalog, ScreenTransition.None), "recs", Navigate(scrRecords, ScreenTransition.None), "my", Navigate(scrMyTrainings, ScreenTransition.None), Navigate(scrReports, ScreenTransition.None))
-            PaddingLeft: =20
-            Size: =12
-            Text: =ThisItem.Icon & "  " & ThisItem.Title
-            Width: =Parent.TemplateWidth
-            ZIndex: =1
-
-    lblTitleR As label:
-        FontWeight: =FontWeight.Bold
-        Size: =20
-        Text: ="Záznamy školení"
-        Width: =600
-        X: =250
-        Y: =20
-        ZIndex: =4
-
-    lblSubR As label:
-        Color: =RGBA(92, 92, 92, 1)
-        Height: =28
-        Size: =11
-        Text: ="Manažér vidí len záznamy svojich priamych podriadených (ManagerEmail = aktuálny používateľ)."
-        Width: =760
-        X: =250
-        Y: =58
-        ZIndex: =4
-
-    btnAddR As button:
-        Fill: =RGBA(91, 95, 199, 1)
-        FontWeight: =FontWeight.Semibold
-        HoverFill: =RGBA(79, 82, 178, 1)
-        OnSelect: =Set(varEditRecord, Blank()); Set(varPickedEmp, Blank()); Set(varPickedTraining, Blank()); Navigate(scrAddRecord, ScreenTransition.None)
-        Size: =11
-        Text: ="+ Pridať záznam"
-        Width: =180
-        X: =1156
-        Y: =24
-        ZIndex: =4
-
-    txtRecSearchR As text:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        Height: =38
-        HintText: ="Meno zamestnanca (začiatok)…"
-        Size: =10
-        X: =250
-        Y: =96
-        ZIndex: =4
-
-    btnAllStatR As button:
-        BorderColor: =RGBA(209, 209, 209, 1)
-        BorderThickness: =1
-        Color: =If(IsBlank(varStatusFilter), RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-        Fill: =If(IsBlank(varStatusFilter), RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
-        Height: =34
-        HoverFill: =RGBA(237, 237, 237, 1)
-        OnSelect: =Set(varStatusFilter, Blank())
-        RadiusBottomLeft: =17
-        RadiusBottomRight: =17
-        RadiusTopLeft: =17
-        RadiusTopRight: =17
-        Size: =10
-        Text: ="Všetky stavy"
-        Width: =130
-        X: =590
-        Y: =98
-        ZIndex: =4
-
-    galStatusR As gallery.galleryHorizontal:
-        Height: =44
-        Items: =colStatuses
-        ShowScrollbar: =false
-        TemplateSize: =160
-        Width: =650
-        X: =730
-        Y: =92
-        ZIndex: =4
-
-        btnStatR As button:
-            BorderColor: =RGBA(209, 209, 209, 1)
-            BorderThickness: =1
-            Color: =If(varStatusFilter = ThisItem.S, RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-            Fill: =If(varStatusFilter = ThisItem.S, RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
-            Height: =34
-            HoverFill: =RGBA(237, 237, 237, 1)
-            OnSelect: =Set(varStatusFilter, If(varStatusFilter = ThisItem.S, Blank(), ThisItem.S))
-            RadiusBottomLeft: =17
-            RadiusBottomRight: =17
-            RadiusTopLeft: =17
-            RadiusTopRight: =17
-            Size: =9
-            Text: =ThisItem.L
-            Width: =Parent.TemplateWidth - 6
-            Y: =6
-            ZIndex: =1
-
-    lblRecCountR As label:
-        Color: =RGBA(92, 92, 92, 1)
-        Height: =24
-        Size: =10
-        Text: =CountRows(Filter(colRecords, (varRole = "admin" || ManagerEmail = varCurrentUser.Email) && (IsBlank(varStatusFilter) || LiveStatus = varStatusFilter) && (txtRecSearchR.Text = "" || StartsWith(EmployeeName, txtRecSearchR.Text)))) & " záznamov"
-        Width: =300
-        X: =250
-        Y: =142
-        ZIndex: =4
-
-    galRecsR As gallery.galleryVertical:
-        Height: =560
-        Items: =Sort(Filter(colRecords, (varRole = "admin" || ManagerEmail = varCurrentUser.Email) && (IsBlank(varStatusFilter) || LiveStatus = varStatusFilter) && (txtRecSearchR.Text = "" || StartsWith(EmployeeName, txtRecSearchR.Text))), CompletionDate, SortOrder.Descending)
-        TemplatePadding: =3
-        TemplateSize: =60
-        Width: =1086
-        X: =250
-        Y: =170
-        ZIndex: =4
-
-        recRecCardR As rectangle:
-            BorderColor: =RGBA(209, 209, 209, 1)
-            BorderThickness: =1
+        navRailRecords As groupContainer.verticalAutoLayoutContainer:
+            BorderColor: =RGBA(225, 225, 225, 1)
             Fill: =RGBA(255, 255, 255, 1)
-            Height: =Parent.TemplateHeight - 6
-            Width: =Parent.TemplateWidth
-            Y: =3
+            FillPortions: =0
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =4
+            PaddingBottom: =12
+            PaddingLeft: =8
+            PaddingRight: =8
+            PaddingTop: =12
+            Width: =220
             ZIndex: =1
 
-        lblRecEmpR As label:
-            FontWeight: =FontWeight.Semibold
-            Height: =26
-            Size: =11
-            Text: =ThisItem.EmployeeName
-            Width: =230
-            X: =16
-            Y: =8
+            navBrandRecords As label:
+                Color: =RGBA(91, 95, 199, 1)
+                FontWeight: =FontWeight.Bold
+                Height: =44
+                PaddingLeft: =12
+                Size: =16
+                Text: ="HR Hub"
+                ZIndex: =1
+
+            navGalRecords As gallery.galleryVertical:
+                Items: =Filter(colNav, varRole <> "employee" || EmpVisible)
+                Layout: =Layout.Vertical
+                ShowScrollbar: =false
+                TemplatePadding: =0
+                TemplateSize: =46
+                ZIndex: =2
+
+                navItemRecords As label:
+                    Color: =If(ThisItem.Tag = varNavTag, RGBA(91, 95, 199, 1), RGBA(36, 36, 36, 1))
+                    Fill: =If(ThisItem.Tag = varNavTag, RGBA(237, 237, 237, 1), RGBA(0,0,0,0))
+                    FillPortions: =0
+                    FontWeight: =If(ThisItem.Tag = varNavTag, FontWeight.Semibold, FontWeight.Normal)
+                    Height: =Parent.TemplateHeight
+                    OnSelect: =Switch(ThisItem.Tag, "home", Navigate(scrHome, ScreenTransition.None), "emps", Navigate(scrEmployees, ScreenTransition.None), "cat", Navigate(scrCatalog, ScreenTransition.None), "recs", Navigate(scrRecords, ScreenTransition.None), "my", Navigate(scrMyTrainings, ScreenTransition.None), Navigate(scrReports, ScreenTransition.None))
+                    PaddingLeft: =12
+                    Size: =12
+                    Text: =ThisItem.Icon & "   " & ThisItem.Title
+                    Width: =Parent.TemplateWidth
+                    ZIndex: =1
+
+            navRoleRecords As label:
+                Color: =RGBA(97, 97, 97, 1)
+                Height: =26
+                PaddingLeft: =12
+                Size: =10
+                Text: |-
+                    ="Rola: " & Switch(varRole, "admin", "HR Admin", "manager", "Manažér", "Zamestnanec")
+                ZIndex: =3
+
+        mainRecords As groupContainer.verticalAutoLayoutContainer:
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutGap: =16
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =20
+            PaddingLeft: =24
+            PaddingRight: =24
+            PaddingTop: =20
             ZIndex: =2
 
-        lblRecEmpIdR As label:
-            Color: =RGBA(92, 92, 92, 1)
-            Height: =20
-            Size: =9
-            Text: =ThisItem.EmployeeID
-            Width: =230
-            X: =16
-            Y: =32
-            ZIndex: =2
+            hdrRecords As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =64
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =12
+                LayoutJustifyContent: =LayoutJustifyContent.SpaceBetween
+                ZIndex: =1
 
-        lblRecTrR As label:
-            Height: =26
-            Size: =11
-            Text: =ThisItem.TrainingName
-            Width: =330
-            X: =260
-            Y: =8
-            ZIndex: =2
+                hdrTitleRecords As groupContainer.verticalAutoLayoutContainer:
+                    LayoutGap: =2
+                    LayoutJustifyContent: =LayoutJustifyContent.Center
+                    ZIndex: =1
 
-        lblRecDatesR As label:
-            Color: =RGBA(92, 92, 92, 1)
-            Height: =20
-            Size: =9
-            Text: |-
-                =If(ThisItem.Pl, "Plán: ", "Absolvované: ") & Text(ThisItem.CompletionDate, "d.m.yyyy") & "   Platí do: " & If(IsBlank(ThisItem.ExpirationDate), "—", Text(ThisItem.ExpirationDate, "d.m.yyyy"))
-            Width: =360
-            X: =260
-            Y: =32
-            ZIndex: =2
+                    hdrTitleLblRecords As label:
+                        FontWeight: =FontWeight.Bold
+                        Height: =30
+                        Size: =21
+                        Text: ="Záznamy školení"
+                        ZIndex: =1
 
-        lblRecPillR As label:
-            Align: =Align.Center
-            Color: =Switch(ThisItem.LiveStatus, "Valid", RGBA(14, 107, 14, 1), "Expiring", RGBA(122, 82, 0, 1), "Expired", RGBA(164, 38, 44, 1), RGBA(77, 77, 77, 1))
-            Fill: =Switch(ThisItem.LiveStatus, "Valid", RGBA(223, 246, 221, 1), "Expiring", RGBA(255, 244, 206, 1), "Expired", RGBA(253, 231, 233, 1), RGBA(237, 237, 237, 1))
-            FontWeight: =FontWeight.Semibold
-            Height: =26
-            Size: =10
-            Text: =LookUp(colStatuses, S = ThisItem.LiveStatus, L)
-            X: =870
-            Y: =15
-            ZIndex: =2
+                    hdrSubLblRecords As label:
+                        Color: =RGBA(97, 97, 97, 1)
+                        Height: =20
+                        Size: =11
+                        Text: =If(varRole = "manager", "Záznamy vašich priamych podriadených.", "Všetky záznamy školení vo firme.")
+                        ZIndex: =2
 
-        lblRecCertR As label:
-            Color: =RGBA(91, 95, 199, 1)
-            Height: =26
-            Size: =10
-            Text: =If(ThisItem.Cert = "", "", "PDF")
-            Width: =50
-            X: =1030
-            Y: =15
-            ZIndex: =2
+                hdrActionsRecords As groupContainer.horizontalAutoLayoutContainer:
+                    FillPortions: =0
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: =8
+                    LayoutJustifyContent: =LayoutJustifyContent.End
+                    Width: =200
+                    ZIndex: =2
 
-        lblRecEditR As label:
-            Color: =RGBA(91, 95, 199, 1)
-            FontWeight: =FontWeight.Semibold
-            Height: =26
-            OnSelect: =Set(varEditRecord, ThisItem); Set(varPickedEmp, LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID)); Set(varPickedTraining, LookUp(colTrainingsCatalog, TrainingName = ThisItem.TrainingName)); Navigate(scrAddRecord, ScreenTransition.None)
-            Size: =10
-            Text: ="Upraviť"
-            Visible: =varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email)
-            Width: =70
-            X: =1000
-            Y: =15
-            ZIndex: =3
+                    btnAddRec As button:
+                        BorderColor: =RGBA(91, 95, 199, 1)
+                        Fill: =RGBA(91, 95, 199, 1)
+                        FontWeight: =FontWeight.Semibold
+                        HoverFill: =RGBA(79, 82, 178, 1)
+                        OnSelect: =Set(varEditRecord, Blank()); Set(varPickedEmp, Blank()); Set(varPickedTraining, Blank()); Navigate(scrAddRecord, ScreenTransition.None)
+                        PressedFill: =RGBA(79, 82, 178, 1)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="+ Pridať záznam"
+                        Width: =180
+                        ZIndex: =1
+
+            toolbarRec As groupContainer.horizontalAutoLayoutContainer:
+                FillPortions: =0
+                Height: =44
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =8
+                LayoutOverflowX: =LayoutOverflow.Scroll
+                ZIndex: =2
+
+                txtSearchRec As text:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    Color: =RGBA(36, 36, 36, 1)
+                    HintText: ="Meno zamestnanca (začiatok)…"
+                    Size: =11
+                    Width: =300
+                    ZIndex: =1
+
+                btnAllStatRec As button:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    BorderThickness: =1
+                    Color: =If(IsBlank(varStatusFilter), RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                    Fill: =If(IsBlank(varStatusFilter), RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
+                    Height: =34
+                    HoverFill: =RGBA(237, 237, 237, 1)
+                    OnSelect: =Set(varStatusFilter, Blank())
+                    RadiusBottomLeft: =17
+                    RadiusBottomRight: =17
+                    RadiusTopLeft: =17
+                    RadiusTopRight: =17
+                    Size: =10
+                    Text: ="Všetky stavy"
+                    Width: =130
+                    ZIndex: =2
+
+                galStatusRec As gallery.galleryHorizontal:
+                    Height: =44
+                    Items: =colStatuses
+                    ShowScrollbar: =false
+                    TemplatePadding: =0
+                    TemplateSize: =162
+                    ZIndex: =3
+
+                    galStatusRecBtn As button:
+                        BorderColor: =RGBA(225, 225, 225, 1)
+                        BorderThickness: =1
+                        Color: =If(varStatusFilter = ThisItem.S, RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                        Fill: =If(varStatusFilter = ThisItem.S, RGBA(91, 95, 199, 1), RGBA(255, 255, 255, 1))
+                        FillPortions: =0
+                        Height: =34
+                        HoverFill: =RGBA(237, 237, 237, 1)
+                        OnSelect: =Set(varStatusFilter, If(varStatusFilter = ThisItem.S, Blank(), ThisItem.S))
+                        RadiusBottomLeft: =17
+                        RadiusBottomRight: =17
+                        RadiusTopLeft: =17
+                        RadiusTopRight: =17
+                        Size: =9
+                        Text: =ThisItem.L
+                        Width: =Parent.TemplateWidth - 6
+                        Y: =6
+                        ZIndex: =1
+
+            lblCountRec As label:
+                Color: =RGBA(97, 97, 97, 1)
+                Height: =22
+                Size: =10
+                Text: =CountRows(Filter(colRecords, (varRole = "admin" || ManagerEmail = varCurrentUser.Email) && (IsBlank(varStatusFilter) || LiveStatus = varStatusFilter) && (txtSearchRec.Text = "" || StartsWith(EmployeeName, txtSearchRec.Text)))) & " záznamov"
+                ZIndex: =3
+
+            galRecs As gallery.galleryVertical:
+                Items: =Sort(Filter(colRecords, (varRole = "admin" || ManagerEmail = varCurrentUser.Email) && (IsBlank(varStatusFilter) || LiveStatus = varStatusFilter) && (txtSearchRec.Text = "" || StartsWith(EmployeeName, txtSearchRec.Text))), CompletionDate, SortOrder.Descending)
+                Layout: =Layout.Vertical
+                TemplatePadding: =0
+                TemplateSize: =60
+                ZIndex: =4
+
+                recBgRec As rectangle:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    BorderThickness: =1
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: =Parent.TemplateHeight - 6
+                    OnSelect: =Select(Parent)
+                    Width: =Parent.TemplateWidth
+                    Y: =3
+                    ZIndex: =1
+
+                recEmpRec As label:
+                    FillPortions: =0
+                    FontWeight: =FontWeight.Semibold
+                    Height: =24
+                    OnSelect: =Select(Parent)
+                    Size: =11
+                    Text: =ThisItem.EmployeeName
+                    Width: =210
+                    X: =16
+                    Y: =9
+                    ZIndex: =2
+
+                recEmpIdRec As label:
+                    Color: =RGBA(97, 97, 97, 1)
+                    FillPortions: =0
+                    Height: =18
+                    OnSelect: =Select(Parent)
+                    Size: =9
+                    Text: =ThisItem.EmployeeID
+                    Width: =210
+                    X: =16
+                    Y: =33
+                    ZIndex: =3
+
+                recTrRec As label:
+                    FillPortions: =0
+                    FontWeight: =FontWeight.Semibold
+                    Height: =24
+                    OnSelect: =Select(Parent)
+                    Size: =11
+                    Text: =ThisItem.TrainingName
+                    Width: =320
+                    X: =236
+                    Y: =9
+                    ZIndex: =4
+
+                recDatesRec As label:
+                    Color: =RGBA(97, 97, 97, 1)
+                    FillPortions: =0
+                    Height: =18
+                    OnSelect: =Select(Parent)
+                    Size: =9
+                    Text: |-
+                        =If(ThisItem.Pl, "Plán: ", "Absolvované: ") & Text(ThisItem.CompletionDate, "d.m.yyyy") & "   Platí do: " & If(IsBlank(ThisItem.ExpirationDate), "—", Text(ThisItem.ExpirationDate, "d.m.yyyy"))
+                    Width: =360
+                    X: =236
+                    Y: =33
+                    ZIndex: =5
+
+                recPillRec As label:
+                    Align: =Align.Center
+                    Color: =Switch(ThisItem.LiveStatus, "Valid", RGBA(14, 107, 14, 1), "Expiring", RGBA(122, 82, 0, 1), "Expired", RGBA(164, 38, 44, 1), RGBA(77, 77, 77, 1))
+                    Fill: =Switch(ThisItem.LiveStatus, "Valid", RGBA(223, 246, 221, 1), "Expiring", RGBA(255, 244, 206, 1), "Expired", RGBA(253, 231, 233, 1), RGBA(237, 237, 237, 1))
+                    FillPortions: =0
+                    FontWeight: =FontWeight.Semibold
+                    Height: =26
+                    OnSelect: =Select(Parent)
+                    Size: =10
+                    Text: =LookUp(colStatuses, S = ThisItem.LiveStatus, L)
+                    X: =Parent.TemplateWidth - 330
+                    Y: =Parent.TemplateHeight/2 - 13
+                    ZIndex: =6
+
+                recCertRec As label:
+                    Align: =Align.Center
+                    Color: =RGBA(91, 95, 199, 1)
+                    FillPortions: =0
+                    Height: =26
+                    Size: =10
+                    Text: =If(ThisItem.Cert = "", "", "PDF")
+                    Width: =60
+                    X: =Parent.TemplateWidth - 168
+                    Y: =Parent.TemplateHeight/2 - 13
+                    ZIndex: =7
+
+                recEditRec As label:
+                    Align: =Align.Center
+                    Color: =RGBA(91, 95, 199, 1)
+                    FillPortions: =0
+                    FontWeight: =FontWeight.Semibold
+                    Height: =26
+                    OnSelect: =Set(varEditRecord, ThisItem); Set(varPickedEmp, LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID)); Set(varPickedTraining, LookUp(colTrainingsCatalog, ID = ThisItem.Tr)); Navigate(scrAddRecord, ScreenTransition.None)
+                    Size: =10
+                    Text: ="Upraviť"
+                    Visible: =varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email)
+                    Width: =90
+                    X: =Parent.TemplateWidth - 100
+                    Y: =Parent.TemplateHeight/2 - 13
+                    ZIndex: =8
 
