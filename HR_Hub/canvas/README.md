@@ -74,22 +74,28 @@ pripravená. Postup:
    obrazovky netreba meniť:
 
    ```powerappsfx
+   // POZN.: Power Apps adresuje SharePoint stĺpce podľa DISPLAY názvu. Provision
+   // skript premenoval display názov Title na FullName / DepartmentName /
+   // PositionName / TrainingName / Action – preto sa používa display názov,
+   // NIE "Title". Choice (Status, TrainingType, Level) a Lookup (Department,
+   // Position) stĺpce sa čítajú cez .Value. (ForAll, lebo do AddColumns sa
+   // nedá pridať stĺpec s názvom, ktorý už existuje – napr. choice TrainingType.)
+
    // číselníky
    ClearCollect(colDepartments,
-       ShowColumns(AddColumns(Departments, "DepartmentName", Title),
-                   "ID", "DepartmentName", "DepartmentCode", "Manager"));
+       ShowColumns(Departments, "ID", "DepartmentName", "DepartmentCode", "Manager"));
    ClearCollect(colPositions,
-       ShowColumns(AddColumns(Positions, "PositionName", Title, "Level", Level.Value),
-                   "ID", "PositionName", "Level"));
+       ForAll(Positions As p,
+           { ID: p.ID, PositionName: p.PositionName, Level: p.Level.Value }));
    ClearCollect(colTrainingsCatalog,
-       ShowColumns(AddColumns(TrainingsCatalog,
-                       "TrainingName", Title, "TrainingType", TrainingType.Value),
-                   "ID", "TrainingName", "TrainingType", "ValidityMonths", "Provider"));
+       ForAll(TrainingsCatalog As t,
+           { ID: t.ID, TrainingName: t.TrainingName, TrainingType: t.TrainingType.Value,
+             ValidityMonths: t.ValidityMonths, Provider: t.Provider }));
 
-   // zamestnanci – lookup/choice stĺpce cez .Value, DepartmentCode dohľadáme
+   // zamestnanci – lookup/choice cez .Value, Title je teraz FullName, DepartmentCode dohľadáme
    ClearCollect(colEmployees,
        ForAll(Employees As e,
-           { ID: e.ID, EmployeeID: e.EmployeeID, FullName: e.Title, Email: e.Email,
+           { ID: e.ID, EmployeeID: e.EmployeeID, FullName: e.FullName, Email: e.Email,
              Department: e.Department.Value,
              DepartmentCode: LookUp(colDepartments, DepartmentName = e.Department.Value, DepartmentCode),
              Position: e.Position.Value, ManagerEmail: e.ManagerEmail,
