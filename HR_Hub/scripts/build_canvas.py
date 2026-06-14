@@ -251,36 +251,79 @@ def record_row(prefix, show_emp):
                 "Width": "210", "X": "16", "Y": "33", "OnSelect": "Select(Parent)"}),
         ]
         tr_x = "236"
+        left_w = "Parent.TemplateWidth - 850"
     else:
         tr_x = "16"
+        left_w = "Parent.TemplateWidth - 620"
     kids += [
         label(f"recTr{prefix}", "ThisItem.TrainingName", {
             "FontWeight": "FontWeight.Semibold", "Size": "11", "Height": "24",
-            "Width": "320", "X": tr_x, "Y": "9", "OnSelect": "Select(Parent)"}),
+            "Width": left_w, "X": tr_x, "Y": "9", "OnSelect": "Select(Parent)"}),
         label(f"recDates{prefix}",
               'If(ThisItem.Pl, "Plán: ", "Absolvované: ") & Text(ThisItem.CompletionDate, "d.m.yyyy") '
               '& "   Platí do: " & If(IsBlank(ThisItem.ExpirationDate), "—", Text(ThisItem.ExpirationDate, "d.m.yyyy"))',
               {"Color": MUTED, "Size": "9", "Height": "18",
-               "Width": "360", "X": tr_x, "Y": "33", "OnSelect": "Select(Parent)"}),
-        # pravý blok – ukotvený k šírke šablóny
+               "Width": left_w, "X": tr_x, "Y": "33", "OnSelect": "Select(Parent)"}),
+        # pravý blok – ukotvený k šírke šablóny (zľava doprava: Absolvované | stav | Certifikát | Upraviť)
+        label(f"recDone{prefix}", '"✓ Absolvované"', {
+            "Color": G_FG, "FontWeight": "FontWeight.Semibold", "Size": "10", "Height": "26", "Align": "Align.Center",
+            "Width": "150", "X": "Parent.TemplateWidth - 590", "Y": "Parent.TemplateHeight/2 - 13",
+            "Visible": "ThisItem.Pl && (" + CAN_EDIT + ")", "OnSelect": MARK_DONE}),
         label(f"recPill{prefix}", STATUS_TEXT, {
             "Align": "Align.Center", "Color": STATUS_COLOR, "Fill": STATUS_FILL,
             "FontWeight": "FontWeight.Semibold", "Size": "10", "Height": "26",
-            "Width": "150", "X": "Parent.TemplateWidth - 330", "Y": "Parent.TemplateHeight/2 - 13",
+            "Width": "150", "X": "Parent.TemplateWidth - 420", "Y": "Parent.TemplateHeight/2 - 13",
             "OnSelect": "Select(Parent)"}),
-        label(f"recCert{prefix}", 'If(ThisItem.Cert = "", "", "PDF")', {
-            "Color": PURPLE, "Size": "10", "Height": "26", "Align": "Align.Center",
-            "Width": "60", "X": "Parent.TemplateWidth - 168", "Y": "Parent.TemplateHeight/2 - 13"}),
-        label(f"recDone{prefix}", '"✓ Absolvované"', {
-            "Color": G_FG, "FontWeight": "FontWeight.Semibold", "Size": "10", "Height": "26", "Align": "Align.Center",
-            "Width": "140", "X": "Parent.TemplateWidth - 480", "Y": "Parent.TemplateHeight/2 - 13",
-            "Visible": "ThisItem.Pl && (" + CAN_EDIT + ")", "OnSelect": MARK_DONE}),
+        # Certifikát: otvorí panel pre vybraný riadok (varSelRecord)
+        label(f"recCert{prefix}", 'If(ThisItem.Cert = "", "+ Certifikát", "Certifikát ✓")', {
+            "Color": PURPLE, "FontWeight": "FontWeight.Semibold", "Size": "10", "Height": "26", "Align": "Align.Center",
+            "Width": "130", "X": "Parent.TemplateWidth - 250", "Y": "Parent.TemplateHeight/2 - 13",
+            "Visible": CAN_EDIT, "OnSelect": "Set(varSelRecord, ThisItem)"}),
         label(f"recEdit{prefix}", '"Upraviť"', {
             "Color": PURPLE, "FontWeight": "FontWeight.Semibold", "Size": "10", "Height": "26",
-            "Align": "Align.Center", "Width": "90", "X": "Parent.TemplateWidth - 100",
+            "Align": "Align.Center", "Width": "100", "X": "Parent.TemplateWidth - 110",
             "Y": "Parent.TemplateHeight/2 - 13", "Visible": CAN_EDIT, "OnSelect": EDIT_SEL}),
     ]
     return kids
+
+
+def cert_panel(sfx):
+    """Panel na správu certifikátu vybraného záznamu (varSelRecord).
+    Demo: uloží odkaz na PDF. LIVE: vlož sem Attachments DataCard (dcAttach) –
+    button uloží prílohu cez Patch {Attachments: dcAttach.Attachments}."""
+    save = (
+        'Patch(colRecordsBase, LookUp(colRecordsBase, ID = varSelRecord.ID), {Cert: txtCertManage' + sfx + '.Text}); '
+        '/* LIVE: Patch(TrainingRecords, LookUp(TrainingRecords, ID = varSelRecord.ID), '
+        '{Attachments: dcAttach' + sfx + '.Attachments, CertificateLink: txtCertManage' + sfx + '.Text}); */ '
+        + REFRESH_RECORDS + '; '
+        'Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "TrainingRecord", '
+        'EntityID: varSelRecord.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), '
+        'Details: "Aktualizovaný certifikát: " & varSelRecord.TrainingName}); '
+        'Notify("Certifikát uložený.", NotificationType.Success, 2000); Set(varSelRecord, Blank())')
+    return card("certPanel" + sfx, [
+        label("certPanelTitle" + sfx,
+              '"Certifikát – " & varSelRecord.TrainingName & "  (" & varSelRecord.EmployeeName & ")"',
+              {"FontWeight": "FontWeight.Semibold", "Size": "12", "Height": "24"}),
+        # hostiteľská plocha pre Attachments DataCard (naživo) – v Studiu sem vlož frmCert/dcAttach
+        gc_v("certHost" + sfx, {
+            "FillPortions": "0", "Height": "70", "Fill": N_BG, "BorderColor": BORDER, "BorderThickness": "1",
+            "PaddingTop": "10", "PaddingLeft": "12", "PaddingRight": "12", "LayoutGap": "2",
+            "RadiusTopLeft": "6", "RadiusTopRight": "6", "RadiusBottomLeft": "6", "RadiusBottomRight": "6"}, [
+            label("certHostHint" + sfx,
+                  '"📎 Sem v Studiu vlož Attachments DataCard (frmCert/dcAttach' + sfx + ') naviazanú na TrainingRecords, '
+                  'Item = LookUp(TrainingRecords, ID = varSelRecord.ID)."',
+                  {"Color": MUTED, "Size": "10", "Height": "44"}),
+        ]),
+        label("certLinkCap" + sfx, '"Alebo odkaz na PDF (demo / manuálny fallback)"',
+              {"Color": MUTED, "Size": "10", "Height": "20"}),
+        textinput("txtCertManage" + sfx, {
+            "Default": "varSelRecord.Cert", "HintText": '"/sites/HRHub/Certificates/….pdf"'}),
+        gc_h("certBtns" + sfx, {"FillPortions": "0", "Height": "44", "LayoutGap": "10", "PaddingTop": "6",
+                                "LayoutJustifyContent": "LayoutJustifyContent.End"}, [
+            btn("btnCertClose" + sfx, '"Zavrieť"', {"Width": "110", "OnSelect": "Set(varSelRecord, Blank())"}),
+            btn("btnCertSave" + sfx, '"Uložiť certifikát"', {"Width": "170", "OnSelect": save}, primary=True),
+        ]),
+    ], {"Visible": "!IsBlank(varSelRecord)"})
 
 
 print("helpers ready")
@@ -405,6 +448,7 @@ Set(varNavTag, "home");
 Set(varDeptFilter, Blank());
 Set(varStatusFilter, Blank());
 Set(varSelEmployee, Blank());
+Set(varSelRecord, Blank());
 Set(varEditRecord, Blank());
 Set(varPickedEmp, Blank());
 Set(varPickedTraining, Blank());
@@ -716,9 +760,11 @@ def build_screens_rest(out):
         label("emptyTrainings", '"Žiadne záznamy školení."', {
             "FillPortions": "0", "Color": MUTED, "Height": "30",
             "Visible": 'varTab = "trainings" && CountRows(Filter(colRecords, EmployeeID = varSelEmployee.EmployeeID)) = 0'}),
+        cert_panel("Det"),
     ]
     out["scrEmployeeDetail"] = screen(
-        "scrEmployeeDetail", "emps", detail_body, onvisible_extra='Set(varTab, "overview")',
+        "scrEmployeeDetail", "emps", detail_body,
+        onvisible_extra='Set(varTab, "overview"); Set(varSelRecord, Blank())',
         actions=detail_actions,
         title_text="varSelEmployee.FullName",
         subtitle='varSelEmployee.Position & " · " & varSelEmployee.Department & " · " & varSelEmployee.EmployeeID')
@@ -833,9 +879,11 @@ def build_screens_rest(out):
             "FillPortions": "1", "Layout": "Layout.Vertical", "Items": rec_items,
             "TemplatePadding": "0", "TemplateSize": "60", "ShowScrollbar": "true"},
           record_row("Rec", True)),
+        cert_panel("Rec"),
     ]
     out["scrRecords"] = screen(
         "scrRecords", "recs", rec_body, actions=rec_actions,
+        onvisible_extra="Set(varSelRecord, Blank())",
         title_text='"Záznamy školení"',
         subtitle='If(varRole = "manager", "Záznamy vašich priamych podriadených.", "Všetky záznamy školení vo firme.")')
 

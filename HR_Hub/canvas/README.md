@@ -146,6 +146,14 @@ Jediná no-flow cesta v canvas je **Attachments control**. PDF sa uloží ako
 samostatnej knižnice „Certificates" – tá by si vyžadovala flow. Príloha na
 zázname je pre certifikáty úplne postačujúca.
 
+**V appke je to už pripravené:** v Záznamoch aj v detaile zamestnanca má každý
+riadok button **„Certifikát"** (`Set(varSelRecord, ThisItem)`), ktorý otvorí
+**panel** (`certPanelRec` / `certPanelDet`) s hostiteľskou plochou
+`certHostRec` / `certHostDet` a tlačidlom **„Uložiť certifikát"**. Save má
+zakomentovaný `/* LIVE: Patch(TrainingRecords, …, {Attachments: dcAttach….Attachments}) */`.
+Stačí teda do tej hostiteľskej plochy vložiť Attachments DataCard a odkomentovať
+LIVE riadok. (V demo režime panel ukladá odkaz na PDF do poľa `CertificateLink`.)
+
 Attachments control sa viaže na živý SharePoint zdroj, takže sa pridáva v Studiu
 (nedá sa predzabaliť bez tvojho pripojenia). Postup, ktorý sedí s našou
 kolekcia+Patch architektúrou:

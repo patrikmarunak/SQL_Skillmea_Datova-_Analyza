@@ -243,6 +243,7 @@ App As appinfo:
         Set(varDeptFilter, Blank());
         Set(varStatusFilter, Blank());
         Set(varSelEmployee, Blank());
+        Set(varSelRecord, Blank());
         Set(varEditRecord, Blank());
         Set(varPickedEmp, Blank());
         Set(varPickedTraining, Blank());

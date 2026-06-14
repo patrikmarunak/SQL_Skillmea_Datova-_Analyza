@@ -1,6 +1,8 @@
 scrRecords As screen:
     Fill: =RGBA(243, 243, 243, 1)
-    OnVisible: =Set(varNavTag, "recs")
+    OnVisible: |-
+        =Set(varNavTag, "recs");
+        Set(varSelRecord, Blank())
 
     frameRecords As groupContainer.horizontalAutoLayoutContainer:
         Height: =Parent.Height
@@ -236,7 +238,7 @@ scrRecords As screen:
                     OnSelect: =Select(Parent)
                     Size: =11
                     Text: =ThisItem.TrainingName
-                    Width: =320
+                    Width: =Parent.TemplateWidth - 850
                     X: =236
                     Y: =9
                     ZIndex: =4
@@ -249,36 +251,10 @@ scrRecords As screen:
                     Size: =9
                     Text: |-
                         =If(ThisItem.Pl, "Plán: ", "Absolvované: ") & Text(ThisItem.CompletionDate, "d.m.yyyy") & "   Platí do: " & If(IsBlank(ThisItem.ExpirationDate), "—", Text(ThisItem.ExpirationDate, "d.m.yyyy"))
-                    Width: =360
+                    Width: =Parent.TemplateWidth - 850
                     X: =236
                     Y: =33
                     ZIndex: =5
-
-                recPillRec As label:
-                    Align: =Align.Center
-                    Color: =Switch(ThisItem.LiveStatus, "Valid", RGBA(14, 107, 14, 1), "Expiring", RGBA(122, 82, 0, 1), "Expired", RGBA(164, 38, 44, 1), RGBA(77, 77, 77, 1))
-                    Fill: =Switch(ThisItem.LiveStatus, "Valid", RGBA(223, 246, 221, 1), "Expiring", RGBA(255, 244, 206, 1), "Expired", RGBA(253, 231, 233, 1), RGBA(237, 237, 237, 1))
-                    FillPortions: =0
-                    FontWeight: =FontWeight.Semibold
-                    Height: =26
-                    OnSelect: =Select(Parent)
-                    Size: =10
-                    Text: =LookUp(colStatuses, S = ThisItem.LiveStatus, L)
-                    X: =Parent.TemplateWidth - 330
-                    Y: =Parent.TemplateHeight/2 - 13
-                    ZIndex: =6
-
-                recCertRec As label:
-                    Align: =Align.Center
-                    Color: =RGBA(91, 95, 199, 1)
-                    FillPortions: =0
-                    Height: =26
-                    Size: =10
-                    Text: =If(ThisItem.Cert = "", "", "PDF")
-                    Width: =60
-                    X: =Parent.TemplateWidth - 168
-                    Y: =Parent.TemplateHeight/2 - 13
-                    ZIndex: =7
 
                 recDoneRec As label:
                     Align: =Align.Center
@@ -314,8 +290,36 @@ scrRecords As screen:
                     Size: =10
                     Text: ="✓ Absolvované"
                     Visible: =ThisItem.Pl && (varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email))
-                    Width: =140
-                    X: =Parent.TemplateWidth - 480
+                    X: =Parent.TemplateWidth - 590
+                    Y: =Parent.TemplateHeight/2 - 13
+                    ZIndex: =6
+
+                recPillRec As label:
+                    Align: =Align.Center
+                    Color: =Switch(ThisItem.LiveStatus, "Valid", RGBA(14, 107, 14, 1), "Expiring", RGBA(122, 82, 0, 1), "Expired", RGBA(164, 38, 44, 1), RGBA(77, 77, 77, 1))
+                    Fill: =Switch(ThisItem.LiveStatus, "Valid", RGBA(223, 246, 221, 1), "Expiring", RGBA(255, 244, 206, 1), "Expired", RGBA(253, 231, 233, 1), RGBA(237, 237, 237, 1))
+                    FillPortions: =0
+                    FontWeight: =FontWeight.Semibold
+                    Height: =26
+                    OnSelect: =Select(Parent)
+                    Size: =10
+                    Text: =LookUp(colStatuses, S = ThisItem.LiveStatus, L)
+                    X: =Parent.TemplateWidth - 420
+                    Y: =Parent.TemplateHeight/2 - 13
+                    ZIndex: =7
+
+                recCertRec As label:
+                    Align: =Align.Center
+                    Color: =RGBA(91, 95, 199, 1)
+                    FillPortions: =0
+                    FontWeight: =FontWeight.Semibold
+                    Height: =26
+                    OnSelect: =Set(varSelRecord, ThisItem)
+                    Size: =10
+                    Text: =If(ThisItem.Cert = "", "+ Certifikát", "Certifikát ✓")
+                    Visible: =varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email)
+                    Width: =130
+                    X: =Parent.TemplateWidth - 250
                     Y: =Parent.TemplateHeight/2 - 13
                     ZIndex: =8
 
@@ -329,8 +333,135 @@ scrRecords As screen:
                     Size: =10
                     Text: ="Upraviť"
                     Visible: =varRole = "admin" || (varRole = "manager" && LookUp(colEmployees, EmployeeID = ThisItem.EmployeeID, ManagerEmail) = varCurrentUser.Email)
-                    Width: =90
-                    X: =Parent.TemplateWidth - 100
+                    Width: =100
+                    X: =Parent.TemplateWidth - 110
                     Y: =Parent.TemplateHeight/2 - 13
                     ZIndex: =9
+
+            certPanelRec As groupContainer.verticalAutoLayoutContainer:
+                BorderColor: =RGBA(225, 225, 225, 1)
+                BorderThickness: =1
+                Fill: =RGBA(255, 255, 255, 1)
+                FillPortions: =0
+                LayoutAlignItems: =LayoutAlignItems.Stretch
+                LayoutGap: =8
+                PaddingBottom: =16
+                PaddingLeft: =16
+                PaddingRight: =16
+                PaddingTop: =16
+                RadiusBottomLeft: =8
+                RadiusBottomRight: =8
+                RadiusTopLeft: =8
+                RadiusTopRight: =8
+                Visible: =!IsBlank(varSelRecord)
+                ZIndex: =5
+
+                certPanelTitleRec As label:
+                    FontWeight: =FontWeight.Semibold
+                    Height: =24
+                    Size: =12
+                    Text: ="Certifikát – " & varSelRecord.TrainingName & "  (" & varSelRecord.EmployeeName & ")"
+                    ZIndex: =1
+
+                certHostRec As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    BorderThickness: =1
+                    Fill: =RGBA(237, 237, 237, 1)
+                    FillPortions: =0
+                    Height: =70
+                    LayoutGap: =2
+                    PaddingLeft: =12
+                    PaddingRight: =12
+                    PaddingTop: =10
+                    RadiusBottomLeft: =6
+                    RadiusBottomRight: =6
+                    RadiusTopLeft: =6
+                    RadiusTopRight: =6
+                    ZIndex: =2
+
+                    certHostHintRec As label:
+                        Color: =RGBA(97, 97, 97, 1)
+                        Height: =44
+                        Size: =10
+                        Text: ="📎 Sem v Studiu vlož Attachments DataCard (frmCert/dcAttachRec) naviazanú na TrainingRecords, Item = LookUp(TrainingRecords, ID = varSelRecord.ID)."
+                        ZIndex: =1
+
+                certLinkCapRec As label:
+                    Color: =RGBA(97, 97, 97, 1)
+                    Height: =20
+                    Size: =10
+                    Text: ="Alebo odkaz na PDF (demo / manuálny fallback)"
+                    ZIndex: =3
+
+                txtCertManageRec As text:
+                    BorderColor: =RGBA(225, 225, 225, 1)
+                    Color: =RGBA(36, 36, 36, 1)
+                    Default: =varSelRecord.Cert
+                    HintText: ="/sites/HRHub/Certificates/….pdf"
+                    Size: =11
+                    ZIndex: =4
+
+                certBtnsRec As groupContainer.horizontalAutoLayoutContainer:
+                    FillPortions: =0
+                    Height: =44
+                    LayoutGap: =10
+                    LayoutJustifyContent: =LayoutJustifyContent.End
+                    PaddingTop: =6
+                    ZIndex: =5
+
+                    btnCertCloseRec As button:
+                        BorderColor: =RGBA(225, 225, 225, 1)
+                        BorderThickness: =1
+                        Color: =RGBA(36, 36, 36, 1)
+                        Fill: =RGBA(255, 255, 255, 1)
+                        HoverFill: =RGBA(237, 237, 237, 1)
+                        OnSelect: =Set(varSelRecord, Blank())
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="Zavrieť"
+                        Width: =110
+                        ZIndex: =1
+
+                    btnCertSaveRec As button:
+                        BorderColor: =RGBA(91, 95, 199, 1)
+                        Fill: =RGBA(91, 95, 199, 1)
+                        FontWeight: =FontWeight.Semibold
+                        HoverFill: =RGBA(79, 82, 178, 1)
+                        OnSelect: |-
+                            =Patch(colRecordsBase, LookUp(colRecordsBase, ID = varSelRecord.ID), {Cert: txtCertManageRec.Text}); /* LIVE: Patch(TrainingRecords, LookUp(TrainingRecords, ID = varSelRecord.ID), {Attachments: dcAttachRec.Attachments, CertificateLink: txtCertManageRec.Text}); */ ClearCollect(colRecords,
+                                AddColumns(
+                                    AddColumns(
+                                        AddColumns(colRecordsBase,
+                                            "EmployeeID", Emp,
+                                            "EmployeeName", LookUp(colEmployees, EmployeeID = Emp, FullName),
+                                            "DepartmentCode", LookUp(colEmployees, EmployeeID = Emp, DepartmentCode),
+                                            "ManagerEmail", LookUp(colEmployees, EmployeeID = Emp, ManagerEmail),
+                                            "TrainingName", LookUp(colTrainingsCatalog, ID = Tr, TrainingName),
+                                            "TrainingType", LookUp(colTrainingsCatalog, ID = Tr, TrainingType),
+                                            "ValidityMonths", LookUp(colTrainingsCatalog, ID = Tr, ValidityMonths),
+                                            "CompletionDate", DateAdd(Today(), Off, TimeUnit.Days)
+                                        ),
+                                        "ExpirationDate", If(Pl || ValidityMonths = 0, Blank(), DateAdd(CompletionDate, ValidityMonths, TimeUnit.Months))
+                                    ),
+                                    "LiveStatus", If(
+                                        Pl, "Planned",
+                                        IsBlank(ExpirationDate), "Valid",
+                                        ExpirationDate < Today(), "Expired",
+                                        ExpirationDate <= DateAdd(Today(), 30, TimeUnit.Days), "Expiring",
+                                        "Valid"
+                                    )
+                                )
+                            ); Collect(colAudit, {ID: Max(colAudit, ID) + 1, Action: "Update", EntityType: "TrainingRecord", EntityID: varSelRecord.EmployeeID, ChangedBy: varCurrentUser.Email, ChangedOn: Now(), Details: "Aktualizovaný certifikát: " & varSelRecord.TrainingName}); Notify("Certifikát uložený.", NotificationType.Success, 2000); Set(varSelRecord, Blank())
+                        PressedFill: =RGBA(79, 82, 178, 1)
+                        RadiusBottomLeft: =6
+                        RadiusBottomRight: =6
+                        RadiusTopLeft: =6
+                        RadiusTopRight: =6
+                        Size: =11
+                        Text: ="Uložiť certifikát"
+                        Width: =170
+                        ZIndex: =2
 
