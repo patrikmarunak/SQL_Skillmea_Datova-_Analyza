@@ -110,11 +110,11 @@ scrInbox As screen:
                 ZIndex: =2
 
             "galInbox As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                Items: =Filter(colTransactions, FlaggedToFO)
+                Items: =Filter(colTransactions, FlaggedToFO, FOSent)
                 Layout: =Layout.Vertical
                 TemplatePadding: =8
                 TemplateSize: =120
-                Visible: =CountRows(Filter(colTransactions, FlaggedToFO)) > 0
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent)) > 0
                 Width: =Parent.Width
                 ZIndex: =3
 
@@ -206,8 +206,8 @@ scrInbox As screen:
                 Color: =RGBA(90, 90, 94, 1)
                 FillPortions: =1
                 Size: =14
-                Text: ="Nothing to respond to. No findings have been flagged to Front Office."
-                Visible: =CountRows(Filter(colTransactions, FlaggedToFO)) = 0
+                Text: ="Nothing to respond to. No findings have been sent to Front Office."
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent)) = 0
                 Width: =Parent.Width
                 ZIndex: =4
 

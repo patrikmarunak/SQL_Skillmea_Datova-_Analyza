@@ -1,0 +1,331 @@
+scrMoQueue As screen:
+    Fill: =RGBA(236, 238, 241, 1)
+
+    mqRoot As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(0,0,0,0)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+        mqhdrBar As groupContainer.horizontalAutoLayoutContainer:
+            Fill: =RGBA(67, 22, 79, 1)
+            Height: =58
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =12
+            PaddingBottom: =12
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =12
+            Width: =Parent.Width
+            ZIndex: =10
+
+            mqhdrBack As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                Fill: =RGBA(255, 255, 255, 0.14)
+                Height: =34
+                HoverFill: =RGBA(255, 255, 255, 0.24)
+                OnSelect: =Navigate(scrOverview, ScreenTransition.UnCoverRight)
+                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedFill: =RGBA(255, 255, 255, 0.24)
+                Size: =12
+                Text: ="< Back"
+                Width: =92
+                ZIndex: =1
+
+            mqhdrTitle As label:
+                AlignInContainer: =AlignInContainer.Center
+                Color: =RGBA(255, 255, 255, 1)
+                FillPortions: =1
+                FontWeight: =FontWeight.Semibold
+                Height: =34
+                Size: =16
+                Text: ="MIDDLE OFFICE — MY QUEUE"
+                ZIndex: =2
+
+            mqhdrRoleSeg As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.Center
+                Fill: =RGBA(255, 255, 255, 0.13)
+                Height: =34
+                LayoutGap: =4
+                PaddingBottom: =3
+                PaddingLeft: =3
+                PaddingRight: =3
+                PaddingTop: =3
+                Width: =240
+                ZIndex: =3
+
+                mqhdrMO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="MO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Middle Office"
+                    ZIndex: =1
+
+                mqhdrFO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="FO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Front Office"
+                    ZIndex: =2
+
+            mqhdrLogo As label:
+                Align: =Align.Center
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =RGBA(255, 255, 255, 0.4)
+                BorderStyle: =BorderStyle.Dashed
+                BorderThickness: =1
+                Color: =RGBA(255, 255, 255, 1)
+                Height: =30
+                Size: =11
+                Text: ="[ logo ]"
+                Width: =110
+                ZIndex: =4
+
+        mqftBar As groupContainer.horizontalAutoLayoutContainer:
+            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderThickness: =1
+            Fill: =RGBA(250, 250, 250, 1)
+            Height: =56
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =9
+            LayoutJustifyContent: =LayoutJustifyContent.End
+            PaddingBottom: =10
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =10
+            Width: =Parent.Width
+            ZIndex: =10
+
+            mqBack As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                Fill: =RGBA(191, 83, 32, 1)
+                Height: =34
+                OnSelect: =Navigate(scrOverview, ScreenTransition.UnCover)
+                Size: =12
+                Text: ="Back to overview"
+                ZIndex: =1
+
+        mqBody As groupContainer.verticalAutoLayoutContainer:
+            Fill: =RGBA(0,0,0,0)
+            LayoutGap: =10
+            PaddingBottom: =14
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =14
+            Width: =Parent.Width
+            ZIndex: =20
+
+            mqHelp As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                BorderColor: =RGBA(234,217,243,1)
+                BorderThickness: =1
+                Color: =RGBA(90, 90, 94, 1)
+                Fill: =RGBA(251,247,254,1)
+                Height: =42
+                PaddingLeft: =14
+                PaddingTop: =8
+                Size: =11
+                Text: ="Your Middle Office queue — every finding you sent to Front Office, across all reports, in one place. Replied items are ready for you to act on."
+                Width: =Parent.Width
+                ZIndex: =1
+
+            mqEye1 As label:
+                AlignInContainer: =AlignInContainer.Start
+                Color: =RGBA(42, 42, 42, 1)
+                FontWeight: =FontWeight.Semibold
+                Height: =20
+                Size: =11
+                Text: ="REPLIED — READY FOR YOU"
+                ZIndex: =1
+
+            mqEye2 As label:
+                AlignInContainer: =AlignInContainer.Start
+                Color: =RGBA(42, 42, 42, 1)
+                FontWeight: =FontWeight.Semibold
+                Height: =20
+                Size: =11
+                Text: ="STILL WITH FRONT OFFICE"
+                ZIndex: =1
+
+            "galMqReplied As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), FOResponded)
+                Layout: =Layout.Vertical
+                TemplatePadding: =8
+                TemplateSize: =132
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), FOResponded)) > 0
+                Width: =Parent.Width
+                ZIndex: =3
+
+                mrCard As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =RGBA(188,214,188,1)
+                    BorderThickness: =1
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: =Parent.TemplateHeight - 10
+                    LayoutGap: =7
+                    PaddingBottom: =12
+                    PaddingLeft: =14
+                    PaddingRight: =14
+                    PaddingTop: =12
+                    Width: =Parent.TemplateWidth - 4
+                    X: =2
+                    Y: =2
+                    ZIndex: =1
+
+                    mrWhere As label:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(42, 42, 42, 1)
+                        FontWeight: =FontWeight.Semibold
+                        Height: =20
+                        Size: =12
+                        Text: =ThisItem.ReportType & " · Check " & ThisItem.CheckNumber & " · " & ThisItem.TransactionNo
+                        Width: =Parent.Width
+                        ZIndex: =1
+
+                    mrAsk As label:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(90, 90, 94, 1)
+                        Height: =20
+                        Size: =11
+                        Text: ="You asked " & Left(ThisItem.FOReviewer, Find("@", ThisItem.FOReviewer & "@") - 1) & " — " & ThisItem.MOComment
+                        Width: =Parent.Width
+                        ZIndex: =2
+
+                    mrFo As label:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(59, 109, 17, 1)
+                        Fill: =RGBA(243,248,243,1)
+                        Height: =30
+                        PaddingLeft: =10
+                        PaddingTop: =6
+                        Size: =11
+                        Text: |-
+                            ="FO: " & ThisItem.FOReason & " — " & ThisItem.FOComment
+                        Width: =Parent.Width
+                        ZIndex: =3
+
+                    mrRow As groupContainer.horizontalAutoLayoutContainer:
+                        Fill: =RGBA(0,0,0,0)
+                        Height: =38
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutGap: =8
+                        LayoutJustifyContent: =LayoutJustifyContent.End
+                        Width: =Parent.Width
+                        ZIndex: =4
+
+                        mrComplete As button:
+                            AlignInContainer: =AlignInContainer.Center
+                            BorderThickness: =0
+                            DisabledColor: =RGBA(154, 154, 158, 1)
+                            DisabledFill: =RGBA(240,240,240,1)
+                            DisplayMode: |-
+                                =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.DailyReportCheckID)}, If(CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && !FOResponded))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0, DisplayMode.Edit, DisplayMode.Disabled))
+                            Fill: =RGBA(59, 109, 17, 1)
+                            Height: =34
+                            OnSelect: |-
+                                =Patch(colChecks, LookUp(colChecks, ID=ThisItem.DailyReportCheckID), {Completed:true, Status:"Completed"}); Notify("Check completed", NotificationType.Success)
+                            Size: =11
+                            Text: ="Complete check"
+                            Width: =150
+                            ZIndex: =1
+
+                        mrOpen As button:
+                            AlignInContainer: =AlignInContainer.Center
+                            BorderColor: =RGBA(228, 228, 230, 1)
+                            BorderThickness: =1
+                            Color: =RGBA(90, 90, 94, 1)
+                            Fill: =RGBA(255, 255, 255, 1)
+                            Height: =34
+                            OnSelect: =Set(varCurrentReport, LookUp(colDailyReports, ID=ThisItem.DailyReportID)); Set(varCurrentCheck, LookUp(colChecks, ID=ThisItem.DailyReportCheckID)); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                            Size: =11
+                            Text: ="Open check"
+                            Width: =120
+                            ZIndex: =2
+
+            "galMqAwait As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), !FOResponded)
+                Layout: =Layout.Vertical
+                TemplatePadding: =8
+                TemplateSize: =104
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), !FOResponded)) > 0
+                Width: =Parent.Width
+                ZIndex: =5
+
+                maCard As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =RGBA(207,224,242,1)
+                    BorderThickness: =1
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: =Parent.TemplateHeight - 10
+                    LayoutGap: =7
+                    PaddingBottom: =12
+                    PaddingLeft: =14
+                    PaddingRight: =14
+                    PaddingTop: =12
+                    Width: =Parent.TemplateWidth - 4
+                    X: =2
+                    Y: =2
+                    ZIndex: =1
+
+                    maWhere As label:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(42, 42, 42, 1)
+                        FontWeight: =FontWeight.Semibold
+                        Height: =20
+                        Size: =12
+                        Text: =ThisItem.ReportType & " · Check " & ThisItem.CheckNumber & " · " & ThisItem.TransactionNo
+                        Width: =Parent.Width
+                        ZIndex: =1
+
+                    maStatus As label:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =RGBA(31, 96, 168, 1)
+                        Fill: =RGBA(238,244,251,1)
+                        Height: =28
+                        PaddingLeft: =10
+                        Size: =11
+                        Text: ="Awaiting reply from " & Left(ThisItem.FOReviewer, Find("@", ThisItem.FOReviewer & "@") - 1)
+                        Width: =Parent.Width
+                        ZIndex: =2
+
+                    maRow As groupContainer.horizontalAutoLayoutContainer:
+                        Fill: =RGBA(0,0,0,0)
+                        Height: =38
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutGap: =8
+                        LayoutJustifyContent: =LayoutJustifyContent.End
+                        Width: =Parent.Width
+                        ZIndex: =3
+
+                        maOpen As button:
+                            AlignInContainer: =AlignInContainer.Center
+                            BorderColor: =RGBA(228, 228, 230, 1)
+                            BorderThickness: =1
+                            Color: =RGBA(90, 90, 94, 1)
+                            Fill: =RGBA(255, 255, 255, 1)
+                            Height: =34
+                            OnSelect: =Set(varCurrentReport, LookUp(colDailyReports, ID=ThisItem.DailyReportID)); Set(varCurrentCheck, LookUp(colChecks, ID=ThisItem.DailyReportCheckID)); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                            Size: =11
+                            Text: ="Open check"
+                            Width: =120
+                            ZIndex: =1
+
+            mqEmpty As label:
+                Align: =Align.Center
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =RGBA(90, 90, 94, 1)
+                Height: =60
+                Size: =14
+                Text: ="Your queue is clear. No findings are out with Front Office."
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed))) = 0
+                Width: =Parent.Width
+                ZIndex: =6
+

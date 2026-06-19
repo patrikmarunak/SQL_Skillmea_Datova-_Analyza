@@ -18,14 +18,29 @@ TZ01/
 │  ├─ Src/scrOverview.fx.yaml
 │  ├─ Src/scrChecks.fx.yaml
 │  ├─ Src/scrCheckDetail.fx.yaml
+│  ├─ Src/scrMoQueue.fx.yaml   ← MO "My Queue" (new in v2)
 │  ├─ Src/scrInbox.fx.yaml
 │  ├─ Src/scrTop.fx.yaml
 │  ├─ Src/EditorState/*.editorstate.json
 │  ├─ pkgs/*.xml               ← control templates used by the app
 │  └─ Entropy/, Connections/, …
+├─ provisioning/
+│  └─ TZ01_provision_v2_delta.ps1   ← adds FOSent / FOSentOn / FOReviewer to the SP list
 ├─ README.md
-└─ CHANGES.md         ← deviations from the prototype / schema
+└─ CHANGES.md         ← change log (v2 delta + v1)
 ```
+
+## SharePoint provisioning (v2)
+
+Before binding to production, run the v2 delta once (after `Connect-PnPOnline`) to add the
+FO send/routing columns to **`TZ01 Daily Transactions`**:
+
+```powershell
+pwsh ./provisioning/TZ01_provision_v2_delta.ps1 -SiteUrl "https://<tenant>.sharepoint.com/sites/<TreasuryControls>"
+```
+
+It adds `FOSent` (Yes/No), `FOSentOn` (Date/time) and `FOReviewer` (Text email — switch to
+`-Type User` for a Person column). The app already maps these into `colTransactions`.
 
 ## Build / round‑trip
 
@@ -48,9 +63,15 @@ source tree.
 | --- | --- |
 | `scrOverview` | MO/FO role switch, day list, stepper, review log, FX/MM reports table, footer TOP‑report buttons |
 | `scrChecks` | Check‑results overview for the selected report; **Submit report** (enabled only when every check is Completed) |
-| `scrCheckDetail` | Per‑finding row: READ columns + MO reason (data‑driven dropdown) + MO comment + FO flag + FO reason + FO comment; **Send flagged to FO** / **Mark check complete** |
-| `scrInbox` | FO view – cards of findings flagged to FO; FO reason + comment + **Send response to MO** |
+| `scrCheckDetail` | Per‑finding row: READ columns + MO reason (data‑driven dropdown) + MO comment + FO flag + per‑row FO state (queued/sent/replied + reviewer); FO reason/comment read‑only; **Mark check complete** |
+| `scrMoQueue` | **MO "My Queue"** – FO responses across all reports: *Replied — ready for you* (Complete check / Open check) and *Still with Front Office* |
+| `scrInbox` | FO view – cards of findings **sent** to FO; FO reason + comment + **Send response to MO** |
 | `scrTop` | Monthly TOP report – late entries with Days late |
+
+> Batched send to FO now lives on **`scrChecks`** (*Send flagged to FO (N)*), not on the
+> check detail. See `CHANGES.md` for the full **v2 delta** (FO send/routing columns, report
+> status simplified to In review/Completed, auto‑flag on *Request FO explanation*, and the
+> new My Queue screen).
 
 ## Layout & responsiveness
 

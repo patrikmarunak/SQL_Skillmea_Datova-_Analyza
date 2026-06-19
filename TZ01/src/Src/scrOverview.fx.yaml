@@ -114,6 +114,39 @@ scrOverview As screen:
                 Width: =170
                 ZIndex: =2
 
+        ovToolbar As groupContainer.horizontalAutoLayoutContainer:
+            Fill: =RGBA(0,0,0,0)
+            Height: =44
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =8
+            LayoutJustifyContent: =LayoutJustifyContent.End
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =4
+            Width: =Parent.Width
+            ZIndex: =13
+
+            ovToolLead As label:
+                Color: =RGBA(90, 90, 94, 1)
+                FillPortions: =1
+                Height: =30
+                Size: =12
+                Text: ="Review and validate daily FX & MM listings."
+                ZIndex: =1
+
+            ovFoResp As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =RGBA(228, 228, 230, 1)
+                BorderThickness: =1
+                Color: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, FOResponded, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, RGBA(255, 255, 255, 1), RGBA(90, 90, 94, 1))
+                Fill: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, FOResponded, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, RGBA(59, 109, 17, 1), RGBA(255, 255, 255, 1))
+                Height: =34
+                OnSelect: =Navigate(scrMoQueue, ScreenTransition.Cover)
+                Size: =12
+                Text: ="FO responses (" & CountRows(Filter(colTransactions, FlaggedToFO, FOSent, FOResponded, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed))) & ")"
+                Width: =180
+                ZIndex: =2
+
         ovHelpWrap As groupContainer.verticalAutoLayoutContainer:
             Fill: =RGBA(0,0,0,0)
             Height: =54
@@ -134,7 +167,7 @@ scrOverview As screen:
                 PaddingRight: =14
                 PaddingTop: =8
                 Size: =11.5
-                Text: ="Clickable prototype. Open a report, then a check, to set MO reason & comment, flag items to FO, and complete checks. Switch to Front Office (top right) to answer flagged items."
+                Text: ="Clickable prototype. Open a report, then a check, to set MO reason & comment and flag items to FO. Send flagged items in one batch from the Check Analysis screen. Use FO responses to see replies in one place, or switch to Front Office (top right) to answer as FO."
                 Width: =Parent.Width
                 ZIndex: =15
 
@@ -329,11 +362,11 @@ scrOverview As screen:
                         ZIndex: =2
 
                     repStatus As label:
-                        Color: =If(ThisItem.Status="Completed" || ThisItem.Status="Review completed" || ThisItem.Status="Ready to submit", RGBA(59, 109, 17, 1), ThisItem.Status="Awaiting FO review" || ThisItem.Status="Awaiting FO", RGBA(31, 96, 168, 1), RGBA(133, 79, 11, 1))
+                        Color: =If(ThisItem.Submitted, RGBA(59, 109, 17, 1), RGBA(133, 79, 11, 1))
                         Height: =24
                         OnSelect: =Select(Parent)
                         Size: =12
-                        Text: =ThisItem.Status
+                        Text: =If(ThisItem.Submitted, "Completed", "In review")
                         Width: =180
                         X: =210
                         Y: =10

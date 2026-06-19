@@ -105,6 +105,14 @@ scrCheckDetail As screen:
             Width: =Parent.Width
             ZIndex: =10
 
+            cdHint As label:
+                Color: =RGBA(90, 90, 94, 1)
+                FillPortions: =1
+                Height: =30
+                Size: =11
+                Text: ="Flag rows for FO here, then send them together from the Check Analysis screen."
+                ZIndex: =1
+
             cdSave As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderColor: =RGBA(228, 228, 230, 1)
@@ -117,19 +125,6 @@ scrCheckDetail As screen:
                 Size: =12
                 Text: ="Save draft"
                 Width: =110
-                ZIndex: =1
-
-            cdSend As button:
-                AlignInContainer: =AlignInContainer.Center
-                BorderThickness: =0
-                Fill: =RGBA(31, 96, 168, 1)
-                Height: =34
-                OnSelect: |-
-                    =ForAll(Filter(colTransactions, DailyReportCheckID=varCurrentCheck.ID, FlaggedToFO, !FOResponded) As T, Patch(colTransactions, T, {Status:"Awaiting FO review", _isDirty:true})); Patch(colChecks, varCurrentCheck, {Status:"Awaiting FO review"}); Notify("Flagged findings sent to FO", NotificationType.Information)
-                Size: =12
-                Text: ="Send flagged to FO"
-                Visible: =CountRows(Filter(colTransactions, DailyReportCheckID=varCurrentCheck.ID, FlaggedToFO, !FOResponded)) > 0
-                Width: =170
                 ZIndex: =2
 
             cdComplete As button:
@@ -226,7 +221,7 @@ scrCheckDetail As screen:
                         Height: =36
                         Items: =SortByColumns(Filter(colReasonConfig, ReportType=varCurrentCheck.ReportType, CheckNumber=varCurrentCheck.CheckNumber, AppliesTo<>"FO"), "Sort").Reason
                         OnChange: |-
-                            =Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"})
+                            =Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"}); If(Self.Selected.Value = "Request FO explanation" && !ThisItem.FlaggedToFO, Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(varCurrentCheck.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true}))
                         Width: =160
                         ZIndex: =2
 
@@ -245,34 +240,39 @@ scrCheckDetail As screen:
                         Default: =ThisItem.FlaggedToFO
                         Height: =36
                         OnCheck: |-
-                            =Patch(colTransactions, ThisItem, {FlaggedToFO:true, _isDirty:true, _state:"modified"})
+                            =Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(varCurrentCheck.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true, _state:"modified"})
                         OnUncheck: |-
-                            =Patch(colTransactions, ThisItem, {FlaggedToFO:false, FOReason:"", FOResponded:false, _isDirty:true, _state:"modified"})
+                            =Patch(colTransactions, ThisItem, {FlaggedToFO:false, FOSent:false, FOReason:"", FOResponded:false, _isDirty:true, _state:"modified"})
                         Text: ="FO"
-                        Width: =70
+                        Width: =64
                         ZIndex: =4
+
+                    tcFOState As label:
+                        AlignInContainer: =AlignInContainer.Center
+                        Color: =If(ThisItem.FOResponded, RGBA(59, 109, 17, 1), ThisItem.FOSent, RGBA(31, 96, 168, 1), RGBA(133, 79, 11, 1))
+                        Height: =36
+                        Size: =9
+                        Text: =If(!ThisItem.FlaggedToFO, "", If(ThisItem.FOResponded, "replied", ThisItem.FOSent, "sent", "queued") & If(IsBlank(ThisItem.FOReviewer), "", Char(10) & Left(ThisItem.FOReviewer, Find("@", ThisItem.FOReviewer & "@") - 1)))
+                        Width: =110
+                        ZIndex: =5
 
                     tcFOReason As dropdown:
                         AlignInContainer: =AlignInContainer.Center
                         Default: =ThisItem.FOReason
-                        DisplayMode: =If(ThisItem.FlaggedToFO, DisplayMode.Edit, DisplayMode.Disabled)
+                        DisplayMode: =DisplayMode.View
                         Height: =36
                         Items: =Filter(colReasonConfig, AppliesTo="FO").Reason
-                        OnChange: |-
-                            =Patch(colTransactions, ThisItem, {FOReason:Self.Selected.Value, _isDirty:true})
                         Width: =150
-                        ZIndex: =5
+                        ZIndex: =6
 
                     tcFOComment As text:
                         AlignInContainer: =AlignInContainer.Center
                         Default: =ThisItem.FOComment
-                        DisplayMode: =If(ThisItem.FlaggedToFO, DisplayMode.Edit, DisplayMode.Disabled)
+                        DisplayMode: =DisplayMode.View
                         FillPortions: =1
                         Height: =36
-                        HintText: ="FO comment"
-                        OnChange: |-
-                            =Patch(colTransactions, ThisItem, {FOComment:Self.Text, _isDirty:true})
-                        ZIndex: =6
+                        HintText: ="—"
+                        ZIndex: =7
 
             cdEmpty As label:
                 Align: =Align.Center

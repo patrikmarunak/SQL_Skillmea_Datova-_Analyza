@@ -39,6 +39,7 @@
     "scrOverview",
     "scrChecks",
     "scrCheckDetail",
+    "scrMoQueue",
     "scrInbox",
     "scrTop"
   ]

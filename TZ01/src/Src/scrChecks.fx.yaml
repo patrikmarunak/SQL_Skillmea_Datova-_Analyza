@@ -105,6 +105,21 @@ scrChecks As screen:
             Width: =Parent.Width
             ZIndex: =10
 
+            ckSend As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                DisabledColor: =RGBA(154, 154, 158, 1)
+                DisabledFill: =RGBA(240,240,240,1)
+                DisplayMode: =If(CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent, !FOResponded))>0, DisplayMode.Edit, DisplayMode.Disabled)
+                Fill: =RGBA(31, 96, 168, 1)
+                Height: =34
+                OnSelect: |-
+                    =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent, !FOResponded)}, ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), Status:"Awaiting FO review", _isDirty:true})); Notify("Sent " & CountRows(toSend) & " findings to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success))
+                Size: =12
+                Text: ="Send flagged to FO (" & CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent, !FOResponded)) & ")"
+                Width: =200
+                ZIndex: =1
+
             ckSave As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderColor: =RGBA(228, 228, 230, 1)
@@ -116,7 +131,7 @@ scrChecks As screen:
                 Size: =12
                 Text: ="Save draft"
                 Width: =110
-                ZIndex: =1
+                ZIndex: =2
 
             ckSubmit As button:
                 AlignInContainer: =AlignInContainer.Center
@@ -127,11 +142,11 @@ scrChecks As screen:
                 Fill: =RGBA(59, 109, 17, 1)
                 Height: =34
                 OnSelect: |-
-                    =Patch(colDailyReports, varCurrentReport, {Submitted:true, Status:"Review completed"}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover)
+                    =Patch(colDailyReports, varCurrentReport, {Submitted:true, Status:"Completed"}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover)
                 Size: =12
                 Text: ="Submit report"
                 Width: =150
-                ZIndex: =2
+                ZIndex: =3
 
         ckBody As groupContainer.verticalAutoLayoutContainer:
             Fill: =RGBA(0,0,0,0)
@@ -165,27 +180,18 @@ scrChecks As screen:
                     FontWeight: =FontWeight.Semibold
                     Height: =24
                     Size: =11
-                    Text: ="1  Awaiting MO review"
-                    Width: =170
+                    Text: ="1  In review"
+                    Width: =200
                     ZIndex: =1
 
                 ckstep2 As label:
-                    Color: =If(CountRows(Filter(colChecks, DailyReportID=varCurrentReport.ID, Status="Awaiting FO review"))>0, RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
-                    FontWeight: =FontWeight.Semibold
-                    Height: =24
-                    Size: =11
-                    Text: ="2  Awaiting FO review"
-                    Width: =180
-                    ZIndex: =2
-
-                ckstep3 As label:
                     Color: =If(varCurrentReport.Submitted, RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
                     FillPortions: =1
                     FontWeight: =FontWeight.Semibold
                     Height: =24
                     Size: =11
-                    Text: ="3  Completed"
-                    ZIndex: =3
+                    Text: ="2  Completed"
+                    ZIndex: =2
 
             "galChecks As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
                 Items: =SortByColumns(Filter(colChecks, DailyReportID = varCurrentReport.ID), "CheckNumber")
@@ -253,11 +259,13 @@ scrChecks As screen:
                     ZIndex: =5
 
                 ckStatus As label:
-                    Color: =If(ThisItem.Status="Completed" || ThisItem.Status="Review completed" || ThisItem.Status="Ready to submit", RGBA(59, 109, 17, 1), ThisItem.Status="Awaiting FO review" || ThisItem.Status="Awaiting FO", RGBA(31, 96, 168, 1), RGBA(133, 79, 11, 1))
+                    Color: |-
+                        =If(With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Review completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Ready to submit", RGBA(59, 109, 17, 1), With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO review" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO", RGBA(31, 96, 168, 1), RGBA(133, 79, 11, 1))
                     Height: =Parent.TemplateHeight - 12
                     OnSelect: =Select(Parent)
                     Size: =12
-                    Text: =ThisItem.Status
+                    Text: |-
+                        =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))
                     Width: =200
                     X: =Parent.TemplateWidth * 0.34 + 330
                     Y: =8
