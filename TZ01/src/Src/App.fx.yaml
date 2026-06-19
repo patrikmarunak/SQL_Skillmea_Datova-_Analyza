@@ -1,0 +1,114 @@
+App As appinfo:
+    MinScreenHeight: =640
+    MinScreenWidth: =800
+    OnStart: |
+        =Set(varRole, "MO");                 // "MO" or "FO"
+        Set(varCurrentItem, Blank());
+        Set(varCurrentReport, Blank());
+        Set(varCurrentCheck, Blank());
+        Set(varDayKey, "2026-02-16");
+        // ----- Reason config (drives MO/FO dropdowns) -----
+        ClearCollect(colReasonConfig,
+            {ReportType:"FX", CheckNumber:1, Reason:"Missing twin -> SAP ticket", AppliesTo:"MO", Auto:false, Sort:1},
+            {ReportType:"FX", CheckNumber:1, Reason:"Master data",               AppliesTo:"MO", Auto:false, Sort:2},
+            {ReportType:"FX", CheckNumber:1, Reason:"Technical",                 AppliesTo:"MO", Auto:false, Sort:3},
+            {ReportType:"FX", CheckNumber:2, Reason:"Master data",               AppliesTo:"MO", Auto:false, Sort:1},
+            {ReportType:"FX", CheckNumber:2, Reason:"Request FO explanation",    AppliesTo:"MO", Auto:false, Sort:2},
+            {ReportType:"FX", CheckNumber:3, Reason:"Request FO explanation",    AppliesTo:"MO", Auto:false, Sort:1},
+            {ReportType:"FX", CheckNumber:3, Reason:"Reported in export",        AppliesTo:"MO", Auto:false, Sort:2},
+            {ReportType:"FX", CheckNumber:3, Reason:"Not compared",             AppliesTo:"MO", Auto:false, Sort:3},
+            {ReportType:"FX", CheckNumber:4, Reason:"Hedge rate",               AppliesTo:"MO", Auto:true,  Sort:1},
+            {ReportType:"FX", CheckNumber:4, Reason:"Possible hedge rate",      AppliesTo:"MO", Auto:false, Sort:2},
+            {ReportType:"FX", CheckNumber:4, Reason:"Display issue",            AppliesTo:"MO", Auto:false, Sort:3},
+            {ReportType:"FX", CheckNumber:5, Reason:"Late booking",             AppliesTo:"MO", Auto:false, Sort:1},
+            {ReportType:"FX", CheckNumber:5, Reason:"System delay",             AppliesTo:"MO", Auto:false, Sort:2},
+            {ReportType:"FX", CheckNumber:5, Reason:"Holiday / weekend",        AppliesTo:"MO", Auto:false, Sort:3},
+            {ReportType:"FX", CheckNumber:6, Reason:"Request FO explanation",    AppliesTo:"MO", Auto:false, Sort:1},
+            {ReportType:"FX", CheckNumber:6, Reason:"VITUS approved",           AppliesTo:"MO", Auto:false, Sort:2},
+            {ReportType:"MM", CheckNumber:1, Reason:"Request FO explanation",    AppliesTo:"MO", Auto:false, Sort:1},
+            {ReportType:"MM", CheckNumber:1, Reason:"Master data -> SAP ticket", AppliesTo:"MO", Auto:false, Sort:2},
+            {ReportType:"MM", CheckNumber:2, Reason:"Request FO explanation",    AppliesTo:"MO", Auto:false, Sort:1},
+            {ReportType:"MM", CheckNumber:2, Reason:"US bank mismatch",          AppliesTo:"MO", Auto:false, Sort:2},
+            {ReportType:"MM", CheckNumber:2, Reason:"SAP upload pending",        AppliesTo:"MO", Auto:false, Sort:3},
+            {ReportType:"MM", CheckNumber:3, Reason:"Product type not permitted",AppliesTo:"MO", Auto:false, Sort:1},
+            {ReportType:"MM", CheckNumber:3, Reason:"Request FO explanation",    AppliesTo:"MO", Auto:false, Sort:2},
+            {ReportType:"MM", CheckNumber:4, Reason:"Late booking",             AppliesTo:"MO", Auto:false, Sort:1},
+            {ReportType:"MM", CheckNumber:4, Reason:"Credit line",              AppliesTo:"MO", Auto:true,  Sort:2},
+            {ReportType:"MM", CheckNumber:4, Reason:"System delay",             AppliesTo:"MO", Auto:false, Sort:3}
+        );
+        // FO reasons (shared list, any check). AppliesTo = "FO".
+        ForAll(
+            ["Confirmed correct","Corrected in SAP","Hedge","Will fix in SAP","Other"] As R,
+            Collect(colReasonConfig, {ReportType:"*", CheckNumber:0, Reason:R.Value, AppliesTo:"FO", Auto:false, Sort:0})
+        );
+        // ----- Daily Item (1 row / day) -----
+        ClearCollect(colDailyItems,
+            {ID:41, Title:"TZ01 2026-02-16", DayKey:"2026-02-16", ItemDate:Date(2026,2,16),
+             Status:"In review", Reviewer:"martina.medvedova@mdlz.com", FXFindings:8, MMFindings:3, SubmittedOn:Blank()}
+        );
+        // ----- Daily Reports (2 rows / day) -----
+        ClearCollect(colDailyReports,
+            {ID:1, DailyItemID:41, DayKey:"2026-02-16", ReportType:"FX", ReportKey:"2026-02-16|FX",
+             ReportDate:Date(2026,2,16), Status:"In review", Reviewer:Blank(),
+             ReviewLog:"Automatic validation 2026-02-16T08:31Z: 8 findings", Submitted:false},
+            {ID:2, DailyItemID:41, DayKey:"2026-02-16", ReportType:"MM", ReportKey:"2026-02-16|MM",
+             ReportDate:Date(2026,2,16), Status:"In review", Reviewer:Blank(),
+             ReviewLog:"Automatic validation 2026-02-16T08:31Z: 3 findings", Submitted:false}
+        );
+        // ----- Daily Report Checks (6 FX + 4 MM) -----
+        ClearCollect(colChecks,
+            {ID:1,  DailyReportID:1, DailyItemID:41, DayKey:"2026-02-16", ReportType:"FX", CheckKey:"2026-02-16|FX|1", CheckNumber:1, CheckName:"Internal deals net to zero", Result:"No finding",   FlaggedCount:0, Status:"Completed",           Completed:true,  IsLate:false},
+            {ID:2,  DailyReportID:1, DailyItemID:41, DayKey:"2026-02-16", ReportType:"FX", CheckKey:"2026-02-16|FX|2", CheckNumber:2, CheckName:"CH06 pairwise offset",      Result:"Finding",     FlaggedCount:2, Status:"Awaiting MO review", Completed:false, IsLate:false},
+            {ID:3,  DailyReportID:1, DailyItemID:41, DayKey:"2026-02-16", ReportType:"FX", CheckKey:"2026-02-16|FX|3", CheckNumber:3, CheckName:"DTCC transactions",        Result:"Finding",     FlaggedCount:1, Status:"Awaiting FO review", Completed:false, IsLate:false},
+            {ID:4,  DailyReportID:1, DailyItemID:41, DayKey:"2026-02-16", ReportType:"FX", CheckKey:"2026-02-16|FX|4", CheckNumber:4, CheckName:"Spot vs transaction rate",  Result:"Finding",     FlaggedCount:2, Status:"Awaiting MO review", Completed:false, IsLate:false},
+            {ID:5,  DailyReportID:1, DailyItemID:41, DayKey:"2026-02-16", ReportType:"FX", CheckKey:"2026-02-16|FX|5", CheckNumber:5, CheckName:"Late entry",               Result:"Late",        FlaggedCount:1, Status:"Awaiting MO review", Completed:false, IsLate:true},
+            {ID:6,  DailyReportID:1, DailyItemID:41, DayKey:"2026-02-16", ReportType:"FX", CheckKey:"2026-02-16|FX|6", CheckNumber:6, CheckName:"Hedging",                 Result:"Exceptional", FlaggedCount:1, Status:"Awaiting FO review", Completed:false, IsLate:false},
+            {ID:7,  DailyReportID:2, DailyItemID:41, DayKey:"2026-02-16", ReportType:"MM", CheckKey:"2026-02-16|MM|1", CheckNumber:1, CheckName:"55A intercompany legs",    Result:"Finding",     FlaggedCount:1, Status:"Awaiting MO review", Completed:false, IsLate:false},
+            {ID:8,  DailyReportID:2, DailyItemID:41, DayKey:"2026-02-16", ReportType:"MM", CheckKey:"2026-02-16|MM|2", CheckNumber:2, CheckName:"53A commercial paper",     Result:"Finding",     FlaggedCount:1, Status:"Awaiting FO review", Completed:false, IsLate:false},
+            {ID:9,  DailyReportID:2, DailyItemID:41, DayKey:"2026-02-16", ReportType:"MM", CheckKey:"2026-02-16|MM|3", CheckNumber:3, CheckName:"No 56A/56B/56C",           Result:"No finding",   FlaggedCount:0, Status:"Completed",           Completed:true,  IsLate:false},
+            {ID:10, DailyReportID:2, DailyItemID:41, DayKey:"2026-02-16", ReportType:"MM", CheckKey:"2026-02-16|MM|4", CheckNumber:4, CheckName:"Late entry (56D)",         Result:"Late",        FlaggedCount:2, Status:"Awaiting MO review", Completed:false, IsLate:true}
+        );
+        // ----- Daily Transactions (findings only) -----
+        // Working flags: _state ("loaded"/"modified"), _isDirty. Only dirty rows get patched on Save.
+        ClearCollect(colTransactions,
+            // FX Check 2
+            {ID:101, DailyReportCheckID:2, DailyReportID:1, DailyItemID:41, ReportType:"FX", CheckNumber:2, TransactionNo:"CH061000000070312", ProductType:"60B", TxnTypeName:"Forward-liquidity", Amount:-1000000, Currency:"EUR", MOReason:"", MOComment:"", FlaggedToFO:false, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting MO review", IsLate:false, DaysLate:0, _state:"loaded", _isDirty:false},
+            {ID:102, DailyReportCheckID:2, DailyReportID:1, DailyItemID:41, ReportType:"FX", CheckNumber:2, TransactionNo:"CH061000000070318", ProductType:"60B", TxnTypeName:"Forward-Exposure",  Amount:-2000000, Currency:"EUR", MOReason:"", MOComment:"", FlaggedToFO:false, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting MO review", IsLate:false, DaysLate:0, _state:"loaded", _isDirty:false},
+            // FX Check 3 (pre-flagged to FO)
+            {ID:103, DailyReportCheckID:3, DailyReportID:1, DailyItemID:41, ReportType:"FX", CheckNumber:3, TransactionNo:"CH061000000088210", ProductType:"60C", TransactionType:"102", BusinessPartner:"I_US10", Amount:3400000, MOReason:"Request FO explanation", MOComment:"Not in export, confirm reporting.", FlaggedToFO:true, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting FO review", IsLate:false, DaysLate:0, _state:"loaded", _isDirty:false},
+            // FX Check 4 (auto Hedge rate + Other flagged)
+            {ID:104, DailyReportCheckID:4, DailyReportID:1, DailyItemID:41, ReportType:"FX", CheckNumber:4, TransactionNo:"CH061000000091120", ProductType:"60C", TransactionType:"102", TransactionRate:1.1840, SpotRate:1.1010, VariancePct:7.5, MOReason:"Hedge rate", MOComment:"", FlaggedToFO:false, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting MO review", IsLate:false, DaysLate:0, _state:"loaded", _isDirty:false},
+            {ID:105, DailyReportCheckID:4, DailyReportID:1, DailyItemID:41, ReportType:"FX", CheckNumber:4, TransactionNo:"CH061000000091150", ProductType:"60A", TransactionRate:1.0710, SpotRate:0.9950, VariancePct:7.6, MOReason:"Other", MOComment:"Rate looks off, please explain.", FlaggedToFO:true, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting FO review", IsLate:false, DaysLate:0, _state:"loaded", _isDirty:false},
+            // FX Check 5 (late)
+            {ID:106, DailyReportCheckID:5, DailyReportID:1, DailyItemID:41, ReportType:"FX", CheckNumber:5, TransactionNo:"CH061000000072201", ProductType:"60B", EnteredOn:Date(2026,2,12), ContractDate:Date(2026,2,9), Amount:1500000, MOReason:"Late booking", MOComment:"Entered 3 days after contract.", FlaggedToFO:false, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting MO review", IsLate:true, DaysLate:3, _state:"loaded", _isDirty:false},
+            // FX Check 6 (exceptional / VITUS, flagged)
+            {ID:107, DailyReportCheckID:6, DailyReportID:1, DailyItemID:41, ReportType:"FX", CheckNumber:6, TransactionNo:"CH061000000088210", ProductType:"60C", TransactionType:"102", HedgeDate:Date(2026,3,16), Characteristics:"Exceptional", Amount:4200000, MOReason:"Request FO explanation", MOComment:"Attach Vitus approval please.", FlaggedToFO:true, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting FO review", IsLate:false, DaysLate:0, _state:"loaded", _isDirty:false},
+            // MM Check 1
+            {ID:108, DailyReportCheckID:7, DailyReportID:2, DailyItemID:41, ReportType:"MM", CheckNumber:1, TransactionNo:"MM0000000055120", CompanyCode:"SA04", BusinessPartner:"I_DE01", Category:"Investment", Amount:10000000, MOReason:"Request FO explanation", MOComment:"Borrowing leg not posted.", FlaggedToFO:false, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting MO review", IsLate:false, DaysLate:0, _state:"loaded", _isDirty:false},
+            // MM Check 2 (flagged)
+            {ID:109, DailyReportCheckID:8, DailyReportID:2, DailyItemID:41, ReportType:"MM", CheckNumber:2, TransactionNo:"MM0000000053088", ProductType:"53A", Amount:25000000, MOReason:"Request FO explanation", MOComment:"Check US bank report / SAP upload.", FlaggedToFO:true, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting FO review", IsLate:false, DaysLate:0, _state:"loaded", _isDirty:false},
+            // MM Check 4 (late, 56D auto Credit line + 55A late)
+            {ID:110, DailyReportCheckID:10, DailyReportID:2, DailyItemID:41, ReportType:"MM", CheckNumber:4, TransactionNo:"MM000000056d44", ProductType:"56D", EnteredOn:Date(2026,2,14), ContractDate:Date(2026,2,11), Amount:8000000, MOReason:"Credit line", MOComment:"", FlaggedToFO:false, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting MO review", IsLate:true, DaysLate:3, _state:"loaded", _isDirty:false},
+            {ID:111, DailyReportCheckID:10, DailyReportID:2, DailyItemID:41, ReportType:"MM", CheckNumber:4, TransactionNo:"MM0000000055201", ProductType:"55A", EnteredOn:Date(2026,2,13), ContractDate:Date(2026,2,10), Amount:5000000, MOReason:"Late booking", MOComment:"Entered 3 days late.", FlaggedToFO:false, FOReason:"", FOComment:"", FOResponded:false, Status:"Awaiting MO review", IsLate:true, DaysLate:3, _state:"loaded", _isDirty:false}
+        );
+        // ----- Top Report (late entries snapshot) -----
+        ClearCollect(colTopReport,
+            {ID:1, MonthKey:"2026-02", DayKey:"2026-02-16", ReportType:"FX", TransactionNo:"CH061000000072201", ProductType:"60B", EnteredOn:Date(2026,2,12), ContractDate:Date(2026,2,9),  DaysLate:3, Amount:1500000, Reason:"Late booking",  SourceTxnID:106},
+            {ID:2, MonthKey:"2026-02", DayKey:"2026-02-16", ReportType:"MM", TransactionNo:"MM000000056d44",   ProductType:"56D", EnteredOn:Date(2026,2,14), ContractDate:Date(2026,2,11), DaysLate:3, Amount:8000000, Reason:"Credit line",   SourceTxnID:110},
+            {ID:3, MonthKey:"2026-02", DayKey:"2026-02-16", ReportType:"MM", TransactionNo:"MM0000000055201",  ProductType:"55A", EnteredOn:Date(2026,2,13), ContractDate:Date(2026,2,10), DaysLate:3, Amount:5000000, Reason:"Late booking",  SourceTxnID:111}
+        );
+        // ===== PRODUCTION: swap seeds for SharePoint loads (commented) =====
+        // =====================================================================
+        //  PRODUCTION:  replace the seed blocks above with these loads
+        // =====================================================================
+        // ClearCollect(colDailyItems,   'TZ01 Daily Item');
+        // ClearCollect(colDailyReports, 'TZ01 Daily Reports');
+        // ClearCollect(colChecks,       'TZ01 Daily Report Checks');
+        // ClearCollect(colReasonConfig, 'TZ01 Reason Config');
+        // ClearCollect(colTopReport,    'TZ01 Top Report');
+        // // load only the selected day's transactions (delegable on DayKey):
+        // // done on the overview OnSelect, not OnStart:
+        // //   ClearCollect(colTransactions,
+        // //      AddColumns(Filter('TZ01 Daily Transactions', DayKey = varDayKey),
+        // //                 "_state","loaded","_isDirty",false));
+

@@ -1,0 +1,243 @@
+scrTop As screen:
+    Fill: =RGBA(236, 238, 241, 1)
+
+    topRoot As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(0,0,0,0)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+        tphdrBar As groupContainer.horizontalAutoLayoutContainer:
+            Fill: =RGBA(67, 22, 79, 1)
+            Height: =58
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =12
+            PaddingBottom: =12
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =12
+            Width: =Parent.Width
+            ZIndex: =10
+
+            tphdrBack As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                Fill: =RGBA(255, 255, 255, 0.14)
+                Height: =34
+                HoverFill: =RGBA(255, 255, 255, 0.24)
+                OnSelect: =Navigate(scrOverview, ScreenTransition.UnCoverRight)
+                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedFill: =RGBA(255, 255, 255, 0.24)
+                Size: =12
+                Text: ="< Back"
+                Width: =92
+                ZIndex: =1
+
+            tphdrTitle As label:
+                AlignInContainer: =AlignInContainer.Center
+                Color: =RGBA(255, 255, 255, 1)
+                FillPortions: =1
+                FontWeight: =FontWeight.Semibold
+                Height: =34
+                Size: =16
+                Text: ="MONTHLY TOP REPORT — LATE ENTRIES"
+                ZIndex: =2
+
+            tphdrRoleSeg As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.Center
+                Fill: =RGBA(255, 255, 255, 0.13)
+                Height: =34
+                LayoutGap: =4
+                PaddingBottom: =3
+                PaddingLeft: =3
+                PaddingRight: =3
+                PaddingTop: =3
+                Width: =240
+                ZIndex: =3
+
+                tphdrMO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="MO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Middle Office"
+                    ZIndex: =1
+
+                tphdrFO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="FO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Front Office"
+                    ZIndex: =2
+
+            tphdrLogo As label:
+                Align: =Align.Center
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =RGBA(255, 255, 255, 0.4)
+                BorderStyle: =BorderStyle.Dashed
+                BorderThickness: =1
+                Color: =RGBA(255, 255, 255, 1)
+                Height: =30
+                Size: =11
+                Text: ="[ logo ]"
+                Width: =110
+                ZIndex: =4
+
+        tpftBar As groupContainer.horizontalAutoLayoutContainer:
+            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderThickness: =1
+            Fill: =RGBA(250, 250, 250, 1)
+            Height: =56
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =9
+            LayoutJustifyContent: =LayoutJustifyContent.End
+            PaddingBottom: =10
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =10
+            Width: =Parent.Width
+            ZIndex: =10
+
+            tpBack As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                Fill: =RGBA(191, 83, 32, 1)
+                Height: =34
+                OnSelect: =Navigate(scrOverview, ScreenTransition.UnCover)
+                Size: =12
+                Text: ="Back"
+                Width: =100
+                ZIndex: =1
+
+            tpPbi As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                Fill: =RGBA(31, 96, 168, 1)
+                Height: =34
+                OnSelect: =Notify("Exported to Power BI", NotificationType.Success)
+                Size: =12
+                Text: ="Send to Power BI"
+                ZIndex: =2
+
+        topBody As groupContainer.verticalAutoLayoutContainer:
+            Fill: =RGBA(0,0,0,0)
+            LayoutGap: =10
+            PaddingBottom: =14
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =14
+            Width: =Parent.Width
+            ZIndex: =20
+
+            topNote As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =RGBA(90, 90, 94, 1)
+                Height: =36
+                PaddingTop: =6
+                Size: =11
+                Text: ="Only late entries flow to the monthly TOP report — Entered on later than Contract date — with the MO reason. This is the source for the monthly Power BI."
+                Width: =Parent.Width
+                ZIndex: =1
+
+            "galTop As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                Items: =colTopReport
+                Layout: =Layout.Vertical
+                TemplatePadding: =0
+                TemplateSize: =44
+                Width: =Parent.Width
+                ZIndex: =3
+
+                topRowC As groupContainer.horizontalAutoLayoutContainer:
+                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderThickness: =1
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: =Parent.TemplateHeight
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: =6
+                    PaddingLeft: =12
+                    PaddingRight: =12
+                    Width: =Parent.TemplateWidth
+                    ZIndex: =1
+
+                    tpDate As label:
+                        Color: =RGBA(90, 90, 94, 1)
+                        Height: =30
+                        Size: =11
+                        Text: =ThisItem.DayKey
+                        Width: =100
+                        ZIndex: =1
+
+                    tpRep As label:
+                        Color: =RGBA(42, 42, 42, 1)
+                        Height: =30
+                        Size: =11
+                        Text: =ThisItem.ReportType & " Listing"
+                        Width: =110
+                        ZIndex: =2
+
+                    tpTxn As label:
+                        Color: =RGBA(42, 42, 42, 1)
+                        FillPortions: =2
+                        Height: =30
+                        Size: =11
+                        Text: =ThisItem.TransactionNo
+                        ZIndex: =3
+
+                    tpPt As label:
+                        Color: =RGBA(42, 42, 42, 1)
+                        Height: =30
+                        Size: =11
+                        Text: =ThisItem.ProductType
+                        Width: =70
+                        ZIndex: =4
+
+                    tpEnt As label:
+                        Color: =RGBA(42, 42, 42, 1)
+                        Height: =30
+                        Size: =11
+                        Text: =Text(ThisItem.EnteredOn, "dd mmm yyyy")
+                        Width: =110
+                        ZIndex: =5
+
+                    tpCon As label:
+                        Color: =RGBA(42, 42, 42, 1)
+                        Height: =30
+                        Size: =11
+                        Text: =Text(ThisItem.ContractDate, "dd mmm yyyy")
+                        Width: =110
+                        ZIndex: =6
+
+                    tpLate As label:
+                        Align: =Align.Center
+                        Color: =RGBA(133, 79, 11, 1)
+                        Height: =30
+                        Size: =11
+                        Text: =ThisItem.DaysLate
+                        Width: =70
+                        ZIndex: =7
+
+                    tpAmt As label:
+                        Align: =Align.Right
+                        Color: =RGBA(42, 42, 42, 1)
+                        Height: =30
+                        Size: =11
+                        Text: |-
+                            =Text(ThisItem.Amount, "#,##0")
+                        Width: =110
+                        ZIndex: =8
+
+                    tpReason As label:
+                        Color: =RGBA(90, 90, 94, 1)
+                        FillPortions: =1
+                        Height: =30
+                        Size: =11
+                        Text: =ThisItem.Reason
+                        ZIndex: =9
+

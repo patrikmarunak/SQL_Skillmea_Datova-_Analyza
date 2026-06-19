@@ -1,0 +1,275 @@
+scrChecks As screen:
+    Fill: =RGBA(236, 238, 241, 1)
+
+    ckRoot As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(0,0,0,0)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+        ckhdrBar As groupContainer.horizontalAutoLayoutContainer:
+            Fill: =RGBA(67, 22, 79, 1)
+            Height: =58
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =12
+            PaddingBottom: =12
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =12
+            Width: =Parent.Width
+            ZIndex: =10
+
+            ckhdrBack As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                Fill: =RGBA(255, 255, 255, 0.14)
+                Height: =34
+                HoverFill: =RGBA(255, 255, 255, 0.24)
+                OnSelect: =Navigate(scrOverview, ScreenTransition.UnCoverRight)
+                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedFill: =RGBA(255, 255, 255, 0.24)
+                Size: =12
+                Text: ="< Back"
+                Width: =92
+                ZIndex: =1
+
+            ckhdrTitle As label:
+                AlignInContainer: =AlignInContainer.Center
+                Color: =RGBA(255, 255, 255, 1)
+                FillPortions: =1
+                FontWeight: =FontWeight.Semibold
+                Height: =34
+                Size: =16
+                Text: ="CHECK ANALYSIS"
+                ZIndex: =2
+
+            ckhdrRoleSeg As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.Center
+                Fill: =RGBA(255, 255, 255, 0.13)
+                Height: =34
+                LayoutGap: =4
+                PaddingBottom: =3
+                PaddingLeft: =3
+                PaddingRight: =3
+                PaddingTop: =3
+                Width: =240
+                ZIndex: =3
+
+                ckhdrMO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="MO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Middle Office"
+                    ZIndex: =1
+
+                ckhdrFO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="FO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Front Office"
+                    ZIndex: =2
+
+            ckhdrLogo As label:
+                Align: =Align.Center
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =RGBA(255, 255, 255, 0.4)
+                BorderStyle: =BorderStyle.Dashed
+                BorderThickness: =1
+                Color: =RGBA(255, 255, 255, 1)
+                Height: =30
+                Size: =11
+                Text: ="[ logo ]"
+                Width: =110
+                ZIndex: =4
+
+        ckftBar As groupContainer.horizontalAutoLayoutContainer:
+            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderThickness: =1
+            Fill: =RGBA(250, 250, 250, 1)
+            Height: =56
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =9
+            LayoutJustifyContent: =LayoutJustifyContent.End
+            PaddingBottom: =10
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =10
+            Width: =Parent.Width
+            ZIndex: =10
+
+            ckSave As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =RGBA(228, 228, 230, 1)
+                BorderThickness: =1
+                Color: =RGBA(90, 90, 94, 1)
+                Fill: =RGBA(255, 255, 255, 1)
+                Height: =34
+                OnSelect: =Notify("Draft saved", NotificationType.Success)
+                Size: =12
+                Text: ="Save draft"
+                Width: =110
+                ZIndex: =1
+
+            ckSubmit As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                DisabledColor: =RGBA(154, 154, 158, 1)
+                DisabledFill: =RGBA(240,240,240,1)
+                DisplayMode: =If(CountRows(Filter(colChecks, DailyReportID=varCurrentReport.ID, !(CountRows(Filter(colTransactions, DailyReportCheckID=ID))=0 || Completed)))=0, DisplayMode.Edit, DisplayMode.Disabled)
+                Fill: =RGBA(59, 109, 17, 1)
+                Height: =34
+                OnSelect: |-
+                    =Patch(colDailyReports, varCurrentReport, {Submitted:true, Status:"Review completed"}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover)
+                Size: =12
+                Text: ="Submit report"
+                Width: =150
+                ZIndex: =2
+
+        ckBody As groupContainer.verticalAutoLayoutContainer:
+            Fill: =RGBA(0,0,0,0)
+            LayoutGap: =10
+            PaddingBottom: =14
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =14
+            Width: =Parent.Width
+            ZIndex: =20
+
+            ckEye As label:
+                AlignInContainer: =AlignInContainer.Start
+                Color: =RGBA(42, 42, 42, 1)
+                FontWeight: =FontWeight.Semibold
+                Height: =20
+                Size: =11
+                Text: ="CHECK RESULTS OVERVIEW"
+                ZIndex: =1
+
+            ckstepRow As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =8
+                Width: =Parent.Width
+                ZIndex: =3
+
+                ckstep1 As label:
+                    Color: =If(true, RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
+                    FontWeight: =FontWeight.Semibold
+                    Height: =24
+                    Size: =11
+                    Text: ="1  Awaiting MO review"
+                    Width: =170
+                    ZIndex: =1
+
+                ckstep2 As label:
+                    Color: =If(CountRows(Filter(colChecks, DailyReportID=varCurrentReport.ID, Status="Awaiting FO review"))>0, RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
+                    FontWeight: =FontWeight.Semibold
+                    Height: =24
+                    Size: =11
+                    Text: ="2  Awaiting FO review"
+                    Width: =180
+                    ZIndex: =2
+
+                ckstep3 As label:
+                    Color: =If(varCurrentReport.Submitted, RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
+                    FillPortions: =1
+                    FontWeight: =FontWeight.Semibold
+                    Height: =24
+                    Size: =11
+                    Text: ="3  Completed"
+                    ZIndex: =3
+
+            "galChecks As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                Items: =SortByColumns(Filter(colChecks, DailyReportID = varCurrentReport.ID), "CheckNumber")
+                Layout: =Layout.Vertical
+                OnSelect: =Set(varCurrentCheck, ThisItem); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                TemplatePadding: =0
+                TemplateSize: =56
+                Width: =Parent.Width
+                ZIndex: =3
+
+                ckRow As rectangle:
+                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderThickness: =1
+                    Fill: =If(ThisItem.FlaggedCount=0, RGBA(255, 255, 255, 1), RGBA(251,236,236,1))
+                    Height: =Parent.TemplateHeight - 1
+                    OnSelect: =Select(Parent)
+                    Width: =Parent.TemplateWidth
+                    ZIndex: =1
+
+                ckNum As label:
+                    Color: =RGBA(42, 42, 42, 1)
+                    FontWeight: =FontWeight.Semibold
+                    Height: =22
+                    OnSelect: =Select(Parent)
+                    Size: =12
+                    Text: ="Check " & ThisItem.CheckNumber
+                    Width: =90
+                    X: =16
+                    Y: =8
+                    ZIndex: =2
+
+                ckScope As label:
+                    Color: =RGBA(90, 90, 94, 1)
+                    Height: =Parent.TemplateHeight - 12
+                    OnSelect: =Select(Parent)
+                    Size: =12
+                    Text: =ThisItem.CheckName
+                    Width: =Parent.TemplateWidth * 0.34
+                    X: =110
+                    Y: =8
+                    ZIndex: =3
+
+                ckResult As label:
+                    Color: =If(ThisItem.Result="No finding", RGBA(59, 109, 17, 1), ThisItem.Result="Exceptional", RGBA(163, 45, 45, 1), ThisItem.Result="Late", RGBA(133, 79, 11, 1), RGBA(163, 45, 45, 1))
+                    FontWeight: =FontWeight.Semibold
+                    Height: =Parent.TemplateHeight - 12
+                    OnSelect: =Select(Parent)
+                    Size: =12
+                    Text: =ThisItem.Result
+                    Width: =120
+                    X: =Parent.TemplateWidth * 0.34 + 120
+                    Y: =8
+                    ZIndex: =4
+
+                ckFlag As label:
+                    Align: =Align.Center
+                    Color: =RGBA(90, 90, 94, 1)
+                    Height: =Parent.TemplateHeight - 12
+                    OnSelect: =Select(Parent)
+                    Size: =12
+                    Text: =ThisItem.FlaggedCount
+                    Width: =70
+                    X: =Parent.TemplateWidth * 0.34 + 250
+                    Y: =8
+                    ZIndex: =5
+
+                ckStatus As label:
+                    Color: =If(ThisItem.Status="Completed" || ThisItem.Status="Review completed" || ThisItem.Status="Ready to submit", RGBA(59, 109, 17, 1), ThisItem.Status="Awaiting FO review" || ThisItem.Status="Awaiting FO", RGBA(31, 96, 168, 1), RGBA(133, 79, 11, 1))
+                    Height: =Parent.TemplateHeight - 12
+                    OnSelect: =Select(Parent)
+                    Size: =12
+                    Text: =ThisItem.Status
+                    Width: =200
+                    X: =Parent.TemplateWidth * 0.34 + 330
+                    Y: =8
+                    ZIndex: =6
+
+                ckChev As icon.ChevronRight:
+                    Color: =RGBA(154, 154, 158, 1)
+                    Height: =22
+                    Icon: =Icon.ChevronRight
+                    OnSelect: =Select(Parent)
+                    Width: =22
+                    X: =Parent.TemplateWidth - 40
+                    Y: =Parent.TemplateHeight/2 - 11
+                    ZIndex: =7
+
