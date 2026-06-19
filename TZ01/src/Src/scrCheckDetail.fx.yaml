@@ -1,0 +1,287 @@
+scrCheckDetail As screen:
+    Fill: =RGBA(236, 238, 241, 1)
+
+    cdRoot As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(0,0,0,0)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+        cdhdrBar As groupContainer.horizontalAutoLayoutContainer:
+            Fill: =RGBA(67, 22, 79, 1)
+            Height: =58
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =12
+            PaddingBottom: =12
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =12
+            Width: =Parent.Width
+            ZIndex: =10
+
+            cdhdrBack As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                Fill: =RGBA(255, 255, 255, 0.14)
+                Height: =34
+                HoverFill: =RGBA(255, 255, 255, 0.24)
+                OnSelect: =Navigate(scrChecks, ScreenTransition.UnCoverRight)
+                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedFill: =RGBA(255, 255, 255, 0.24)
+                Size: =12
+                Text: ="< Back"
+                Width: =92
+                ZIndex: =1
+
+            cdhdrTitle As label:
+                AlignInContainer: =AlignInContainer.Center
+                Color: =RGBA(255, 255, 255, 1)
+                FillPortions: =1
+                FontWeight: =FontWeight.Semibold
+                Height: =34
+                Size: =16
+                Text: ="CHECK DETAIL"
+                ZIndex: =2
+
+            cdhdrRoleSeg As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.Center
+                Fill: =RGBA(255, 255, 255, 0.13)
+                Height: =34
+                LayoutGap: =4
+                PaddingBottom: =3
+                PaddingLeft: =3
+                PaddingRight: =3
+                PaddingTop: =3
+                Width: =240
+                ZIndex: =3
+
+                cdhdrMO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="MO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Middle Office"
+                    ZIndex: =1
+
+                cdhdrFO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="FO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Front Office"
+                    ZIndex: =2
+
+            cdhdrLogo As label:
+                Align: =Align.Center
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =RGBA(255, 255, 255, 0.4)
+                BorderStyle: =BorderStyle.Dashed
+                BorderThickness: =1
+                Color: =RGBA(255, 255, 255, 1)
+                Height: =30
+                Size: =11
+                Text: ="[ logo ]"
+                Width: =110
+                ZIndex: =4
+
+        cdftBar As groupContainer.horizontalAutoLayoutContainer:
+            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderThickness: =1
+            Fill: =RGBA(250, 250, 250, 1)
+            Height: =56
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =9
+            LayoutJustifyContent: =LayoutJustifyContent.End
+            PaddingBottom: =10
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =10
+            Width: =Parent.Width
+            ZIndex: =10
+
+            cdSave As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =RGBA(228, 228, 230, 1)
+                BorderThickness: =1
+                Color: =RGBA(90, 90, 94, 1)
+                Fill: =RGBA(255, 255, 255, 1)
+                Height: =34
+                OnSelect: |-
+                    =UpdateIf(colTransactions, _isDirty, {_isDirty:false, _state:"loaded"}); Notify("Draft saved", NotificationType.Success)
+                Size: =12
+                Text: ="Save draft"
+                Width: =110
+                ZIndex: =1
+
+            cdSend As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                Fill: =RGBA(31, 96, 168, 1)
+                Height: =34
+                OnSelect: |-
+                    =ForAll(Filter(colTransactions, DailyReportCheckID=varCurrentCheck.ID, FlaggedToFO, !FOResponded) As T, Patch(colTransactions, T, {Status:"Awaiting FO review", _isDirty:true})); Patch(colChecks, varCurrentCheck, {Status:"Awaiting FO review"}); Notify("Flagged findings sent to FO", NotificationType.Information)
+                Size: =12
+                Text: ="Send flagged to FO"
+                Visible: =CountRows(Filter(colTransactions, DailyReportCheckID=varCurrentCheck.ID, FlaggedToFO, !FOResponded)) > 0
+                Width: =170
+                ZIndex: =2
+
+            cdComplete As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                DisabledColor: =RGBA(154, 154, 158, 1)
+                DisabledFill: =RGBA(240,240,240,1)
+                DisplayMode: |-
+                    =With({tx: Filter(colTransactions, DailyReportCheckID=varCurrentCheck.ID)}, If(CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && !FOResponded))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0, DisplayMode.Edit, DisplayMode.Disabled))
+                Fill: =RGBA(59, 109, 17, 1)
+                Height: =34
+                OnSelect: |-
+                    =Patch(colChecks, varCurrentCheck, {Completed:true, Status:"Completed"}); Notify("Check completed", NotificationType.Success); Navigate(scrChecks, ScreenTransition.UnCover)
+                Size: =12
+                Text: ="Mark check complete"
+                Width: =190
+                ZIndex: =3
+
+        cdBody As groupContainer.verticalAutoLayoutContainer:
+            Fill: =RGBA(0,0,0,0)
+            LayoutGap: =10
+            PaddingBottom: =14
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =14
+            Width: =Parent.Width
+            ZIndex: =20
+
+            cdSub As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =34
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =8
+                Width: =Parent.Width
+                ZIndex: =2
+
+                cdTitle As label:
+                    Color: =RGBA(42, 42, 42, 1)
+                    FillPortions: =1
+                    FontWeight: =FontWeight.Semibold
+                    Height: =24
+                    Size: =11
+                    Text: ="FLAGGED TRANSACTIONS · " & Upper(varCurrentCheck.CheckName)
+                    ZIndex: =1
+
+                cdAttach As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderThickness: =1
+                    Color: =RGBA(90, 90, 94, 1)
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: =30
+                    OnSelect: =Notify("Evidence attached", NotificationType.Success)
+                    Size: =11
+                    Text: ="Attach check evidence"
+                    Width: =170
+                    ZIndex: =2
+
+            "galTxn As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                Items: =Filter(colTransactions, DailyReportCheckID = varCurrentCheck.ID)
+                Layout: =Layout.Vertical
+                TemplatePadding: =0
+                TemplateSize: =58
+                Visible: =CountRows(Filter(colTransactions, DailyReportCheckID = varCurrentCheck.ID)) > 0
+                Width: =Parent.Width
+                ZIndex: =3
+
+                txnRowC As groupContainer.horizontalAutoLayoutContainer:
+                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderThickness: =1
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: =Parent.TemplateHeight
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: =8
+                    PaddingBottom: =10
+                    PaddingLeft: =12
+                    PaddingRight: =12
+                    PaddingTop: =10
+                    Width: =Parent.TemplateWidth
+                    ZIndex: =1
+
+                    tcRead As label:
+                        Color: =RGBA(42, 42, 42, 1)
+                        FillPortions: =2
+                        Height: =36
+                        Size: =11
+                        Text: |-
+                            =ThisItem.TransactionNo & "  ·  " & ThisItem.ProductType & "  ·  " & Text(ThisItem.Amount, "#,##0") & " " & ThisItem.Currency
+                        ZIndex: =1
+
+                    tcMOReason As dropdown:
+                        AlignInContainer: =AlignInContainer.Center
+                        Default: =ThisItem.MOReason
+                        Height: =36
+                        Items: =SortByColumns(Filter(colReasonConfig, ReportType=varCurrentCheck.ReportType, CheckNumber=varCurrentCheck.CheckNumber, AppliesTo<>"FO"), "Sort").Reason
+                        OnChange: |-
+                            =Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"})
+                        Width: =160
+                        ZIndex: =2
+
+                    tcMOComment As text:
+                        AlignInContainer: =AlignInContainer.Center
+                        Default: =ThisItem.MOComment
+                        FillPortions: =1
+                        Height: =36
+                        HintText: ="MO comment"
+                        OnChange: |-
+                            =Patch(colTransactions, ThisItem, {MOComment:Self.Text, _isDirty:true, _state:"modified"})
+                        ZIndex: =3
+
+                    tcFOFlag As checkbox:
+                        AlignInContainer: =AlignInContainer.Center
+                        Default: =ThisItem.FlaggedToFO
+                        Height: =36
+                        OnCheck: |-
+                            =Patch(colTransactions, ThisItem, {FlaggedToFO:true, _isDirty:true, _state:"modified"})
+                        OnUncheck: |-
+                            =Patch(colTransactions, ThisItem, {FlaggedToFO:false, FOReason:"", FOResponded:false, _isDirty:true, _state:"modified"})
+                        Text: ="FO"
+                        Width: =70
+                        ZIndex: =4
+
+                    tcFOReason As dropdown:
+                        AlignInContainer: =AlignInContainer.Center
+                        Default: =ThisItem.FOReason
+                        DisplayMode: =If(ThisItem.FlaggedToFO, DisplayMode.Edit, DisplayMode.Disabled)
+                        Height: =36
+                        Items: =Filter(colReasonConfig, AppliesTo="FO").Reason
+                        OnChange: |-
+                            =Patch(colTransactions, ThisItem, {FOReason:Self.Selected.Value, _isDirty:true})
+                        Width: =150
+                        ZIndex: =5
+
+                    tcFOComment As text:
+                        AlignInContainer: =AlignInContainer.Center
+                        Default: =ThisItem.FOComment
+                        DisplayMode: =If(ThisItem.FlaggedToFO, DisplayMode.Edit, DisplayMode.Disabled)
+                        FillPortions: =1
+                        Height: =36
+                        HintText: ="FO comment"
+                        OnChange: |-
+                            =Patch(colTransactions, ThisItem, {FOComment:Self.Text, _isDirty:true})
+                        ZIndex: =6
+
+            cdEmpty As label:
+                Align: =Align.Center
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =RGBA(59, 109, 17, 1)
+                FillPortions: =1
+                Size: =14
+                Text: ="No findings — check passed. Nothing to review for this check."
+                Visible: =CountRows(Filter(colTransactions, DailyReportCheckID = varCurrentCheck.ID)) = 0
+                Width: =Parent.Width
+                ZIndex: =4
+

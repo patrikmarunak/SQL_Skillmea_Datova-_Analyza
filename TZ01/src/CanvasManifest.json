@@ -1,0 +1,45 @@
+{
+  "FormatVersion": "0.24",
+  "Header": {
+    "DocVersion": "1.294",
+    "MinVersionToLoad": "1.294",
+    "MSAppStructureVersion": "2.0"
+  },
+  "Properties": {
+    "AppCreationSource": "AppFromScratch",
+    "AppDescription": "",
+    "Author": "",
+    "ContainsThirdPartyPcfControls": false,
+    "DefaultConnectedDataSourceMaxGetRowsCount": 500,
+    "DocumentAppType": "DesktopOrTablet",
+    "DocumentLayoutHeight": 768,
+    "DocumentLayoutLockOrientation": false,
+    "DocumentLayoutMaintainAspectRatio": false,
+    "DocumentLayoutOrientation": "landscape",
+    "DocumentLayoutScaleToFit": false,
+    "DocumentLayoutWidth": 1366,
+    "DocumentType": "App",
+    "EnableInstrumentation": false,
+    "Id": "e70df472-af83-4a84-8ed9-f48f43651d72",
+    "InstrumentationKey": "",
+    "LocalDatabaseReferences": "{}",
+    "Name": "TZ01.msapp",
+    "OriginatingVersion": "1.294"
+  },
+  "PublishInfo": {
+    "AppName": "TZ01",
+    "BackgroundColor": "RGBA(67,22,79,1)",
+    "LogoFileName": "",
+    "PublishDataLocally": false,
+    "PublishResourcesLocally": false,
+    "PublishTarget": "player",
+    "UserLocale": "en-US"
+  },
+  "ScreenOrder": [
+    "scrOverview",
+    "scrChecks",
+    "scrCheckDetail",
+    "scrInbox",
+    "scrTop"
+  ]
+}
