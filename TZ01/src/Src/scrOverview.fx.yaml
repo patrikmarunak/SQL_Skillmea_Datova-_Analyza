@@ -1,6 +1,5 @@
 scrOverview As screen:
     Fill: =RGBA(236, 238, 241, 1)
-    OnVisible: =If(IsBlank(varCurrentItem), Set(varCurrentItem, First(colDailyItems)); Set(varDayKey, First(colDailyItems).DayKey))
 
     ovRoot As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(0,0,0,0)
@@ -138,12 +137,12 @@ scrOverview As screen:
                 AlignInContainer: =AlignInContainer.Center
                 BorderColor: =RGBA(228, 228, 230, 1)
                 BorderThickness: =1
-                Color: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, FOResponded, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, RGBA(255, 255, 255, 1), RGBA(90, 90, 94, 1))
-                Fill: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, FOResponded, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, RGBA(59, 109, 17, 1), RGBA(255, 255, 255, 1))
+                Color: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, RGBA(255, 255, 255, 1), RGBA(90, 90, 94, 1))
+                Fill: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, RGBA(59, 109, 17, 1), RGBA(255, 255, 255, 1))
                 Height: =34
                 OnSelect: =Navigate(scrMoQueue, ScreenTransition.Cover)
                 Size: =12
-                Text: ="FO responses (" & CountRows(Filter(colTransactions, FlaggedToFO, FOSent, FOResponded, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed))) & ")"
+                Text: ="FO responses (" & CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed))) & ")"
                 Width: =180
                 ZIndex: =2
 
@@ -198,9 +197,10 @@ scrOverview As screen:
                     ZIndex: =1
 
                 "galDays As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                    Default: =varSelectedItem
                     Items: =SortByColumns(colDailyItems, "ItemDate", Descending)
                     Layout: =Layout.Vertical
-                    OnSelect: =Set(varCurrentItem, ThisItem); Set(varDayKey, ThisItem.DayKey)
+                    OnSelect: =Set(varSelectedItem, ThisItem); Set(varDayKey, ThisItem.DayKey)
                     TemplatePadding: =0
                     TemplateSize: =86
                     Width: =Parent.Width
@@ -210,14 +210,14 @@ scrOverview As screen:
                         Fill: =RGBA(67, 22, 79, 1)
                         Height: =Parent.TemplateHeight
                         OnSelect: =Select(Parent)
-                        Visible: =ThisItem.IsSelected
+                        Visible: =ThisItem.ID = varSelectedItem.ID
                         Width: =6
                         ZIndex: =1
 
                     dayCard As rectangle:
                         BorderColor: =RGBA(228, 228, 230, 1)
                         BorderThickness: =1
-                        Fill: =If(ThisItem.IsSelected, RGBA(67, 22, 79, 1), RGBA(255, 255, 255, 1))
+                        Fill: =If(ThisItem.ID = varSelectedItem.ID, RGBA(67, 22, 79, 1), RGBA(255, 255, 255, 1))
                         Height: =Parent.TemplateHeight - 9
                         OnSelect: =Select(Parent)
                         Width: =Parent.TemplateWidth - 10
@@ -226,7 +226,7 @@ scrOverview As screen:
                         ZIndex: =2
 
                     dayDate As label:
-                        Color: =If(ThisItem.IsSelected, RGBA(255, 255, 255, 1), RGBA(42, 42, 42, 1))
+                        Color: =If(ThisItem.ID = varSelectedItem.ID, RGBA(255, 255, 255, 1), RGBA(42, 42, 42, 1))
                         FontWeight: =FontWeight.Semibold
                         Height: =20
                         OnSelect: =Select(Parent)
@@ -239,7 +239,7 @@ scrOverview As screen:
 
                     dayId As label:
                         Align: =Align.Right
-                        Color: =If(ThisItem.IsSelected, RGBA(217,201,226,1), RGBA(154, 154, 158, 1))
+                        Color: =If(ThisItem.ID = varSelectedItem.ID, RGBA(217,201,226,1), RGBA(154, 154, 158, 1))
                         Height: =18
                         OnSelect: =Select(Parent)
                         Size: =10
@@ -250,7 +250,7 @@ scrOverview As screen:
                         ZIndex: =4
 
                     dayFind As label:
-                        Color: =If(ThisItem.IsSelected, RGBA(255, 255, 255, 1), RGBA(44,74,99,1))
+                        Color: =If(ThisItem.ID = varSelectedItem.ID, RGBA(255, 255, 255, 1), RGBA(44,74,99,1))
                         Height: =24
                         OnSelect: =Select(Parent)
                         Size: =11
@@ -284,7 +284,7 @@ scrOverview As screen:
                     PaddingTop: =8
                     Size: =11
                     Text: |-
-                        ="Review log — automatic validation on " & varDayKey & ": FX " & varCurrentItem.FXFindings & " findings, MM " & varCurrentItem.MMFindings & " findings."
+                        ="Review log — automatic validation on " & varDayKey & ": FX " & varSelectedItem.FXFindings & " findings, MM " & varSelectedItem.MMFindings & " findings."
                     Width: =Parent.Width
                     ZIndex: =2
 
@@ -315,7 +315,7 @@ scrOverview As screen:
                         ZIndex: =2
 
                     ovstep3 As label:
-                        Color: =If(varCurrentItem.Status="Completed", RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
+                        Color: =If(varSelectedItem.Status="Completed", RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
                         FillPortions: =1
                         FontWeight: =FontWeight.Semibold
                         Height: =24
@@ -333,7 +333,7 @@ scrOverview As screen:
                     ZIndex: =3
 
                 "galReports As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                    Items: =Filter(colDailyReports, DailyItemID = varCurrentItem.ID)
+                    Items: =Filter(colDailyReports, DailyItemID = varSelectedItem.ID)
                     Layout: =Layout.Vertical
                     OnSelect: =Set(varCurrentReport, ThisItem); Navigate(scrChecks, ScreenTransition.Cover)
                     TemplatePadding: =0

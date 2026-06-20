@@ -1,5 +1,57 @@
 # TZ01 — change log
 
+## Round 3 (delta applied to the existing app — not rebuilt)
+
+Source of truth: refreshed `TZ01_prototype.html`; spec: `TZ01_codex_update_prompt_2.md`
++ `TZ01_App_OnStart_v2.txt` + `TZ01_schema_v2_delta.md`. Touched only the affected files
+(`App.fx.yaml` incl. `App.StartScreen`, `scrOverview`, `scrChecks`, `scrCheckDetail`,
+`scrInbox`, `scrMoQueue`).
+
+### Step 0 — schema
+* `provisioning/TZ01_provision_v3_delta.ps1` adds **`FORespondedOn`** (Date/time, FO‑owned)
+  to `TZ01 Daily Transactions` and **`NotCompared`** (Yes/No) to `TZ01 Daily Report Checks`,
+  and adds **"Not compared"** to the `Result` choices. `FOComment` is **append‑only**.
+* Seed: `colTransactions` gains `FORespondedOn:Blank()`, `colChecks` gains `NotCompared`.
+
+### Change 1 — derived status + field‑scoped patches (concurrency‑safe)
+* Status is **derived, never stored by the app**. Inlined the OnStart‑v2 logic on the
+  controls: `FOAnswered = FOSent && FORespondedOn ≥ FOSentOn`, and from it the check
+  **Result**, check **status**, **CanComplete**, and report status (In review / Completed).
+* **Field ownership is split** so MO and FO never write the same column:
+  MO writes `MOReason, MOComment, FlaggedToFO, FOReviewer, FOSent, FOSentOn` (+ check
+  `Completed`, report `Submitted`); FO writes `FOReason, FOComment (append), FORespondedOn`.
+  The app no longer writes any shared `Status`/`FOResponded` column.
+
+### Change 2 — FO reply append + resend
+* FO reply **appends** a timestamped line to `FOComment` (`[dd Mmm hh:mm - reason] text`),
+  sets `FORespondedOn = Now()` and the latest `FOReason`; prior replies stay. The FO inbox
+  shows the reply history, a fresh comment box, and an **"MO asked again"** badge when reopened.
+* **Resend** (Check Analysis row state + MO My Queue, both groups): MO bumps `FOSentOn = Now()`
+  only — `FOAnswered` derives false and the row reopens for FO with `FOComment` intact.
+  One grouped notification per `FOReviewer` is the flow's job.
+
+### Change 3 — Not compared
+* `CheckResult` returns **"Not compared"** (precedence) when `NotCompared` is true. FX Check 3
+  (DTCC) is seeded Not‑compared with zero findings, so it **auto‑completes**, and both the
+  check table and the check‑detail empty state clearly say *Not compared* for audit.
+
+### Change 4 — deeplinks + default selection
+* `App.OnStart` reads `DayKey / Report / Check / Screen / Role` params and sets
+  **`varSelectedItem` once** (deeplink `LookUp` else `First(SortByColumns(colDailyItems,…))`).
+* **`App.StartScreen`** `Switch`es on `Screen` (detail/checks/moqueue/inbox/overview) and opens
+  the FO view when `Role=FO`.
+* Overview gallery: `Default = varSelectedItem`, row highlight on `ThisItem.ID = varSelectedItem.ID`,
+  row `OnSelect` updates `varSelectedItem`. **`scrOverview.OnVisible` was removed** so the
+  deeplinked item stays selected on return to the overview (normal open → first item).
+
+### Notes
+* UDFs from the OnStart‑v2 file are **inlined** on controls (the file explicitly allows this
+  where UDF support is unavailable) — keeps the legacy pack format importing cleanly.
+* My Queue is conceptually cross‑day; offline it runs over the seeded day's `colTransactions`
+  (production loads per `DayKey`).
+
+---
+
 ## v2 (delta applied to the existing app — not rebuilt)
 
 Source of truth: the updated `TZ01_prototype.html`; implementation spec:

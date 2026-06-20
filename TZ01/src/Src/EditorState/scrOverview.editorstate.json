@@ -1421,6 +1421,10 @@
           "RuleProviderType": "Unknown"
         },
         {
+          "PropertyName": "Default",
+          "RuleProviderType": "Unknown"
+        },
+        {
           "PropertyName": "TemplateSize",
           "RuleProviderType": "Unknown"
         },
@@ -1442,10 +1446,6 @@
         },
         {
           "PropertyName": "ZIndex",
-          "RuleProviderType": "Unknown"
-        },
-        {
-          "PropertyName": "Default",
           "RuleProviderType": "Unknown"
         },
         {
@@ -7684,10 +7684,6 @@
         },
         {
           "PropertyName": "LoadingSpinner",
-          "RuleProviderType": "Unknown"
-        },
-        {
-          "PropertyName": "OnVisible",
           "RuleProviderType": "Unknown"
         },
         {

@@ -110,13 +110,13 @@ scrChecks As screen:
                 BorderThickness: =0
                 DisabledColor: =RGBA(154, 154, 158, 1)
                 DisabledFill: =RGBA(240,240,240,1)
-                DisplayMode: =If(CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent, !FOResponded))>0, DisplayMode.Edit, DisplayMode.Disabled)
+                DisplayMode: =If(CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent))>0, DisplayMode.Edit, DisplayMode.Disabled)
                 Fill: =RGBA(31, 96, 168, 1)
                 Height: =34
                 OnSelect: |-
-                    =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent, !FOResponded)}, ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), Status:"Awaiting FO review", _isDirty:true})); Notify("Sent " & CountRows(toSend) & " findings to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success))
+                    =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)}, If(CountRows(Filter(toSend, (MOReason="Request FO explanation" || MOReason="Other") && IsBlank(MOComment)))>0, Notify("Add a comment before sending to FO", NotificationType.Error), ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " findings to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success)))
                 Size: =12
-                Text: ="Send flagged to FO (" & CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent, !FOResponded)) & ")"
+                Text: ="Send flagged to FO (" & CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)) & ")"
                 Width: =200
                 ZIndex: =1
 
@@ -142,7 +142,7 @@ scrChecks As screen:
                 Fill: =RGBA(59, 109, 17, 1)
                 Height: =34
                 OnSelect: |-
-                    =Patch(colDailyReports, varCurrentReport, {Submitted:true, Status:"Completed"}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover)
+                    =Patch(colDailyReports, varCurrentReport, {Submitted:true}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover)
                 Size: =12
                 Text: ="Submit report"
                 Width: =150
@@ -235,12 +235,14 @@ scrChecks As screen:
                     ZIndex: =3
 
                 ckResult As label:
-                    Color: =If(ThisItem.Result="No finding", RGBA(59, 109, 17, 1), ThisItem.Result="Exceptional", RGBA(163, 45, 45, 1), ThisItem.Result="Late", RGBA(133, 79, 11, 1), RGBA(163, 45, 45, 1))
+                    Color: |-
+                        =If(With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="No finding", RGBA(59, 109, 17, 1), With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="Exceptional", RGBA(163, 45, 45, 1), With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="Late", RGBA(133, 79, 11, 1), With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="Not compared", RGBA(133, 79, 11, 1), RGBA(163, 45, 45, 1))
                     FontWeight: =FontWeight.Semibold
                     Height: =Parent.TemplateHeight - 12
                     OnSelect: =Select(Parent)
                     Size: =12
-                    Text: =ThisItem.Result
+                    Text: |-
+                        =With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))
                     Width: =120
                     X: =Parent.TemplateWidth * 0.34 + 120
                     Y: =8
@@ -260,12 +262,12 @@ scrChecks As screen:
 
                 ckStatus As label:
                     Color: |-
-                        =If(With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Review completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Ready to submit", RGBA(59, 109, 17, 1), With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO review" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO", RGBA(31, 96, 168, 1), RGBA(133, 79, 11, 1))
+                        =If(With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Review completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Ready to submit", RGBA(59, 109, 17, 1), With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO review" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO", RGBA(31, 96, 168, 1), RGBA(133, 79, 11, 1))
                     Height: =Parent.TemplateHeight - 12
                     OnSelect: =Select(Parent)
                     Size: =12
                     Text: |-
-                        =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && !FOResponded))>0, "Awaiting FO review", "Awaiting MO review"))
+                        =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))
                     Width: =200
                     X: =Parent.TemplateWidth * 0.34 + 330
                     Y: =8

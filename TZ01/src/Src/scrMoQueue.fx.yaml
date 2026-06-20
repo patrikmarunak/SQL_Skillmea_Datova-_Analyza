@@ -158,11 +158,11 @@ scrMoQueue As screen:
                 ZIndex: =1
 
             "galMqReplied As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), FOResponded)
+                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))
                 Layout: =Layout.Vertical
                 TemplatePadding: =8
-                TemplateSize: =132
-                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), FOResponded)) > 0
+                TemplateSize: =150
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))) > 0
                 Width: =Parent.Width
                 ZIndex: =3
 
@@ -202,14 +202,15 @@ scrMoQueue As screen:
 
                     mrFo As label:
                         AlignInContainer: =AlignInContainer.Stretch
+                        BorderColor: =RGBA(207,227,207,1)
+                        BorderThickness: =1
                         Color: =RGBA(59, 109, 17, 1)
                         Fill: =RGBA(243,248,243,1)
-                        Height: =30
+                        Height: =42
                         PaddingLeft: =10
-                        PaddingTop: =6
-                        Size: =11
-                        Text: |-
-                            ="FO: " & ThisItem.FOReason & " — " & ThisItem.FOComment
+                        PaddingTop: =4
+                        Size: =10
+                        Text: ="FO reply (" & ThisItem.FOReason & ")" & Char(10) & ThisItem.FOComment
                         Width: =Parent.Width
                         ZIndex: =3
 
@@ -228,15 +229,27 @@ scrMoQueue As screen:
                             DisabledColor: =RGBA(154, 154, 158, 1)
                             DisabledFill: =RGBA(240,240,240,1)
                             DisplayMode: |-
-                                =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.DailyReportCheckID)}, If(CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && !FOResponded))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0, DisplayMode.Edit, DisplayMode.Disabled))
+                                =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.DailyReportCheckID)}, If(CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0, DisplayMode.Edit, DisplayMode.Disabled))
                             Fill: =RGBA(59, 109, 17, 1)
                             Height: =34
                             OnSelect: |-
-                                =Patch(colChecks, LookUp(colChecks, ID=ThisItem.DailyReportCheckID), {Completed:true, Status:"Completed"}); Notify("Check completed", NotificationType.Success)
+                                =Patch(colChecks, LookUp(colChecks, ID=ThisItem.DailyReportCheckID), {Completed:true}); Notify("Check completed", NotificationType.Success)
                             Size: =11
                             Text: ="Complete check"
                             Width: =150
                             ZIndex: =1
+
+                        mrResend As button:
+                            AlignInContainer: =AlignInContainer.Center
+                            BorderThickness: =0
+                            Fill: =RGBA(191, 83, 32, 1)
+                            Height: =34
+                            OnSelect: |-
+                                =Patch(colTransactions, ThisItem, {FOSentOn: Now(), _isDirty:true}); Notify("Resent to " & Left(ThisItem.FOReviewer, Find("@", ThisItem.FOReviewer & "@") - 1), NotificationType.Information)
+                            Size: =11
+                            Text: ="Resend to FO"
+                            Width: =130
+                            ZIndex: =2
 
                         mrOpen As button:
                             AlignInContainer: =AlignInContainer.Center
@@ -249,14 +262,14 @@ scrMoQueue As screen:
                             Size: =11
                             Text: ="Open check"
                             Width: =120
-                            ZIndex: =2
+                            ZIndex: =3
 
             "galMqAwait As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), !FOResponded)
+                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))
                 Layout: =Layout.Vertical
                 TemplatePadding: =8
                 TemplateSize: =104
-                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), !FOResponded)) > 0
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))) > 0
                 Width: =Parent.Width
                 ZIndex: =5
 
@@ -305,6 +318,18 @@ scrMoQueue As screen:
                         Width: =Parent.Width
                         ZIndex: =3
 
+                        maResend As button:
+                            AlignInContainer: =AlignInContainer.Center
+                            BorderThickness: =0
+                            Fill: =RGBA(191, 83, 32, 1)
+                            Height: =34
+                            OnSelect: |-
+                                =Patch(colTransactions, ThisItem, {FOSentOn: Now(), _isDirty:true}); Notify("Resent to " & Left(ThisItem.FOReviewer, Find("@", ThisItem.FOReviewer & "@") - 1), NotificationType.Information)
+                            Size: =11
+                            Text: ="Resend to FO"
+                            Width: =130
+                            ZIndex: =1
+
                         maOpen As button:
                             AlignInContainer: =AlignInContainer.Center
                             BorderColor: =RGBA(228, 228, 230, 1)
@@ -316,7 +341,7 @@ scrMoQueue As screen:
                             Size: =11
                             Text: ="Open check"
                             Width: =120
-                            ZIndex: =1
+                            ZIndex: =2
 
             mqEmpty As label:
                 Align: =Align.Center

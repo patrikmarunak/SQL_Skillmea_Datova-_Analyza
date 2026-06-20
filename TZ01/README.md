@@ -42,6 +42,36 @@ pwsh ./provisioning/TZ01_provision_v2_delta.ps1 -SiteUrl "https://<tenant>.share
 It adds `FOSent` (Yes/No), `FOSentOn` (Date/time) and `FOReviewer` (Text email — switch to
 `-Type User` for a Person column). The app already maps these into `colTransactions`.
 
+Then run the round-3 delta for the derived-status / append / Not-compared model:
+
+```powershell
+pwsh ./provisioning/TZ01_provision_v3_delta.ps1 -SiteUrl "https://<tenant>.sharepoint.com/sites/<TreasuryControls>"
+```
+
+It adds `FORespondedOn` (Date/time) to *Daily Transactions* and `NotCompared` (Yes/No) plus
+the *Not compared* `Result` choice to *Daily Report Checks*. `FOComment` is append-only.
+**Field ownership is split** — MO writes `MOReason/MOComment/FlaggedToFO/FOReviewer/FOSent/FOSentOn`
+(+ check `Completed`); FO writes `FOReason/FOComment(append)/FORespondedOn`. The app derives
+all status; if a stored `Status`/`FOResponded` is kept for Power BI, the **flow** is the only writer.
+
+## Deeplinks & landing screen
+
+`App.StartScreen` + `App.OnStart` resolve canvas play-URL params, e.g.
+`?DayKey=2026-02-16&Report=FX&Check=2026-02-16|FX|2&Screen=detail` (or a FO link
+`?Role=FO&Check=…&Screen=inbox`):
+
+| Param | Values | Effect |
+| --- | --- | --- |
+| `DayKey` | `2026-02-16` | selects that daily item (`varSelectedItem`, set once) |
+| `Report` | `FX` / `MM` | resolves `varCurrentReport` |
+| `Check` | `CheckKey` | resolves `varCurrentCheck` |
+| `Screen` | `detail`/`checks`/`moqueue`/`inbox`/`overview` | landing screen |
+| `Role` | `FO` | opens the FO view |
+
+Normal launch lands on the overview with the **first** daily item selected; a deeplink lands
+on its target screen and the deeplinked item **stays selected** when returning to the overview
+(`scrOverview` has no `OnVisible` reset).
+
 ## Build / round‑trip
 
 Requires the Power Platform CLI (`pac`, the `Microsoft.PowerApps.CLI.Tool` dotnet tool).

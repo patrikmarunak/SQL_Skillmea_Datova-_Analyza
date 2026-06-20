@@ -27,6 +27,10 @@
           "RuleProviderType": "Unknown"
         },
         {
+          "PropertyName": "StartScreen",
+          "RuleProviderType": "Unknown"
+        },
+        {
           "PropertyName": "OnStart",
           "RuleProviderType": "Unknown"
         },
