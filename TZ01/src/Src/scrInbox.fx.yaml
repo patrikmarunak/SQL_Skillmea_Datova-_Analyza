@@ -38,6 +38,7 @@ scrInbox As screen:
                 PaddingLeft: =3
                 PaddingRight: =3
                 PaddingTop: =3
+                Visible: =IsBlank(varRoleResolved)
                 Width: =240
                 ZIndex: =3
 
@@ -75,6 +76,16 @@ scrInbox As screen:
                 Text: ="[ logo ]"
                 Width: =110
                 ZIndex: =4
+
+            inhdrUser As label:
+                Align: =Align.Right
+                AlignInContainer: =AlignInContainer.Center
+                Color: =RGBA(227, 214, 237, 1)
+                Height: =30
+                Size: =11
+                Text: ="Signed in as " & Coalesce(varUser.FullName, varUser.Email, "Demo user") & "  ·  " & varRole
+                Width: =220
+                ZIndex: =5
 
         inBody As groupContainer.verticalAutoLayoutContainer:
             Fill: =RGBA(0,0,0,0)
@@ -148,7 +159,7 @@ scrInbox As screen:
                         Color: =RGBA(191, 83, 32, 1)
                         FontWeight: =FontWeight.Semibold
                         Height: =16
-                        Size: =10
+                        Size: =12
                         Text: ="MO asked again — please re-confirm."
                         Visible: =(ThisItem.FOSent && !IsBlank(ThisItem.FORespondedOn) && ThisItem.FOSentOn > ThisItem.FORespondedOn)
                         Width: =Parent.Width
@@ -174,7 +185,7 @@ scrInbox As screen:
                         PaddingBottom: =4
                         PaddingLeft: =10
                         PaddingTop: =4
-                        Size: =10
+                        Size: =12
                         Text: =ThisItem.FOComment
                         Visible: =!IsBlank(ThisItem.FOComment)
                         Width: =Parent.Width

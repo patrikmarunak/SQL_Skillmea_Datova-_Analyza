@@ -1,5 +1,30 @@
 # TZ01 — change log
 
+## UX pass (quick wins 1–5)
+
+Role-perspective UX hardening; all status logic and the data model are unchanged.
+
+1. **Identity & role from the Reviewers matrix** — `App.OnStart` reads `User()` and looks the
+   signer up in a new `colReviewers` collection; `varRole` derives from it (deeplink `Role=FO`
+   still wins). Every header shows **"Signed in as … · {role}"**; the MO/FO toggle is shown only
+   when identity doesn't resolve a role (demo/unknown user). MO inputs in the check detail are
+   now `DisplayMode`-gated to the **MO** role (field-level security, not just convention).
+2. **Column headers** — a sticky **READ / MO / FO** header row above the transaction gallery,
+   aligned to the row widths (colour-tinted per band).
+3. **Confirmations + error handling** — `Submit report`, `Mark check complete`, and queue
+   **Resend / Complete** now open a confirmation modal (scrim + card); the action runs inside
+   `IfError(...)` with a failure toast. Flag/unflag is also `IfError`-wrapped. (Power Apps has no
+   native modal `Confirm()`, so this is the standard overlay pattern; "undo" = explicit confirm.)
+4. **Disabled-state tooltips** — `Submit` shows how many checks still block it; `Mark complete`
+   explains what must be resolved first.
+5. **Accessibility** — 9–10 px fonts bumped to 12; `AccessibleLabel` added to the icon-only
+   chevrons.
+
+Touched: `App.fx.yaml`, the shared header (so every screen's header gains identity),
+`scrOverview/scrChecks/scrCheckDetail/scrInbox/scrMoQueue`. 215 controls; packs clean and
+round-trips. Remaining backlog (filtering/search, fully container-based rows, FO read context,
+breadcrumb/unsaved indicator, contrast/focus order, theming) is unaddressed by design.
+
 ## Round 3 (delta applied to the existing app — not rebuilt)
 
 Source of truth: refreshed `TZ01_prototype.html`; spec: `TZ01_codex_update_prompt_2.md`

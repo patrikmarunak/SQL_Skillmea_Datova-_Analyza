@@ -52,6 +52,7 @@ scrTop As screen:
                 PaddingLeft: =3
                 PaddingRight: =3
                 PaddingTop: =3
+                Visible: =IsBlank(varRoleResolved)
                 Width: =240
                 ZIndex: =3
 
@@ -89,6 +90,16 @@ scrTop As screen:
                 Text: ="[ logo ]"
                 Width: =110
                 ZIndex: =4
+
+            tphdrUser As label:
+                Align: =Align.Right
+                AlignInContainer: =AlignInContainer.Center
+                Color: =RGBA(227, 214, 237, 1)
+                Height: =30
+                Size: =11
+                Text: ="Signed in as " & Coalesce(varUser.FullName, varUser.Email, "Demo user") & "  ·  " & varRole
+                Width: =220
+                ZIndex: =5
 
         tpftBar As groupContainer.horizontalAutoLayoutContainer:
             BorderColor: =RGBA(228, 228, 230, 1)

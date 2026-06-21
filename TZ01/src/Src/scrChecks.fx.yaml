@@ -52,6 +52,7 @@ scrChecks As screen:
                 PaddingLeft: =3
                 PaddingRight: =3
                 PaddingTop: =3
+                Visible: =IsBlank(varRoleResolved)
                 Width: =240
                 ZIndex: =3
 
@@ -89,6 +90,16 @@ scrChecks As screen:
                 Text: ="[ logo ]"
                 Width: =110
                 ZIndex: =4
+
+            ckhdrUser As label:
+                Align: =Align.Right
+                AlignInContainer: =AlignInContainer.Center
+                Color: =RGBA(227, 214, 237, 1)
+                Height: =30
+                Size: =11
+                Text: ="Signed in as " & Coalesce(varUser.FullName, varUser.Email, "Demo user") & "  ·  " & varRole
+                Width: =220
+                ZIndex: =5
 
         ckftBar As groupContainer.horizontalAutoLayoutContainer:
             BorderColor: =RGBA(228, 228, 230, 1)
@@ -141,10 +152,10 @@ scrChecks As screen:
                 DisplayMode: =If(CountRows(Filter(colChecks, DailyReportID=varCurrentReport.ID, !(CountRows(Filter(colTransactions, DailyReportCheckID=ID))=0 || Completed)))=0, DisplayMode.Edit, DisplayMode.Disabled)
                 Fill: =RGBA(59, 109, 17, 1)
                 Height: =34
-                OnSelect: |-
-                    =Patch(colDailyReports, varCurrentReport, {Submitted:true}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover)
+                OnSelect: =Set(varConfirmSubmit, true)
                 Size: =12
                 Text: ="Submit report"
+                Tooltip: =If(CountRows(Filter(colChecks, DailyReportID=varCurrentReport.ID, !(CountRows(Filter(colTransactions, DailyReportCheckID=ID))=0 || Completed)))=0, "Submit this report as Completed", CountRows(Filter(colChecks, DailyReportID=varCurrentReport.ID, !(CountRows(Filter(colTransactions, DailyReportCheckID=ID))=0 || Completed))) & " check(s) still need to be Completed before you can submit")
                 Width: =150
                 ZIndex: =3
 
@@ -274,6 +285,7 @@ scrChecks As screen:
                     ZIndex: =6
 
                 ckChev As icon.ChevronRight:
+                    AccessibleLabel: ="Open " & ThisItem.CheckName
                     Color: =RGBA(154, 154, 158, 1)
                     Height: =22
                     Icon: =Icon.ChevronRight
@@ -282,4 +294,78 @@ scrChecks As screen:
                     X: =Parent.TemplateWidth - 40
                     Y: =Parent.TemplateHeight/2 - 11
                     ZIndex: =7
+
+    cfSubScrim As groupContainer.manualLayoutContainer:
+        Fill: =RGBA(20, 10, 30, 0.45)
+        Height: =Parent.Height
+        Visible: =varConfirmSubmit
+        Width: =Parent.Width
+        ZIndex: =900
+
+        cfSubCard As groupContainer.verticalAutoLayoutContainer:
+            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =210
+            LayoutGap: =12
+            PaddingBottom: =20
+            PaddingLeft: =22
+            PaddingRight: =22
+            PaddingTop: =20
+            Width: =460
+            X: =(Parent.Width - 460) / 2
+            Y: =(Parent.Height - 210) / 2
+            ZIndex: =2
+
+            cfSubTitle As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =RGBA(42, 42, 42, 1)
+                FontWeight: =FontWeight.Semibold
+                Height: =26
+                Size: =15
+                Text: ="Submit report?"
+                Width: =Parent.Width
+                ZIndex: =1
+
+            cfSubMsg As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =RGBA(90, 90, 94, 1)
+                FillPortions: =1
+                Size: =12
+                Text: ="Submitting locks " & varCurrentReport.ReportType & " Listing as Completed. You cannot edit it afterwards."
+                Width: =Parent.Width
+                ZIndex: =2
+
+            cfSubBtns As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutGap: =10
+                LayoutJustifyContent: =LayoutJustifyContent.End
+                Width: =Parent.Width
+                ZIndex: =3
+
+                cfSubCancel As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderThickness: =1
+                    Color: =RGBA(90, 90, 94, 1)
+                    Fill: =RGBA(255, 255, 255, 1)
+                    Height: =36
+                    OnSelect: =Set(varConfirmSubmit, false)
+                    Size: =12
+                    Text: ="Cancel"
+                    Width: =110
+                    ZIndex: =1
+
+                cfSubOk As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderThickness: =0
+                    Fill: =RGBA(59, 109, 17, 1)
+                    Height: =36
+                    OnSelect: |-
+                        =IfError(Patch(colDailyReports, varCurrentReport, {Submitted:true}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover), Notify("Could not submit — please retry", NotificationType.Error)); Set(varConfirmSubmit, false)
+                    Size: =12
+                    Text: ="Submit report"
+                    Width: =190
+                    ZIndex: =2
 

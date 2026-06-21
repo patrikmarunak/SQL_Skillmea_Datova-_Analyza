@@ -95,6 +95,14 @@ App As appinfo:
             {ID:2, MonthKey:"2026-02", DayKey:"2026-02-16", ReportType:"MM", TransactionNo:"MM000000056d44",   ProductType:"56D", EnteredOn:Date(2026,2,14), ContractDate:Date(2026,2,11), DaysLate:3, Amount:8000000, Reason:"Credit line",   SourceTxnID:110},
             {ID:3, MonthKey:"2026-02", DayKey:"2026-02-16", ReportType:"MM", TransactionNo:"MM0000000055201",  ProductType:"55A", EnteredOn:Date(2026,2,13), ContractDate:Date(2026,2,10), DaysLate:3, Amount:5000000, Reason:"Late booking",  SourceTxnID:111}
         );
+        // ----- identity + role from the Reviewers matrix (QW1) -----
+        Set(varUser, User());
+        Set(varUserEmail, Lower(Coalesce(varUser.Email, "")));
+        ClearCollect(colReviewers, {Email:"martina.medvedova@mdlz.com", Name:"Martina Medvedova", Role:"MO"}, {Email:"ana.kovac@mdlz.com", Name:"Ana Kovac", Role:"FO"}, {Email:"peter.cerny@mdlz.com", Name:"Peter Cerny", Role:"FO"}, {Email:"ivan.horvat@mdlz.com", Name:"Ivan Horvat", Role:"FO"});
+        Set(varRoleResolved, LookUp(colReviewers, Email = varUserEmail).Role);
+        Set(varRole, Coalesce(varRoleResolved, "MO"));
+        // ----- confirm-dialog state (QW3) -----
+        Set(varConfirmSubmit, false); Set(varConfirmComplete, false); Set(varQAction, ""); Set(varQTarget, Blank());
         // ----- deeplinks + default selection (set once) -----
         Set(varDeepDayKey,   Coalesce(Param("DayKey"), ""));
         Set(varDeepReport,   Coalesce(Param("Report"), ""));
