@@ -1,5 +1,5 @@
 scrChecks As screen:
-    Fill: =RGBA(236, 238, 241, 1)
+    Fill: =varTheme.Bg
 
     ckRoot As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(0,0,0,0)
@@ -8,7 +8,7 @@ scrChecks As screen:
         ZIndex: =1
 
         ckhdrBar As groupContainer.horizontalAutoLayoutContainer:
-            Fill: =RGBA(67, 22, 79, 1)
+            Fill: =varTheme.Purple
             Height: =58
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutGap: =12
@@ -22,11 +22,13 @@ scrChecks As screen:
             ckhdrBack As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderThickness: =0
+                Color: =varTheme.White
                 Fill: =RGBA(255, 255, 255, 0.14)
                 Height: =34
+                HoverColor: =varTheme.White
                 HoverFill: =RGBA(255, 255, 255, 0.24)
                 OnSelect: =Navigate(scrOverview, ScreenTransition.UnCoverRight)
-                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedColor: =varTheme.White
                 PressedFill: =RGBA(255, 255, 255, 0.24)
                 Size: =12
                 Text: ="< Back"
@@ -35,7 +37,7 @@ scrChecks As screen:
 
             ckhdrTitle As label:
                 AlignInContainer: =AlignInContainer.Center
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 FillPortions: =1
                 FontWeight: =FontWeight.Semibold
                 Height: =34
@@ -58,8 +60,8 @@ scrChecks As screen:
 
                 ckhdrMO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="MO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="MO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="MO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
@@ -69,8 +71,8 @@ scrChecks As screen:
 
                 ckhdrFO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="FO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="FO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="FO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
@@ -84,7 +86,7 @@ scrChecks As screen:
                 BorderColor: =RGBA(255, 255, 255, 0.4)
                 BorderStyle: =BorderStyle.Dashed
                 BorderThickness: =1
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 Height: =30
                 Size: =11
                 Text: ="[ logo ]"
@@ -102,7 +104,7 @@ scrChecks As screen:
                 ZIndex: =5
 
         ckftBar As groupContainer.horizontalAutoLayoutContainer:
-            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderColor: =varTheme.Line
             BorderThickness: =1
             Fill: =RGBA(250, 250, 250, 1)
             Height: =56
@@ -116,16 +118,25 @@ scrChecks As screen:
             Width: =Parent.Width
             ZIndex: =10
 
+            ckUnsaved As label:
+                Color: =varTheme.Amber
+                FillPortions: =1
+                Height: =30
+                Size: =11
+                Text: =If(CountRows(Filter(colTransactions, _isDirty)) > 0, "● " & CountRows(Filter(colTransactions, _isDirty)) & " unsaved edit(s)", "")
+                ZIndex: =0
+
             ckSend As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderThickness: =0
-                DisabledColor: =RGBA(154, 154, 158, 1)
+                Color: =varTheme.White
+                DisabledColor: =varTheme.Faint
                 DisabledFill: =RGBA(240,240,240,1)
                 DisplayMode: =If(CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent))>0, DisplayMode.Edit, DisplayMode.Disabled)
-                Fill: =RGBA(31, 96, 168, 1)
+                Fill: =varTheme.Blue
                 Height: =34
                 OnSelect: |-
-                    =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)}, If(CountRows(Filter(toSend, (MOReason="Request FO explanation" || MOReason="Other") && IsBlank(MOComment)))>0, Notify("Add a comment before sending to FO", NotificationType.Error), ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " findings to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success)))
+                    =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)}, If(CountRows(Filter(toSend, (MOReason="Request FO explanation" || MOReason="Other") && IsBlank(MOComment)))>0, Notify("Add a comment before sending to FO", NotificationType.Error), ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " findings to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Sent " & CountRows(toSend) & " finding(s) to FO — " & varCurrentReport.ReportType & " Listing"})))
                 Size: =12
                 Text: ="Send flagged to FO (" & CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)) & ")"
                 Width: =200
@@ -133,10 +144,10 @@ scrChecks As screen:
 
             ckSave As button:
                 AlignInContainer: =AlignInContainer.Center
-                BorderColor: =RGBA(228, 228, 230, 1)
+                BorderColor: =varTheme.Line
                 BorderThickness: =1
-                Color: =RGBA(90, 90, 94, 1)
-                Fill: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.Muted
+                Fill: =varTheme.Card
                 Height: =34
                 OnSelect: =Notify("Draft saved", NotificationType.Success)
                 Size: =12
@@ -147,10 +158,11 @@ scrChecks As screen:
             ckSubmit As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderThickness: =0
-                DisabledColor: =RGBA(154, 154, 158, 1)
+                Color: =varTheme.White
+                DisabledColor: =varTheme.Faint
                 DisabledFill: =RGBA(240,240,240,1)
                 DisplayMode: =If(CountRows(Filter(colChecks, DailyReportID=varCurrentReport.ID, !(CountRows(Filter(colTransactions, DailyReportCheckID=ID))=0 || Completed)))=0, DisplayMode.Edit, DisplayMode.Disabled)
-                Fill: =RGBA(59, 109, 17, 1)
+                Fill: =varTheme.Green
                 Height: =34
                 OnSelect: =Set(varConfirmSubmit, true)
                 Size: =12
@@ -171,12 +183,21 @@ scrChecks As screen:
 
             ckEye As label:
                 AlignInContainer: =AlignInContainer.Start
-                Color: =RGBA(42, 42, 42, 1)
+                Color: =varTheme.Ink
                 FontWeight: =FontWeight.Semibold
                 Height: =20
                 Size: =11
                 Text: ="CHECK RESULTS OVERVIEW"
                 ZIndex: =1
+
+            ckCrumb As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Muted
+                FontWeight: =FontWeight.Semibold
+                Height: =18
+                Size: =11
+                Text: =varSelectedItem.DayKey & "   ›   " & varCurrentReport.ReportType & " Listing"
+                ZIndex: =2
 
             ckstepRow As groupContainer.horizontalAutoLayoutContainer:
                 Fill: =RGBA(0,0,0,0)
@@ -187,7 +208,7 @@ scrChecks As screen:
                 ZIndex: =3
 
                 ckstep1 As label:
-                    Color: =If(true, RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
+                    Color: =If(true, varTheme.Blue, varTheme.Faint)
                     FontWeight: =FontWeight.Semibold
                     Height: =24
                     Size: =11
@@ -196,7 +217,7 @@ scrChecks As screen:
                     ZIndex: =1
 
                 ckstep2 As label:
-                    Color: =If(varCurrentReport.Submitted, RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
+                    Color: =If(varCurrentReport.Submitted, varTheme.Blue, varTheme.Faint)
                     FillPortions: =1
                     FontWeight: =FontWeight.Semibold
                     Height: =24
@@ -205,7 +226,8 @@ scrChecks As screen:
                     ZIndex: =2
 
             "galChecks As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                Items: =SortByColumns(Filter(colChecks, DailyReportID = varCurrentReport.ID), "CheckNumber")
+                Items: |-
+                    =SortByColumns(Filter(colChecks, DailyReportID = varCurrentReport.ID, (varSearchChecks="" || varSearchChecks in CheckName), (varCkStatusFilter="All statuses" || With({tx: Filter(colTransactions, DailyReportCheckID=ID)}, If(CountRows(tx)=0, "Completed", Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review")) = varCkStatusFilter)), "CheckNumber")
                 Layout: =Layout.Vertical
                 OnSelect: =Set(varCurrentCheck, ThisItem); Navigate(scrCheckDetail, ScreenTransition.Cover)
                 TemplatePadding: =0
@@ -213,87 +235,120 @@ scrChecks As screen:
                 Width: =Parent.Width
                 ZIndex: =3
 
-                ckRow As rectangle:
-                    BorderColor: =RGBA(228, 228, 230, 1)
+                ckRowC As groupContainer.horizontalAutoLayoutContainer:
+                    BorderColor: =varTheme.Line
                     BorderThickness: =1
-                    Fill: =If(ThisItem.FlaggedCount=0, RGBA(255, 255, 255, 1), RGBA(251,236,236,1))
+                    Fill: =If(ThisItem.FlaggedCount=0, varTheme.Card, RGBA(251,236,236,1))
                     Height: =Parent.TemplateHeight - 1
-                    OnSelect: =Select(Parent)
+                    LayoutAlignItems: =LayoutAlignItems.Center
+                    LayoutGap: =8
+                    PaddingLeft: =16
+                    PaddingRight: =12
                     Width: =Parent.TemplateWidth
                     ZIndex: =1
 
-                ckNum As label:
-                    Color: =RGBA(42, 42, 42, 1)
-                    FontWeight: =FontWeight.Semibold
-                    Height: =22
-                    OnSelect: =Select(Parent)
-                    Size: =12
-                    Text: ="Check " & ThisItem.CheckNumber
-                    Width: =90
-                    X: =16
-                    Y: =8
+                    ckNum As label:
+                        Color: =varTheme.Ink
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        OnSelect: =Set(varCurrentCheck, ThisItem); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                        Size: =12
+                        Text: ="Check " & ThisItem.CheckNumber
+                        Width: =90
+                        ZIndex: =1
+
+                    ckScope As label:
+                        Color: =varTheme.Muted
+                        FillPortions: =2
+                        Height: =36
+                        OnSelect: =Set(varCurrentCheck, ThisItem); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                        Size: =12
+                        Text: =ThisItem.CheckName
+                        ZIndex: =2
+
+                    ckResult As label:
+                        Color: |-
+                            =If(With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="No finding", varTheme.Green, With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="Exceptional", varTheme.Red, With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="Late", varTheme.Amber, With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="Not compared", varTheme.Amber, varTheme.Red)
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        OnSelect: =Set(varCurrentCheck, ThisItem); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                        Size: =12
+                        Text: |-
+                            =With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))
+                        Width: =120
+                        ZIndex: =3
+
+                    ckFlag As label:
+                        Align: =Align.Center
+                        Color: =varTheme.Muted
+                        Height: =36
+                        OnSelect: =Set(varCurrentCheck, ThisItem); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                        Size: =12
+                        Text: =ThisItem.FlaggedCount
+                        Width: =60
+                        ZIndex: =4
+
+                    ckStatus As label:
+                        Color: |-
+                            =If(With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Review completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Ready to submit", varTheme.Green, With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO review" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO", varTheme.Blue, varTheme.Amber)
+                        Height: =36
+                        OnSelect: =Set(varCurrentCheck, ThisItem); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                        Size: =12
+                        Text: |-
+                            =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))
+                        Width: =170
+                        ZIndex: =5
+
+                    ckChev As icon.ChevronRight:
+                        AccessibleLabel: ="Open " & ThisItem.CheckName
+                        AlignInContainer: =AlignInContainer.Center
+                        Color: =varTheme.Faint
+                        Height: =22
+                        Icon: =Icon.ChevronRight
+                        OnSelect: =Set(varCurrentCheck, ThisItem); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                        Width: =22
+                        ZIndex: =6
+
+            ckTools As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =8
+                Width: =Parent.Width
+                ZIndex: =4
+
+                ckSearch As text:
+                    AlignInContainer: =AlignInContainer.Center
+                    Default: =""
+                    Height: =36
+                    HintText: ="Search checks…"
+                    OnChange: =Set(varSearchChecks, Self.Text)
+                    Width: =240
+                    ZIndex: =1
+
+                ckStatusFilter As dropdown:
+                    AlignInContainer: =AlignInContainer.Center
+                    Default: ="All statuses"
+                    Height: =36
+                    Items: =["All statuses", "Awaiting MO review", "Awaiting FO review", "Completed"]
+                    OnChange: =Set(varCkStatusFilter, Self.Selected.Value)
+                    Width: =190
                     ZIndex: =2
 
-                ckScope As label:
-                    Color: =RGBA(90, 90, 94, 1)
-                    Height: =Parent.TemplateHeight - 12
-                    OnSelect: =Select(Parent)
-                    Size: =12
-                    Text: =ThisItem.CheckName
-                    Width: =Parent.TemplateWidth * 0.34
-                    X: =110
-                    Y: =8
+                ckToolSpace As label:
+                    FillPortions: =1
+                    Height: =20
+                    Text: =""
                     ZIndex: =3
 
-                ckResult As label:
-                    Color: |-
-                        =If(With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="No finding", RGBA(59, 109, 17, 1), With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="Exceptional", RGBA(163, 45, 45, 1), With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="Late", RGBA(133, 79, 11, 1), With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))="Not compared", RGBA(133, 79, 11, 1), RGBA(163, 45, 45, 1))
-                    FontWeight: =FontWeight.Semibold
-                    Height: =Parent.TemplateHeight - 12
-                    OnSelect: =Select(Parent)
-                    Size: =12
-                    Text: |-
-                        =With({fc: CountRows(Filter(colTransactions, DailyReportCheckID=ThisItem.ID))}, If(ThisItem.NotCompared, "Not compared", fc=0, "No finding", ThisItem.IsLate, "Late", ThisItem.CheckNumber=6 && ThisItem.ReportType="FX", "Exceptional", "Finding"))
-                    Width: =120
-                    X: =Parent.TemplateWidth * 0.34 + 120
-                    Y: =8
+                ckCount As label:
+                    Align: =Align.Right
+                    Color: =varTheme.Muted
+                    Height: =20
+                    Size: =11
+                    Text: =CountRows(Filter(colChecks, DailyReportID = varCurrentReport.ID)) & " checks"
+                    Width: =80
                     ZIndex: =4
-
-                ckFlag As label:
-                    Align: =Align.Center
-                    Color: =RGBA(90, 90, 94, 1)
-                    Height: =Parent.TemplateHeight - 12
-                    OnSelect: =Select(Parent)
-                    Size: =12
-                    Text: =ThisItem.FlaggedCount
-                    Width: =70
-                    X: =Parent.TemplateWidth * 0.34 + 250
-                    Y: =8
-                    ZIndex: =5
-
-                ckStatus As label:
-                    Color: |-
-                        =If(With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Review completed" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Ready to submit", RGBA(59, 109, 17, 1), With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO review" || With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))="Awaiting FO", RGBA(31, 96, 168, 1), RGBA(133, 79, 11, 1))
-                    Height: =Parent.TemplateHeight - 12
-                    OnSelect: =Select(Parent)
-                    Size: =12
-                    Text: |-
-                        =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.ID)}, If(CountRows(tx)=0, "Completed", ThisItem.Completed, "Completed", CountRows(Filter(tx, FlaggedToFO && FOSent && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))>0, "Awaiting FO review", "Awaiting MO review"))
-                    Width: =200
-                    X: =Parent.TemplateWidth * 0.34 + 330
-                    Y: =8
-                    ZIndex: =6
-
-                ckChev As icon.ChevronRight:
-                    AccessibleLabel: ="Open " & ThisItem.CheckName
-                    Color: =RGBA(154, 154, 158, 1)
-                    Height: =22
-                    Icon: =Icon.ChevronRight
-                    OnSelect: =Select(Parent)
-                    Width: =22
-                    X: =Parent.TemplateWidth - 40
-                    Y: =Parent.TemplateHeight/2 - 11
-                    ZIndex: =7
 
     cfSubScrim As groupContainer.manualLayoutContainer:
         Fill: =RGBA(20, 10, 30, 0.45)
@@ -303,9 +358,9 @@ scrChecks As screen:
         ZIndex: =900
 
         cfSubCard As groupContainer.verticalAutoLayoutContainer:
-            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderColor: =varTheme.Line
             BorderThickness: =1
-            Fill: =RGBA(255, 255, 255, 1)
+            Fill: =varTheme.Card
             Height: =210
             LayoutGap: =12
             PaddingBottom: =20
@@ -319,7 +374,7 @@ scrChecks As screen:
 
             cfSubTitle As label:
                 AlignInContainer: =AlignInContainer.Stretch
-                Color: =RGBA(42, 42, 42, 1)
+                Color: =varTheme.Ink
                 FontWeight: =FontWeight.Semibold
                 Height: =26
                 Size: =15
@@ -329,7 +384,7 @@ scrChecks As screen:
 
             cfSubMsg As label:
                 AlignInContainer: =AlignInContainer.Stretch
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =varTheme.Muted
                 FillPortions: =1
                 Size: =12
                 Text: ="Submitting locks " & varCurrentReport.ReportType & " Listing as Completed. You cannot edit it afterwards."
@@ -346,10 +401,10 @@ scrChecks As screen:
 
                 cfSubCancel As button:
                     AlignInContainer: =AlignInContainer.Center
-                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderColor: =varTheme.Line
                     BorderThickness: =1
-                    Color: =RGBA(90, 90, 94, 1)
-                    Fill: =RGBA(255, 255, 255, 1)
+                    Color: =varTheme.Muted
+                    Fill: =varTheme.Card
                     Height: =36
                     OnSelect: =Set(varConfirmSubmit, false)
                     Size: =12
@@ -360,10 +415,11 @@ scrChecks As screen:
                 cfSubOk As button:
                     AlignInContainer: =AlignInContainer.Center
                     BorderThickness: =0
-                    Fill: =RGBA(59, 109, 17, 1)
+                    Color: =varTheme.White
+                    Fill: =varTheme.Green
                     Height: =36
                     OnSelect: |-
-                        =IfError(Patch(colDailyReports, varCurrentReport, {Submitted:true}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover), Notify("Could not submit — please retry", NotificationType.Error)); Set(varConfirmSubmit, false)
+                        =IfError(Patch(colDailyReports, varCurrentReport, {Submitted:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Report submitted — " & varCurrentReport.ReportType & " Listing"}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover), Notify("Could not submit — please retry", NotificationType.Error)); Set(varConfirmSubmit, false)
                     Size: =12
                     Text: ="Submit report"
                     Width: =190

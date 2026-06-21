@@ -1,5 +1,5 @@
 scrOverview As screen:
-    Fill: =RGBA(236, 238, 241, 1)
+    Fill: =varTheme.Bg
 
     ovRoot As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(0,0,0,0)
@@ -8,7 +8,7 @@ scrOverview As screen:
         ZIndex: =1
 
         ovhdrBar As groupContainer.horizontalAutoLayoutContainer:
-            Fill: =RGBA(67, 22, 79, 1)
+            Fill: =varTheme.Purple
             Height: =58
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutGap: =12
@@ -21,7 +21,7 @@ scrOverview As screen:
 
             ovhdrTitle As label:
                 AlignInContainer: =AlignInContainer.Center
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 FillPortions: =1
                 FontWeight: =FontWeight.Semibold
                 Height: =34
@@ -44,8 +44,8 @@ scrOverview As screen:
 
                 ovhdrMO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="MO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="MO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="MO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
@@ -55,8 +55,8 @@ scrOverview As screen:
 
                 ovhdrFO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="FO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="FO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="FO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
@@ -70,7 +70,7 @@ scrOverview As screen:
                 BorderColor: =RGBA(255, 255, 255, 0.4)
                 BorderStyle: =BorderStyle.Dashed
                 BorderThickness: =1
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 Height: =30
                 Size: =11
                 Text: ="[ logo ]"
@@ -88,7 +88,7 @@ scrOverview As screen:
                 ZIndex: =5
 
         ovftBar As groupContainer.horizontalAutoLayoutContainer:
-            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderColor: =varTheme.Line
             BorderThickness: =1
             Fill: =RGBA(250, 250, 250, 1)
             Height: =56
@@ -105,7 +105,8 @@ scrOverview As screen:
             ftTop As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderThickness: =0
-                Fill: =RGBA(67, 22, 79, 1)
+                Color: =varTheme.White
+                Fill: =varTheme.Purple
                 Height: =34
                 OnSelect: =Navigate(scrTop, ScreenTransition.Cover)
                 Size: =12
@@ -116,7 +117,8 @@ scrOverview As screen:
             ftPbi As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderThickness: =0
-                Fill: =RGBA(31, 96, 168, 1)
+                Color: =varTheme.White
+                Fill: =varTheme.Blue
                 Height: =34
                 OnSelect: =Notify("Opens Power BI dashboard", NotificationType.Information)
                 Size: =12
@@ -137,7 +139,7 @@ scrOverview As screen:
             ZIndex: =13
 
             ovToolLead As label:
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =varTheme.Muted
                 FillPortions: =1
                 Height: =30
                 Size: =12
@@ -146,10 +148,10 @@ scrOverview As screen:
 
             ovFoResp As button:
                 AlignInContainer: =AlignInContainer.Center
-                BorderColor: =RGBA(228, 228, 230, 1)
+                BorderColor: =varTheme.Line
                 BorderThickness: =1
-                Color: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, RGBA(255, 255, 255, 1), RGBA(90, 90, 94, 1))
-                Fill: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, RGBA(59, 109, 17, 1), RGBA(255, 255, 255, 1))
+                Color: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, varTheme.White, varTheme.Muted)
+                Fill: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, varTheme.Green, varTheme.Card)
                 Height: =34
                 OnSelect: =Navigate(scrMoQueue, ScreenTransition.Cover)
                 Size: =12
@@ -170,7 +172,7 @@ scrOverview As screen:
                 AlignInContainer: =AlignInContainer.Stretch
                 BorderColor: =RGBA(234,217,243,1)
                 BorderThickness: =1
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =varTheme.Muted
                 Fill: =RGBA(251,247,254,1)
                 Height: =42
                 PaddingLeft: =14
@@ -180,6 +182,18 @@ scrOverview As screen:
                 Text: ="Clickable prototype. Open a report, then a check, to set MO reason & comment and flag items to FO. Send flagged items in one batch from the Check Analysis screen. Use FO responses to see replies in one place, or switch to Front Office (top right) to answer as FO."
                 Width: =Parent.Width
                 ZIndex: =15
+
+        ovOffline As label:
+            AlignInContainer: =AlignInContainer.Stretch
+            Color: =varTheme.White
+            Fill: =varTheme.Amber
+            Height: =26
+            PaddingLeft: =20
+            Size: =11
+            Text: ="● Offline — showing the last loaded data. Changes are saved locally and sync when you reconnect."
+            Visible: =!Connection.Connected
+            Width: =Parent.Width
+            ZIndex: =15
 
         ovBody As groupContainer.horizontalAutoLayoutContainer:
             Fill: =RGBA(0,0,0,0)
@@ -200,7 +214,7 @@ scrOverview As screen:
 
                 ovLeftEye As label:
                     AlignInContainer: =AlignInContainer.Start
-                    Color: =RGBA(42, 42, 42, 1)
+                    Color: =varTheme.Ink
                     FontWeight: =FontWeight.Semibold
                     Height: =20
                     Size: =11
@@ -217,59 +231,58 @@ scrOverview As screen:
                     Width: =Parent.Width
                     ZIndex: =2
 
-                    daySel As rectangle:
-                        Fill: =RGBA(67, 22, 79, 1)
-                        Height: =Parent.TemplateHeight
-                        OnSelect: =Select(Parent)
-                        Visible: =ThisItem.ID = varSelectedItem.ID
-                        Width: =6
-                        ZIndex: =1
-
-                    dayCard As rectangle:
-                        BorderColor: =RGBA(228, 228, 230, 1)
+                    dayCardC As groupContainer.verticalAutoLayoutContainer:
+                        BorderColor: =varTheme.Line
                         BorderThickness: =1
-                        Fill: =If(ThisItem.ID = varSelectedItem.ID, RGBA(67, 22, 79, 1), RGBA(255, 255, 255, 1))
+                        Fill: =If(ThisItem.ID = varSelectedItem.ID, varTheme.Purple, varTheme.Card)
                         Height: =Parent.TemplateHeight - 9
-                        OnSelect: =Select(Parent)
+                        LayoutGap: =4
+                        PaddingBottom: =10
+                        PaddingLeft: =12
+                        PaddingRight: =12
+                        PaddingTop: =10
                         Width: =Parent.TemplateWidth - 10
                         X: =8
                         Y: =2
-                        ZIndex: =2
+                        ZIndex: =1
 
-                    dayDate As label:
-                        Color: =If(ThisItem.ID = varSelectedItem.ID, RGBA(255, 255, 255, 1), RGBA(42, 42, 42, 1))
-                        FontWeight: =FontWeight.Semibold
-                        Height: =20
-                        OnSelect: =Select(Parent)
-                        Size: =12
-                        Text: =ThisItem.DayKey
-                        Width: =140
-                        X: =20
-                        Y: =12
-                        ZIndex: =3
+                        dayTop As groupContainer.horizontalAutoLayoutContainer:
+                            Fill: =RGBA(0,0,0,0)
+                            Height: =20
+                            LayoutAlignItems: =LayoutAlignItems.Center
+                            LayoutGap: =6
+                            Width: =Parent.Width
+                            ZIndex: =1
 
-                    dayId As label:
-                        Align: =Align.Right
-                        Color: =If(ThisItem.ID = varSelectedItem.ID, RGBA(217,201,226,1), RGBA(154, 154, 158, 1))
-                        Height: =18
-                        OnSelect: =Select(Parent)
-                        Size: =12
-                        Text: ="ID " & ThisItem.ID
-                        Width: =60
-                        X: =160
-                        Y: =12
-                        ZIndex: =4
+                            dayDate As label:
+                                Color: =If(ThisItem.ID = varSelectedItem.ID, varTheme.White, varTheme.Ink)
+                                FillPortions: =1
+                                FontWeight: =FontWeight.Semibold
+                                Height: =20
+                                OnSelect: =Set(varSelectedItem, ThisItem); Set(varDayKey, ThisItem.DayKey)
+                                Size: =12
+                                Text: =ThisItem.DayKey
+                                ZIndex: =1
 
-                    dayFind As label:
-                        Color: =If(ThisItem.ID = varSelectedItem.ID, RGBA(255, 255, 255, 1), RGBA(44,74,99,1))
-                        Height: =24
-                        OnSelect: =Select(Parent)
-                        Size: =11
-                        Text: ="Findings " & (ThisItem.FXFindings + ThisItem.MMFindings) & "  ·  " & ThisItem.Status
-                        Width: =Parent.TemplateWidth - 40
-                        X: =20
-                        Y: =44
-                        ZIndex: =5
+                            dayId As label:
+                                Align: =Align.Right
+                                Color: =If(ThisItem.ID = varSelectedItem.ID, RGBA(217,201,226,1), varTheme.Faint)
+                                Height: =20
+                                OnSelect: =Set(varSelectedItem, ThisItem); Set(varDayKey, ThisItem.DayKey)
+                                Size: =12
+                                Text: ="ID " & ThisItem.ID
+                                Width: =64
+                                ZIndex: =2
+
+                        dayFind As label:
+                            AlignInContainer: =AlignInContainer.Stretch
+                            Color: =If(ThisItem.ID = varSelectedItem.ID, varTheme.White, RGBA(44,74,99,1))
+                            Height: =22
+                            OnSelect: =Set(varSelectedItem, ThisItem); Set(varDayKey, ThisItem.DayKey)
+                            Size: =12
+                            Text: ="Findings " & (ThisItem.FXFindings + ThisItem.MMFindings) & "  ·  " & ThisItem.Status
+                            Width: =Parent.Width
+                            ZIndex: =2
 
             ovMain As groupContainer.verticalAutoLayoutContainer:
                 Fill: =RGBA(0,0,0,0)
@@ -279,24 +292,20 @@ scrOverview As screen:
 
                 ovMainEye As label:
                     AlignInContainer: =AlignInContainer.Start
-                    Color: =RGBA(42, 42, 42, 1)
+                    Color: =varTheme.Ink
                     FontWeight: =FontWeight.Semibold
                     Height: =20
                     Size: =11
                     Text: ="DAILY ITEM DETAILS"
                     ZIndex: =1
 
-                ovLog As label:
+                ovLogEye As label:
                     AlignInContainer: =AlignInContainer.Stretch
-                    Color: =RGBA(90, 90, 94, 1)
-                    Fill: =RGBA(246,246,247,1)
-                    Height: =46
-                    PaddingLeft: =12
-                    PaddingTop: =8
+                    Color: =varTheme.Ink
+                    FontWeight: =FontWeight.Semibold
+                    Height: =16
                     Size: =11
-                    Text: |-
-                        ="Review log — automatic validation on " & varDayKey & ": FX " & varSelectedItem.FXFindings & " findings, MM " & varSelectedItem.MMFindings & " findings."
-                    Width: =Parent.Width
+                    Text: ="REVIEW LOG (LIVE)"
                     ZIndex: =2
 
                 ovstepRow As groupContainer.horizontalAutoLayoutContainer:
@@ -308,7 +317,7 @@ scrOverview As screen:
                     ZIndex: =3
 
                     ovstep1 As label:
-                        Color: =If(true, RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
+                        Color: =If(true, varTheme.Blue, varTheme.Faint)
                         FontWeight: =FontWeight.Semibold
                         Height: =24
                         Size: =11
@@ -317,7 +326,7 @@ scrOverview As screen:
                         ZIndex: =1
 
                     ovstep2 As label:
-                        Color: =If(true, RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
+                        Color: =If(true, varTheme.Blue, varTheme.Faint)
                         FontWeight: =FontWeight.Semibold
                         Height: =24
                         Size: =11
@@ -326,7 +335,7 @@ scrOverview As screen:
                         ZIndex: =2
 
                     ovstep3 As label:
-                        Color: =If(varSelectedItem.Status="Completed", RGBA(31, 96, 168, 1), RGBA(154, 154, 158, 1))
+                        Color: =If(varSelectedItem.Status="Completed", varTheme.Blue, varTheme.Faint)
                         FillPortions: =1
                         FontWeight: =FontWeight.Semibold
                         Height: =24
@@ -334,9 +343,29 @@ scrOverview As screen:
                         Text: ="3  Completed"
                         ZIndex: =3
 
+                "galAudit As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                    Fill: =RGBA(246,246,247,1)
+                    Height: =96
+                    Items: =FirstN(SortByColumns(colAudit, "Seq", SortOrder.Descending), 6)
+                    Layout: =Layout.Vertical
+                    TemplatePadding: =0
+                    TemplateSize: =24
+                    Width: =Parent.Width
+                    ZIndex: =3
+
+                    auRow As label:
+                        Color: =varTheme.Muted
+                        Height: =22
+                        Size: =11
+                        Text: |-
+                            =Text(ThisItem.Stamp, "dd mmm hh:mm") & "   —   " & ThisItem.Text
+                        Width: =Parent.TemplateWidth - 16
+                        X: =10
+                        ZIndex: =1
+
                 ovMainEye2 As label:
                     AlignInContainer: =AlignInContainer.Start
-                    Color: =RGBA(42, 42, 42, 1)
+                    Color: =varTheme.Ink
                     FontWeight: =FontWeight.Semibold
                     Height: =20
                     Size: =11
@@ -352,56 +381,82 @@ scrOverview As screen:
                     Width: =Parent.Width
                     ZIndex: =5
 
-                    repRow As rectangle:
-                        BorderColor: =RGBA(228, 228, 230, 1)
+                    repRowC As groupContainer.horizontalAutoLayoutContainer:
+                        BorderColor: =varTheme.Line
                         BorderThickness: =1
-                        Fill: =RGBA(255, 255, 255, 1)
+                        Fill: =varTheme.Card
                         Height: =Parent.TemplateHeight - 1
-                        OnSelect: =Select(Parent)
+                        LayoutAlignItems: =LayoutAlignItems.Center
+                        LayoutGap: =10
+                        PaddingLeft: =16
+                        PaddingRight: =12
                         Width: =Parent.TemplateWidth
                         ZIndex: =1
 
-                    repName As label:
-                        Color: =RGBA(42, 42, 42, 1)
-                        FontWeight: =FontWeight.Semibold
-                        Height: =24
-                        OnSelect: =Select(Parent)
-                        Text: =ThisItem.ReportType & " Listing"
-                        Width: =180
-                        X: =16
-                        Y: =10
-                        ZIndex: =2
+                        repName As label:
+                            Color: =varTheme.Ink
+                            FillPortions: =2
+                            FontWeight: =FontWeight.Semibold
+                            Height: =24
+                            OnSelect: =Set(varCurrentReport, ThisItem); Navigate(scrChecks, ScreenTransition.Cover)
+                            Text: =ThisItem.ReportType & " Listing"
+                            ZIndex: =1
 
-                    repStatus As label:
-                        Color: =If(ThisItem.Submitted, RGBA(59, 109, 17, 1), RGBA(133, 79, 11, 1))
-                        Height: =24
-                        OnSelect: =Select(Parent)
-                        Size: =12
-                        Text: =If(ThisItem.Submitted, "Completed", "In review")
-                        Width: =180
-                        X: =210
-                        Y: =10
-                        ZIndex: =3
+                        repStatus As label:
+                            Color: =If(ThisItem.Submitted, varTheme.Green, varTheme.Amber)
+                            Height: =24
+                            OnSelect: =Set(varCurrentReport, ThisItem); Navigate(scrChecks, ScreenTransition.Cover)
+                            Size: =12
+                            Text: =If(ThisItem.Submitted, "Completed", "In review")
+                            ZIndex: =2
 
-                    repFind As label:
-                        Color: =RGBA(90, 90, 94, 1)
-                        Height: =24
-                        OnSelect: =Select(Parent)
-                        Size: =12
-                        Text: =Sum(Filter(colChecks, DailyReportID = ThisItem.ID), FlaggedCount) & " finding(s)"
-                        Width: =140
-                        X: =400
-                        Y: =10
-                        ZIndex: =4
+                        repFind As label:
+                            Color: =varTheme.Muted
+                            Height: =24
+                            OnSelect: =Set(varCurrentReport, ThisItem); Navigate(scrChecks, ScreenTransition.Cover)
+                            Size: =12
+                            Text: =Sum(Filter(colChecks, DailyReportID = ThisItem.ID), FlaggedCount) & " finding(s)"
+                            Width: =140
+                            ZIndex: =3
 
-                    repChev As icon.ChevronRight:
-                        AccessibleLabel: ="Open " & ThisItem.ReportType & " report"
-                        Color: =RGBA(154, 154, 158, 1)
-                        Height: =24
-                        Icon: =Icon.ChevronRight
-                        OnSelect: =Select(Parent)
-                        Width: =24
-                        X: =Parent.TemplateWidth - 44
-                        Y: =Parent.TemplateHeight/2 - 12
-                        ZIndex: =5
+                        repChev As icon.ChevronRight:
+                            AccessibleLabel: ="Open " & ThisItem.ReportType & " report"
+                            AlignInContainer: =AlignInContainer.Center
+                            Color: =varTheme.Faint
+                            Height: =24
+                            Icon: =Icon.ChevronRight
+                            OnSelect: =Set(varCurrentReport, ThisItem); Navigate(scrChecks, ScreenTransition.Cover)
+                            Width: =24
+                            ZIndex: =4
+
+    ovLoadScrim As groupContainer.manualLayoutContainer:
+        Fill: =RGBA(20, 10, 30, 0.35)
+        Height: =Parent.Height
+        Visible: =varLoading
+        Width: =Parent.Width
+        ZIndex: =950
+
+        ovLoadCard As groupContainer.verticalAutoLayoutContainer:
+            BorderColor: =varTheme.Line
+            BorderThickness: =1
+            Fill: =varTheme.Card
+            Height: =90
+            LayoutGap: =8
+            PaddingBottom: =20
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =20
+            Width: =240
+            X: =(Parent.Width - 240) / 2
+            Y: =(Parent.Height - 90) / 2
+            ZIndex: =1
+
+            ovLoadTxt As label:
+                Align: =Align.Center
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Ink
+                Height: =24
+                Text: ="Loading data…"
+                Width: =Parent.Width
+                ZIndex: =1
 

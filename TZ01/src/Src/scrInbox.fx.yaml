@@ -1,5 +1,5 @@
 scrInbox As screen:
-    Fill: =RGBA(236, 238, 241, 1)
+    Fill: =varTheme.Bg
 
     inRoot As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(0,0,0,0)
@@ -8,7 +8,7 @@ scrInbox As screen:
         ZIndex: =1
 
         inhdrBar As groupContainer.horizontalAutoLayoutContainer:
-            Fill: =RGBA(67, 22, 79, 1)
+            Fill: =varTheme.Purple
             Height: =58
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutGap: =12
@@ -21,7 +21,7 @@ scrInbox As screen:
 
             inhdrTitle As label:
                 AlignInContainer: =AlignInContainer.Center
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 FillPortions: =1
                 FontWeight: =FontWeight.Semibold
                 Height: =34
@@ -44,8 +44,8 @@ scrInbox As screen:
 
                 inhdrMO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="MO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="MO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="MO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
@@ -55,8 +55,8 @@ scrInbox As screen:
 
                 inhdrFO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="FO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="FO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="FO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
@@ -70,7 +70,7 @@ scrInbox As screen:
                 BorderColor: =RGBA(255, 255, 255, 0.4)
                 BorderStyle: =BorderStyle.Dashed
                 BorderThickness: =1
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 Height: =30
                 Size: =11
                 Text: ="[ logo ]"
@@ -99,7 +99,7 @@ scrInbox As screen:
 
             inEye As label:
                 AlignInContainer: =AlignInContainer.Start
-                Color: =RGBA(42, 42, 42, 1)
+                Color: =varTheme.Ink
                 FontWeight: =FontWeight.Semibold
                 Height: =20
                 Size: =11
@@ -110,7 +110,7 @@ scrInbox As screen:
                 AlignInContainer: =AlignInContainer.Stretch
                 BorderColor: =RGBA(234,217,243,1)
                 BorderThickness: =1
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =varTheme.Muted
                 Fill: =RGBA(251,247,254,1)
                 Height: =42
                 PaddingLeft: =14
@@ -120,8 +120,32 @@ scrInbox As screen:
                 Width: =Parent.Width
                 ZIndex: =2
 
+            inTools As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =8
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent)) > 0
+                Width: =Parent.Width
+                ZIndex: =2
+
+                inSearch As text:
+                    AlignInContainer: =AlignInContainer.Center
+                    Default: =""
+                    Height: =36
+                    HintText: ="Search transaction no…"
+                    OnChange: =Set(varSearchInbox, Self.Text)
+                    Width: =260
+                    ZIndex: =1
+
+                inToolSpace As label:
+                    FillPortions: =1
+                    Height: =20
+                    Text: =""
+                    ZIndex: =2
+
             "galInbox As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                Items: =Filter(colTransactions, FlaggedToFO, FOSent)
+                Items: =Filter(colTransactions, FlaggedToFO, FOSent, (varSearchInbox="" || varSearchInbox in TransactionNo))
                 Layout: =Layout.Vertical
                 TemplatePadding: =8
                 TemplateSize: =196
@@ -130,9 +154,9 @@ scrInbox As screen:
                 ZIndex: =3
 
                 inCard As groupContainer.verticalAutoLayoutContainer:
-                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderColor: =varTheme.Line
                     BorderThickness: =1
-                    Fill: =RGBA(255, 255, 255, 1)
+                    Fill: =varTheme.Card
                     Height: =Parent.TemplateHeight - 10
                     LayoutGap: =7
                     PaddingBottom: =12
@@ -146,7 +170,7 @@ scrInbox As screen:
 
                     inWhere As label:
                         AlignInContainer: =AlignInContainer.Stretch
-                        Color: =RGBA(42, 42, 42, 1)
+                        Color: =varTheme.Ink
                         FontWeight: =FontWeight.Semibold
                         Height: =20
                         Size: =12
@@ -156,7 +180,7 @@ scrInbox As screen:
 
                     inAgain As label:
                         AlignInContainer: =AlignInContainer.Stretch
-                        Color: =RGBA(191, 83, 32, 1)
+                        Color: =varTheme.Orange
                         FontWeight: =FontWeight.Semibold
                         Height: =16
                         Size: =12
@@ -167,7 +191,7 @@ scrInbox As screen:
 
                     inAsk As label:
                         AlignInContainer: =AlignInContainer.Stretch
-                        Color: =RGBA(90, 90, 94, 1)
+                        Color: =varTheme.Muted
                         Fill: =RGBA(246,246,247,1)
                         Height: =26
                         PaddingLeft: =10
@@ -180,7 +204,7 @@ scrInbox As screen:
                         AlignInContainer: =AlignInContainer.Stretch
                         BorderColor: =RGBA(207,227,207,1)
                         BorderThickness: =1
-                        Color: =RGBA(59, 109, 17, 1)
+                        Color: =varTheme.Green
                         Fill: =RGBA(243,248,243,1)
                         PaddingBottom: =4
                         PaddingLeft: =10
@@ -220,13 +244,14 @@ scrInbox As screen:
                         inSend As button:
                             AlignInContainer: =AlignInContainer.Center
                             BorderThickness: =0
-                            DisabledColor: =RGBA(59, 109, 17, 1)
+                            Color: =varTheme.White
+                            DisabledColor: =varTheme.Green
                             DisabledFill: =RGBA(231,243,231,1)
                             DisplayMode: =If((ThisItem.FOSent && !IsBlank(ThisItem.FORespondedOn) && ThisItem.FORespondedOn >= ThisItem.FOSentOn), DisplayMode.Disabled, DisplayMode.Edit)
-                            Fill: =RGBA(31, 96, 168, 1)
+                            Fill: =varTheme.Blue
                             Height: =36
                             OnSelect: |-
-                                =If(IsBlank(inReason.Selected.Value), Notify("Choose a reason first", NotificationType.Error), Patch(colTransactions, ThisItem, {FOReason: inReason.Selected.Value, FORespondedOn: Now(), FOComment: ThisItem.FOComment & If(IsBlank(ThisItem.FOComment), "", Char(10)) & "[" & Text(Now(), "dd Mmm hh:mm") & " - " & inReason.Selected.Value & "] " & inComment.Text, _isDirty:true}); Reset(inComment); Notify("Response sent to MO", NotificationType.Success))
+                                =If(IsBlank(inReason.Selected.Value), Notify("Choose a reason first", NotificationType.Error), Patch(colTransactions, ThisItem, {FOReason: inReason.Selected.Value, FORespondedOn: Now(), FOComment: ThisItem.FOComment & If(IsBlank(ThisItem.FOComment), "", Char(10)) & "[" & Text(Now(), "dd Mmm hh:mm") & " - " & inReason.Selected.Value & "] " & inComment.Text, _isDirty:true}); Reset(inComment); Notify("Response sent to MO", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "FO replied on " & ThisItem.TransactionNo & " (" & inReason.Selected.Value & ")"}))
                             Size: =11
                             Text: =If((ThisItem.FOSent && !IsBlank(ThisItem.FORespondedOn) && ThisItem.FORespondedOn >= ThisItem.FOSentOn), "Responded", "Send response to MO")
                             Width: =180
@@ -235,7 +260,7 @@ scrInbox As screen:
             inEmpty As label:
                 Align: =Align.Center
                 AlignInContainer: =AlignInContainer.Stretch
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =varTheme.Muted
                 FillPortions: =1
                 Size: =14
                 Text: ="Nothing to respond to. No findings have been sent to Front Office."

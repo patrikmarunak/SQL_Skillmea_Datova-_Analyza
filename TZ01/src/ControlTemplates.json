@@ -117,16 +117,13 @@
     "Version": "2.3.1"
   },
   "rectangle": {
-    "CustomGroupControlTemplateName": "",
     "FirstParty": true,
     "Id": "http://microsoft.com/appmagic/shapes/rectangle",
     "IsComponentTemplate": false,
-    "IsCustomGroupControlTemplate": false,
     "IsPcfControl": false,
-    "IsWidgetTemplate": true,
+    "IsWidgetTemplate": false,
     "LastModifiedTimestamp": "0",
     "Name": "rectangle",
-    "OverridableProperties": {},
     "Version": "2.1.1"
   },
   "screen": {

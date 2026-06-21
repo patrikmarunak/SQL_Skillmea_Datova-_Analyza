@@ -1,5 +1,36 @@
 # TZ01 — change log
 
+## UX pass 2 (backlog B, C, E, F, G — no dark mode)
+
+**B — filtering / search / sort.** Search boxes on Check Analysis (by name), check detail
+(transaction no), FO inbox, My Queue (transaction/reviewer) and the TOP report
+(transaction/reason); a **status** filter on Check Analysis (derived status), a **FO-state**
+filter (Unflagged/Queued/Sent/Replied) on the check detail, and a **sort** dropdown
+(Days late / Amount / Date) on the TOP report. (Local collections, so the `… in …` search
+predicates don't hit delegation.)
+
+**C — responsive rows.** The day-list, reports and checks rows were converted from absolute
+`X/Y` positioning to **horizontal/vertical auto-layout containers** (`dayCardC` / `repRowC` /
+`ckRowC`) with `FillPortions`, matching the transaction/TOP/queue rows — so columns reflow on
+narrow widths.
+
+**E — context & unsaved.** Breadcrumb on Check Analysis (`Day › Report`) and the check detail
+(`Day › Report › Check`); an **unsaved-edits** indicator (`● N unsaved`) on the check-detail
+and Check Analysis footers, driven by `CountRows(Filter(colTransactions, _isDirty))`.
+
+**F — runtime states + live audit log.** An **offline banner** (`!Connection.Connected`) and a
+**loading overlay** (`varLoading`, wired for the production SharePoint load) on the overview.
+The static review log is now a **live audit feed** (`colAudit`): seeded with the validation
+entries and appended on send-to-FO, FO reply, submit, complete and resend
+(`Set(varAuditSeq,…); Collect(colAudit,{Seq,Stamp,Text})`), shown newest-first in the overview.
+
+**G — theme record.** The brand palette now lives in a single runtime record **`varTheme`**
+(set first in `App.OnStart`); every control reads `varTheme.Purple/Blue/…` instead of a baked-in
+`RGBA`. Dark mode intentionally out of scope.
+
+Deferred: **D** (FO read context — amount/rates/variance) until the per-check analysis columns
+are defined. 246 controls; packs clean and round-trips.
+
 ## UX pass (quick wins 1–5)
 
 Role-perspective UX hardening; all status logic and the data model are unchanged.

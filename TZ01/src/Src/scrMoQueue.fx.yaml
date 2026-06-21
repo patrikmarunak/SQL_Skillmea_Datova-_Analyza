@@ -1,5 +1,5 @@
 scrMoQueue As screen:
-    Fill: =RGBA(236, 238, 241, 1)
+    Fill: =varTheme.Bg
 
     mqRoot As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(0,0,0,0)
@@ -8,7 +8,7 @@ scrMoQueue As screen:
         ZIndex: =1
 
         mqhdrBar As groupContainer.horizontalAutoLayoutContainer:
-            Fill: =RGBA(67, 22, 79, 1)
+            Fill: =varTheme.Purple
             Height: =58
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutGap: =12
@@ -22,11 +22,13 @@ scrMoQueue As screen:
             mqhdrBack As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderThickness: =0
+                Color: =varTheme.White
                 Fill: =RGBA(255, 255, 255, 0.14)
                 Height: =34
+                HoverColor: =varTheme.White
                 HoverFill: =RGBA(255, 255, 255, 0.24)
                 OnSelect: =Navigate(scrOverview, ScreenTransition.UnCoverRight)
-                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedColor: =varTheme.White
                 PressedFill: =RGBA(255, 255, 255, 0.24)
                 Size: =12
                 Text: ="< Back"
@@ -35,7 +37,7 @@ scrMoQueue As screen:
 
             mqhdrTitle As label:
                 AlignInContainer: =AlignInContainer.Center
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 FillPortions: =1
                 FontWeight: =FontWeight.Semibold
                 Height: =34
@@ -58,8 +60,8 @@ scrMoQueue As screen:
 
                 mqhdrMO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="MO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="MO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="MO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
@@ -69,8 +71,8 @@ scrMoQueue As screen:
 
                 mqhdrFO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="FO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="FO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="FO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
@@ -84,7 +86,7 @@ scrMoQueue As screen:
                 BorderColor: =RGBA(255, 255, 255, 0.4)
                 BorderStyle: =BorderStyle.Dashed
                 BorderThickness: =1
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 Height: =30
                 Size: =11
                 Text: ="[ logo ]"
@@ -102,7 +104,7 @@ scrMoQueue As screen:
                 ZIndex: =5
 
         mqftBar As groupContainer.horizontalAutoLayoutContainer:
-            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderColor: =varTheme.Line
             BorderThickness: =1
             Fill: =RGBA(250, 250, 250, 1)
             Height: =56
@@ -119,7 +121,8 @@ scrMoQueue As screen:
             mqBack As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderThickness: =0
-                Fill: =RGBA(191, 83, 32, 1)
+                Color: =varTheme.White
+                Fill: =varTheme.Orange
                 Height: =34
                 OnSelect: =Navigate(scrOverview, ScreenTransition.UnCover)
                 Size: =12
@@ -140,7 +143,7 @@ scrMoQueue As screen:
                 AlignInContainer: =AlignInContainer.Stretch
                 BorderColor: =RGBA(234,217,243,1)
                 BorderThickness: =1
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =varTheme.Muted
                 Fill: =RGBA(251,247,254,1)
                 Height: =42
                 PaddingLeft: =14
@@ -152,7 +155,7 @@ scrMoQueue As screen:
 
             mqEye1 As label:
                 AlignInContainer: =AlignInContainer.Start
-                Color: =RGBA(42, 42, 42, 1)
+                Color: =varTheme.Ink
                 FontWeight: =FontWeight.Semibold
                 Height: =20
                 Size: =11
@@ -161,26 +164,49 @@ scrMoQueue As screen:
 
             mqEye2 As label:
                 AlignInContainer: =AlignInContainer.Start
-                Color: =RGBA(42, 42, 42, 1)
+                Color: =varTheme.Ink
                 FontWeight: =FontWeight.Semibold
                 Height: =20
                 Size: =11
                 Text: ="STILL WITH FRONT OFFICE"
                 ZIndex: =1
 
+            mqTools As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =8
+                Width: =Parent.Width
+                ZIndex: =2
+
+                mqSearch As text:
+                    AlignInContainer: =AlignInContainer.Center
+                    Default: =""
+                    Height: =36
+                    HintText: ="Search transaction or reviewer…"
+                    OnChange: =Set(varSearchQueue, Self.Text)
+                    Width: =300
+                    ZIndex: =1
+
+                mqToolSpace As label:
+                    FillPortions: =1
+                    Height: =20
+                    Text: =""
+                    ZIndex: =2
+
             "galMqReplied As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))
+                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (varSearchQueue="" || varSearchQueue in TransactionNo || varSearchQueue in FOReviewer), (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))
                 Layout: =Layout.Vertical
                 TemplatePadding: =8
                 TemplateSize: =150
-                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))) > 0
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (varSearchQueue="" || varSearchQueue in TransactionNo || varSearchQueue in FOReviewer), (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))) > 0
                 Width: =Parent.Width
                 ZIndex: =3
 
                 mrCard As groupContainer.verticalAutoLayoutContainer:
                     BorderColor: =RGBA(188,214,188,1)
                     BorderThickness: =1
-                    Fill: =RGBA(255, 255, 255, 1)
+                    Fill: =varTheme.Card
                     Height: =Parent.TemplateHeight - 10
                     LayoutGap: =7
                     PaddingBottom: =12
@@ -194,7 +220,7 @@ scrMoQueue As screen:
 
                     mrWhere As label:
                         AlignInContainer: =AlignInContainer.Stretch
-                        Color: =RGBA(42, 42, 42, 1)
+                        Color: =varTheme.Ink
                         FontWeight: =FontWeight.Semibold
                         Height: =20
                         Size: =12
@@ -204,7 +230,7 @@ scrMoQueue As screen:
 
                     mrAsk As label:
                         AlignInContainer: =AlignInContainer.Stretch
-                        Color: =RGBA(90, 90, 94, 1)
+                        Color: =varTheme.Muted
                         Height: =20
                         Size: =11
                         Text: ="You asked " & Left(ThisItem.FOReviewer, Find("@", ThisItem.FOReviewer & "@") - 1) & " — " & ThisItem.MOComment
@@ -215,7 +241,7 @@ scrMoQueue As screen:
                         AlignInContainer: =AlignInContainer.Stretch
                         BorderColor: =RGBA(207,227,207,1)
                         BorderThickness: =1
-                        Color: =RGBA(59, 109, 17, 1)
+                        Color: =varTheme.Green
                         Fill: =RGBA(243,248,243,1)
                         Height: =42
                         PaddingLeft: =10
@@ -237,11 +263,12 @@ scrMoQueue As screen:
                         mrComplete As button:
                             AlignInContainer: =AlignInContainer.Center
                             BorderThickness: =0
-                            DisabledColor: =RGBA(154, 154, 158, 1)
+                            Color: =varTheme.White
+                            DisabledColor: =varTheme.Faint
                             DisabledFill: =RGBA(240,240,240,1)
                             DisplayMode: |-
                                 =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.DailyReportCheckID)}, If(CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0, DisplayMode.Edit, DisplayMode.Disabled))
-                            Fill: =RGBA(59, 109, 17, 1)
+                            Fill: =varTheme.Green
                             Height: =34
                             OnSelect: =Set(varQTarget, ThisItem); Set(varQAction, "complete")
                             Size: =11
@@ -252,7 +279,8 @@ scrMoQueue As screen:
                         mrResend As button:
                             AlignInContainer: =AlignInContainer.Center
                             BorderThickness: =0
-                            Fill: =RGBA(191, 83, 32, 1)
+                            Color: =varTheme.White
+                            Fill: =varTheme.Orange
                             Height: =34
                             OnSelect: =Set(varQTarget, ThisItem); Set(varQAction, "resend")
                             Size: =11
@@ -262,10 +290,10 @@ scrMoQueue As screen:
 
                         mrOpen As button:
                             AlignInContainer: =AlignInContainer.Center
-                            BorderColor: =RGBA(228, 228, 230, 1)
+                            BorderColor: =varTheme.Line
                             BorderThickness: =1
-                            Color: =RGBA(90, 90, 94, 1)
-                            Fill: =RGBA(255, 255, 255, 1)
+                            Color: =varTheme.Muted
+                            Fill: =varTheme.Card
                             Height: =34
                             OnSelect: =Set(varCurrentReport, LookUp(colDailyReports, ID=ThisItem.DailyReportID)); Set(varCurrentCheck, LookUp(colChecks, ID=ThisItem.DailyReportCheckID)); Navigate(scrCheckDetail, ScreenTransition.Cover)
                             Size: =11
@@ -274,18 +302,18 @@ scrMoQueue As screen:
                             ZIndex: =3
 
             "galMqAwait As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))
+                Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (varSearchQueue="" || varSearchQueue in TransactionNo || varSearchQueue in FOReviewer), Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))
                 Layout: =Layout.Vertical
                 TemplatePadding: =8
                 TemplateSize: =104
-                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))) > 0
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (varSearchQueue="" || varSearchQueue in TransactionNo || varSearchQueue in FOReviewer), Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))) > 0
                 Width: =Parent.Width
                 ZIndex: =5
 
                 maCard As groupContainer.verticalAutoLayoutContainer:
                     BorderColor: =RGBA(207,224,242,1)
                     BorderThickness: =1
-                    Fill: =RGBA(255, 255, 255, 1)
+                    Fill: =varTheme.Card
                     Height: =Parent.TemplateHeight - 10
                     LayoutGap: =7
                     PaddingBottom: =12
@@ -299,7 +327,7 @@ scrMoQueue As screen:
 
                     maWhere As label:
                         AlignInContainer: =AlignInContainer.Stretch
-                        Color: =RGBA(42, 42, 42, 1)
+                        Color: =varTheme.Ink
                         FontWeight: =FontWeight.Semibold
                         Height: =20
                         Size: =12
@@ -309,7 +337,7 @@ scrMoQueue As screen:
 
                     maStatus As label:
                         AlignInContainer: =AlignInContainer.Stretch
-                        Color: =RGBA(31, 96, 168, 1)
+                        Color: =varTheme.Blue
                         Fill: =RGBA(238,244,251,1)
                         Height: =28
                         PaddingLeft: =10
@@ -330,7 +358,8 @@ scrMoQueue As screen:
                         maResend As button:
                             AlignInContainer: =AlignInContainer.Center
                             BorderThickness: =0
-                            Fill: =RGBA(191, 83, 32, 1)
+                            Color: =varTheme.White
+                            Fill: =varTheme.Orange
                             Height: =34
                             OnSelect: =Set(varQTarget, ThisItem); Set(varQAction, "resend")
                             Size: =11
@@ -340,10 +369,10 @@ scrMoQueue As screen:
 
                         maOpen As button:
                             AlignInContainer: =AlignInContainer.Center
-                            BorderColor: =RGBA(228, 228, 230, 1)
+                            BorderColor: =varTheme.Line
                             BorderThickness: =1
-                            Color: =RGBA(90, 90, 94, 1)
-                            Fill: =RGBA(255, 255, 255, 1)
+                            Color: =varTheme.Muted
+                            Fill: =varTheme.Card
                             Height: =34
                             OnSelect: =Set(varCurrentReport, LookUp(colDailyReports, ID=ThisItem.DailyReportID)); Set(varCurrentCheck, LookUp(colChecks, ID=ThisItem.DailyReportCheckID)); Navigate(scrCheckDetail, ScreenTransition.Cover)
                             Size: =11
@@ -354,11 +383,11 @@ scrMoQueue As screen:
             mqEmpty As label:
                 Align: =Align.Center
                 AlignInContainer: =AlignInContainer.Stretch
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =varTheme.Muted
                 Height: =60
                 Size: =14
                 Text: ="Your queue is clear. No findings are out with Front Office."
-                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed))) = 0
+                Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (varSearchQueue="" || varSearchQueue in TransactionNo || varSearchQueue in FOReviewer))) = 0
                 Width: =Parent.Width
                 ZIndex: =6
 
@@ -370,9 +399,9 @@ scrMoQueue As screen:
         ZIndex: =900
 
         cfMqCard As groupContainer.verticalAutoLayoutContainer:
-            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderColor: =varTheme.Line
             BorderThickness: =1
-            Fill: =RGBA(255, 255, 255, 1)
+            Fill: =varTheme.Card
             Height: =210
             LayoutGap: =12
             PaddingBottom: =20
@@ -386,7 +415,7 @@ scrMoQueue As screen:
 
             cfMqTitle As label:
                 AlignInContainer: =AlignInContainer.Stretch
-                Color: =RGBA(42, 42, 42, 1)
+                Color: =varTheme.Ink
                 FontWeight: =FontWeight.Semibold
                 Height: =26
                 Size: =15
@@ -396,7 +425,7 @@ scrMoQueue As screen:
 
             cfMqMsg As label:
                 AlignInContainer: =AlignInContainer.Stretch
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =varTheme.Muted
                 FillPortions: =1
                 Size: =12
                 Text: =If(varQAction="resend", "Resend this finding to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1) & "? They get a fresh request and the row reopens.", "Mark this check complete? It will drop out of your queue.")
@@ -413,10 +442,10 @@ scrMoQueue As screen:
 
                 cfMqCancel As button:
                     AlignInContainer: =AlignInContainer.Center
-                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderColor: =varTheme.Line
                     BorderThickness: =1
-                    Color: =RGBA(90, 90, 94, 1)
-                    Fill: =RGBA(255, 255, 255, 1)
+                    Color: =varTheme.Muted
+                    Fill: =varTheme.Card
                     Height: =36
                     OnSelect: =Set(varQAction, "")
                     Size: =12
@@ -427,10 +456,11 @@ scrMoQueue As screen:
                 cfMqOk As button:
                     AlignInContainer: =AlignInContainer.Center
                     BorderThickness: =0
-                    Fill: =RGBA(31, 96, 168, 1)
+                    Color: =varTheme.White
+                    Fill: =varTheme.Blue
                     Height: =36
                     OnSelect: |-
-                        =If(varQAction="resend", IfError(Patch(colTransactions, varQTarget, {FOSentOn: Now(), _isDirty:true}); Notify("Resent to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1), NotificationType.Information), Notify("Could not resend — please retry", NotificationType.Error)), IfError(Patch(colChecks, LookUp(colChecks, ID=varQTarget.DailyReportCheckID), {Completed:true}); Notify("Check completed", NotificationType.Success), Notify("Could not complete — please retry", NotificationType.Error))); Set(varQAction, "")
+                        =If(varQAction="resend", IfError(Patch(colTransactions, varQTarget, {FOSentOn: Now(), _isDirty:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Resent to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1) & " — " & varQTarget.TransactionNo}); Notify("Resent to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1), NotificationType.Information), Notify("Could not resend — please retry", NotificationType.Error)), IfError(Patch(colChecks, LookUp(colChecks, ID=varQTarget.DailyReportCheckID), {Completed:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Check completed from queue — " & varQTarget.TransactionNo}); Notify("Check completed", NotificationType.Success), Notify("Could not complete — please retry", NotificationType.Error))); Set(varQAction, "")
                     Size: =12
                     Text: =If(varQAction="resend", "Resend", "Complete check")
                     Width: =190

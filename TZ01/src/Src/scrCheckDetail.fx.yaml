@@ -1,5 +1,5 @@
 scrCheckDetail As screen:
-    Fill: =RGBA(236, 238, 241, 1)
+    Fill: =varTheme.Bg
 
     cdRoot As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(0,0,0,0)
@@ -8,7 +8,7 @@ scrCheckDetail As screen:
         ZIndex: =1
 
         cdhdrBar As groupContainer.horizontalAutoLayoutContainer:
-            Fill: =RGBA(67, 22, 79, 1)
+            Fill: =varTheme.Purple
             Height: =58
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutGap: =12
@@ -22,11 +22,13 @@ scrCheckDetail As screen:
             cdhdrBack As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderThickness: =0
+                Color: =varTheme.White
                 Fill: =RGBA(255, 255, 255, 0.14)
                 Height: =34
+                HoverColor: =varTheme.White
                 HoverFill: =RGBA(255, 255, 255, 0.24)
                 OnSelect: =Navigate(scrChecks, ScreenTransition.UnCoverRight)
-                PressedColor: =RGBA(255, 255, 255, 1)
+                PressedColor: =varTheme.White
                 PressedFill: =RGBA(255, 255, 255, 0.24)
                 Size: =12
                 Text: ="< Back"
@@ -35,7 +37,7 @@ scrCheckDetail As screen:
 
             cdhdrTitle As label:
                 AlignInContainer: =AlignInContainer.Center
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 FillPortions: =1
                 FontWeight: =FontWeight.Semibold
                 Height: =34
@@ -58,8 +60,8 @@ scrCheckDetail As screen:
 
                 cdhdrMO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="MO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="MO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="MO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
@@ -69,8 +71,8 @@ scrCheckDetail As screen:
 
                 cdhdrFO As button:
                     BorderThickness: =0
-                    Color: =If(varRole="FO", RGBA(67, 22, 79, 1), RGBA(227,214,237,1))
-                    Fill: =If(varRole="FO", RGBA(255, 255, 255, 1), RGBA(255,255,255,0))
+                    Color: =If(varRole="FO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", varTheme.White, RGBA(255,255,255,0))
                     FillPortions: =1
                     Height: =28
                     OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
@@ -84,7 +86,7 @@ scrCheckDetail As screen:
                 BorderColor: =RGBA(255, 255, 255, 0.4)
                 BorderStyle: =BorderStyle.Dashed
                 BorderThickness: =1
-                Color: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.White
                 Height: =30
                 Size: =11
                 Text: ="[ logo ]"
@@ -102,7 +104,7 @@ scrCheckDetail As screen:
                 ZIndex: =5
 
         cdftBar As groupContainer.horizontalAutoLayoutContainer:
-            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderColor: =varTheme.Line
             BorderThickness: =1
             Fill: =RGBA(250, 250, 250, 1)
             Height: =56
@@ -117,19 +119,19 @@ scrCheckDetail As screen:
             ZIndex: =10
 
             cdHint As label:
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =If(CountRows(Filter(colTransactions, _isDirty)) > 0, varTheme.Amber, varTheme.Muted)
                 FillPortions: =1
                 Height: =30
                 Size: =11
-                Text: ="Flag rows for FO here, then send them together from the Check Analysis screen."
+                Text: =If(CountRows(Filter(colTransactions, _isDirty)) > 0, "● " & CountRows(Filter(colTransactions, _isDirty)) & " unsaved edit(s) — Save draft to keep them", "Flag rows for FO here, then send them together from the Check Analysis screen.")
                 ZIndex: =1
 
             cdSave As button:
                 AlignInContainer: =AlignInContainer.Center
-                BorderColor: =RGBA(228, 228, 230, 1)
+                BorderColor: =varTheme.Line
                 BorderThickness: =1
-                Color: =RGBA(90, 90, 94, 1)
-                Fill: =RGBA(255, 255, 255, 1)
+                Color: =varTheme.Muted
+                Fill: =varTheme.Card
                 Height: =34
                 OnSelect: |-
                     =UpdateIf(colTransactions, _isDirty, {_isDirty:false, _state:"loaded"}); Notify("Draft saved", NotificationType.Success)
@@ -141,11 +143,12 @@ scrCheckDetail As screen:
             cdComplete As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderThickness: =0
-                DisabledColor: =RGBA(154, 154, 158, 1)
+                Color: =varTheme.White
+                DisabledColor: =varTheme.Faint
                 DisabledFill: =RGBA(240,240,240,1)
                 DisplayMode: |-
                     =If(With({tx: Filter(colTransactions, DailyReportCheckID=varCurrentCheck.ID)}, CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0), DisplayMode.Edit, DisplayMode.Disabled)
-                Fill: =RGBA(59, 109, 17, 1)
+                Fill: =varTheme.Green
                 Height: =34
                 OnSelect: =Set(varConfirmComplete, true)
                 Size: =12
@@ -165,6 +168,15 @@ scrCheckDetail As screen:
             Width: =Parent.Width
             ZIndex: =20
 
+            cdCrumb As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Muted
+                FontWeight: =FontWeight.Semibold
+                Height: =18
+                Size: =11
+                Text: =varSelectedItem.DayKey & "   ›   " & varCurrentReport.ReportType & " Listing   ›   " & varCurrentCheck.CheckName
+                ZIndex: =2
+
             cdSub As groupContainer.horizontalAutoLayoutContainer:
                 Fill: =RGBA(0,0,0,0)
                 Height: =34
@@ -174,7 +186,7 @@ scrCheckDetail As screen:
                 ZIndex: =2
 
                 cdTitle As label:
-                    Color: =RGBA(42, 42, 42, 1)
+                    Color: =varTheme.Ink
                     FillPortions: =1
                     FontWeight: =FontWeight.Semibold
                     Height: =24
@@ -184,10 +196,10 @@ scrCheckDetail As screen:
 
                 cdAttach As button:
                     AlignInContainer: =AlignInContainer.Center
-                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderColor: =varTheme.Line
                     BorderThickness: =1
-                    Color: =RGBA(90, 90, 94, 1)
-                    Fill: =RGBA(255, 255, 255, 1)
+                    Color: =varTheme.Muted
+                    Fill: =varTheme.Card
                     Height: =30
                     OnSelect: =Notify("Evidence attached", NotificationType.Success)
                     Size: =11
@@ -195,8 +207,41 @@ scrCheckDetail As screen:
                     Width: =170
                     ZIndex: =2
 
+            cdTools As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutAlignItems: =LayoutAlignItems.Center
+                LayoutGap: =8
+                Visible: =CountRows(Filter(colTransactions, DailyReportCheckID = varCurrentCheck.ID)) > 0
+                Width: =Parent.Width
+                ZIndex: =3
+
+                cdSearch As text:
+                    AlignInContainer: =AlignInContainer.Center
+                    Default: =""
+                    Height: =36
+                    HintText: ="Search transaction no…"
+                    OnChange: =Set(varSearchTxn, Self.Text)
+                    Width: =260
+                    ZIndex: =1
+
+                cdStateFilter As dropdown:
+                    AlignInContainer: =AlignInContainer.Center
+                    Default: ="All"
+                    Height: =36
+                    Items: =["All", "Unflagged", "Queued", "Sent", "Replied"]
+                    OnChange: =Set(varFoStateFilter, Self.Selected.Value)
+                    Width: =150
+                    ZIndex: =2
+
+                cdToolSpace As label:
+                    FillPortions: =1
+                    Height: =20
+                    Text: =""
+                    ZIndex: =3
+
             "galTxn As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                Items: =Filter(colTransactions, DailyReportCheckID = varCurrentCheck.ID)
+                Items: =Filter(colTransactions, DailyReportCheckID = varCurrentCheck.ID, (varSearchTxn="" || varSearchTxn in TransactionNo), (varFoStateFilter="All" || If(!FlaggedToFO, "Unflagged", !FOSent, "Queued", Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), "Sent", "Replied") = varFoStateFilter))
                 Layout: =Layout.Vertical
                 TemplatePadding: =0
                 TemplateSize: =58
@@ -205,9 +250,9 @@ scrCheckDetail As screen:
                 ZIndex: =3
 
                 txnRowC As groupContainer.horizontalAutoLayoutContainer:
-                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderColor: =varTheme.Line
                     BorderThickness: =1
-                    Fill: =RGBA(255, 255, 255, 1)
+                    Fill: =varTheme.Card
                     Height: =Parent.TemplateHeight
                     LayoutAlignItems: =LayoutAlignItems.Center
                     LayoutGap: =8
@@ -219,7 +264,7 @@ scrCheckDetail As screen:
                     ZIndex: =1
 
                     tcRead As label:
-                        Color: =RGBA(42, 42, 42, 1)
+                        Color: =varTheme.Ink
                         FillPortions: =2
                         Height: =36
                         Size: =11
@@ -264,7 +309,7 @@ scrCheckDetail As screen:
 
                     tcFOState As label:
                         AlignInContainer: =AlignInContainer.Center
-                        Color: =If(!ThisItem.FlaggedToFO, RGBA(90, 90, 94, 1), !ThisItem.FOSent, RGBA(133, 79, 11, 1), !(ThisItem.FOSent && !IsBlank(ThisItem.FORespondedOn) && ThisItem.FORespondedOn >= ThisItem.FOSentOn), RGBA(31, 96, 168, 1), RGBA(59, 109, 17, 1))
+                        Color: =If(!ThisItem.FlaggedToFO, varTheme.Muted, !ThisItem.FOSent, varTheme.Amber, !(ThisItem.FOSent && !IsBlank(ThisItem.FORespondedOn) && ThisItem.FORespondedOn >= ThisItem.FOSentOn), varTheme.Blue, varTheme.Green)
                         Height: =36
                         Size: =12
                         Text: =If(!ThisItem.FlaggedToFO, "", !ThisItem.FOSent, "queued", !(ThisItem.FOSent && !IsBlank(ThisItem.FORespondedOn) && ThisItem.FORespondedOn >= ThisItem.FOSentOn), "sent", "replied") & If(IsBlank(ThisItem.FOReviewer), "", Char(10) & Left(ThisItem.FOReviewer, Find("@", ThisItem.FOReviewer & "@") - 1))
@@ -292,7 +337,7 @@ scrCheckDetail As screen:
             cdEmpty As label:
                 Align: =Align.Center
                 AlignInContainer: =AlignInContainer.Stretch
-                Color: =If(varCurrentCheck.NotCompared, RGBA(133, 79, 11, 1), RGBA(59, 109, 17, 1))
+                Color: =If(varCurrentCheck.NotCompared, varTheme.Amber, varTheme.Green)
                 FillPortions: =1
                 Size: =14
                 Text: =If(varCurrentCheck.NotCompared, "Not compared — the reference export (ZTRM) was empty, so these deals could not be compared. Recorded as Not compared for audit; the check is complete.", "No findings — check passed. Nothing to review for this check.")
@@ -301,9 +346,9 @@ scrCheckDetail As screen:
                 ZIndex: =4
 
             cdHeader As groupContainer.horizontalAutoLayoutContainer:
-                BorderColor: =RGBA(228, 228, 230, 1)
+                BorderColor: =varTheme.Line
                 BorderThickness: =1
-                Fill: =RGBA(237, 239, 242, 1)
+                Fill: =varTheme.Thead
                 Height: =30
                 LayoutAlignItems: =LayoutAlignItems.Center
                 LayoutGap: =8
@@ -314,7 +359,7 @@ scrCheckDetail As screen:
                 ZIndex: =15
 
                 hcRead As label:
-                    Color: =RGBA(90, 90, 94, 1)
+                    Color: =varTheme.Muted
                     FillPortions: =2
                     FontWeight: =FontWeight.Semibold
                     Height: =20
@@ -323,7 +368,7 @@ scrCheckDetail As screen:
                     ZIndex: =1
 
                 hcReason As label:
-                    Color: =RGBA(31, 96, 168, 1)
+                    Color: =varTheme.Blue
                     FontWeight: =FontWeight.Semibold
                     Height: =20
                     Size: =11
@@ -332,7 +377,7 @@ scrCheckDetail As screen:
                     ZIndex: =1
 
                 hcComment As label:
-                    Color: =RGBA(31, 96, 168, 1)
+                    Color: =varTheme.Blue
                     FillPortions: =1
                     FontWeight: =FontWeight.Semibold
                     Height: =20
@@ -342,7 +387,7 @@ scrCheckDetail As screen:
 
                 hcFlag As label:
                     Align: =Align.Center
-                    Color: =RGBA(133, 79, 11, 1)
+                    Color: =varTheme.Amber
                     FontWeight: =FontWeight.Semibold
                     Height: =20
                     Size: =11
@@ -351,7 +396,7 @@ scrCheckDetail As screen:
                     ZIndex: =1
 
                 hcState As label:
-                    Color: =RGBA(133, 79, 11, 1)
+                    Color: =varTheme.Amber
                     FontWeight: =FontWeight.Semibold
                     Height: =20
                     Size: =11
@@ -360,7 +405,7 @@ scrCheckDetail As screen:
                     ZIndex: =1
 
                 hcFoReason As label:
-                    Color: =RGBA(133, 79, 11, 1)
+                    Color: =varTheme.Amber
                     FontWeight: =FontWeight.Semibold
                     Height: =20
                     Size: =11
@@ -368,7 +413,7 @@ scrCheckDetail As screen:
                     ZIndex: =1
 
                 hcFoComment As label:
-                    Color: =RGBA(133, 79, 11, 1)
+                    Color: =varTheme.Amber
                     FillPortions: =1
                     FontWeight: =FontWeight.Semibold
                     Height: =20
@@ -384,9 +429,9 @@ scrCheckDetail As screen:
         ZIndex: =900
 
         cfCdCard As groupContainer.verticalAutoLayoutContainer:
-            BorderColor: =RGBA(228, 228, 230, 1)
+            BorderColor: =varTheme.Line
             BorderThickness: =1
-            Fill: =RGBA(255, 255, 255, 1)
+            Fill: =varTheme.Card
             Height: =210
             LayoutGap: =12
             PaddingBottom: =20
@@ -400,7 +445,7 @@ scrCheckDetail As screen:
 
             cfCdTitle As label:
                 AlignInContainer: =AlignInContainer.Stretch
-                Color: =RGBA(42, 42, 42, 1)
+                Color: =varTheme.Ink
                 FontWeight: =FontWeight.Semibold
                 Height: =26
                 Size: =15
@@ -410,7 +455,7 @@ scrCheckDetail As screen:
 
             cfCdMsg As label:
                 AlignInContainer: =AlignInContainer.Stretch
-                Color: =RGBA(90, 90, 94, 1)
+                Color: =varTheme.Muted
                 FillPortions: =1
                 Size: =12
                 Text: ="This finalises " & varCurrentCheck.CheckName & ". You can still reopen findings by resending to FO."
@@ -427,10 +472,10 @@ scrCheckDetail As screen:
 
                 cfCdCancel As button:
                     AlignInContainer: =AlignInContainer.Center
-                    BorderColor: =RGBA(228, 228, 230, 1)
+                    BorderColor: =varTheme.Line
                     BorderThickness: =1
-                    Color: =RGBA(90, 90, 94, 1)
-                    Fill: =RGBA(255, 255, 255, 1)
+                    Color: =varTheme.Muted
+                    Fill: =varTheme.Card
                     Height: =36
                     OnSelect: =Set(varConfirmComplete, false)
                     Size: =12
@@ -441,10 +486,11 @@ scrCheckDetail As screen:
                 cfCdOk As button:
                     AlignInContainer: =AlignInContainer.Center
                     BorderThickness: =0
-                    Fill: =RGBA(59, 109, 17, 1)
+                    Color: =varTheme.White
+                    Fill: =varTheme.Green
                     Height: =36
                     OnSelect: |-
-                        =IfError(Patch(colChecks, varCurrentCheck, {Completed:true}); Notify("Check completed", NotificationType.Success); Navigate(scrChecks, ScreenTransition.UnCover), Notify("Could not complete — please retry", NotificationType.Error)); Set(varConfirmComplete, false)
+                        =IfError(Patch(colChecks, varCurrentCheck, {Completed:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Check completed — " & varCurrentCheck.CheckName}); Notify("Check completed", NotificationType.Success); Navigate(scrChecks, ScreenTransition.UnCover), Notify("Could not complete — please retry", NotificationType.Error)); Set(varConfirmComplete, false)
                     Size: =12
                     Text: ="Mark complete"
                     Width: =190
