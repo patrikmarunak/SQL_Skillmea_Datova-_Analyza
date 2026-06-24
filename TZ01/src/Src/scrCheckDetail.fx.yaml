@@ -1,5 +1,7 @@
 scrCheckDetail As screen:
     Fill: =varTheme.Bg
+    OnVisible: |-
+        =Set(varShowAll, false); Set(varVisibleCols, ForAll(SortByColumns(Filter(colCheckColumns, Report = varCurrentCheck.ReportType, CheckNo = varCurrentCheck.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align, Order: R.Order}))
 
     cdRoot As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(0,0,0,0)
@@ -234,11 +236,34 @@ scrCheckDetail As screen:
                     Width: =150
                     ZIndex: =2
 
+                cdShowAll As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderColor: =varTheme.Line
+                    BorderThickness: =1
+                    Color: =If(varShowAll, varTheme.White, varTheme.Muted)
+                    Fill: =If(varShowAll, varTheme.Blue, varTheme.Card)
+                    Height: =36
+                    OnSelect: |-
+                        =Set(varShowAll, !varShowAll); Set(varVisibleCols, If(varShowAll, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = varCurrentCheck.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align, Order: R.Order}), ForAll(SortByColumns(Filter(colCheckColumns, Report = varCurrentCheck.ReportType, CheckNo = varCurrentCheck.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align, Order: R.Order})))
+                    Size: =11
+                    Text: =If(varShowAll, "Show relevant columns", "Show all columns")
+                    Width: =180
+                    ZIndex: =3
+
                 cdToolSpace As label:
                     FillPortions: =1
                     Height: =20
                     Text: =""
-                    ZIndex: =3
+                    ZIndex: =4
+
+                cdColCount As label:
+                    Align: =Align.Right
+                    Color: =varTheme.Muted
+                    Height: =20
+                    Size: =11
+                    Text: =CountRows(varVisibleCols) & " of " & CountRows(Filter(colAllColsForListing, Listing = varCurrentCheck.ReportType)) & " cols"
+                    Width: =110
+                    ZIndex: =5
 
             "galTxn As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
                 Items: =Filter(colTransactions, DailyReportCheckID = varCurrentCheck.ID, (varSearchTxn="" || varSearchTxn in TransactionNo), (varFoStateFilter="All" || If(!FlaggedToFO, "Unflagged", !FOSent, "Queued", Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), "Sent", "Replied") = varFoStateFilter))
@@ -263,14 +288,32 @@ scrCheckDetail As screen:
                     Width: =Parent.TemplateWidth
                     ZIndex: =1
 
-                    tcRead As label:
-                        Color: =varTheme.Ink
+                    tcReadWrap As groupContainer.manualLayoutContainer:
+                        AlignInContainer: =AlignInContainer.Center
+                        Fill: =RGBA(0,0,0,0)
                         FillPortions: =2
                         Height: =36
-                        Size: =11
-                        Text: |-
-                            =ThisItem.TransactionNo & "  ·  " & ThisItem.ProductType & "  ·  " & Text(ThisItem.Amount, "#,##0") & " " & ThisItem.Currency
                         ZIndex: =1
+
+                        "galCells As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                            Height: =Parent.Height
+                            Items: |-
+                                =ForAll(varVisibleCols As V, {ColName: V.ColName, Align: V.Align, Value: Coalesce(LookUp(colTxnCells, TxnID = ThisItem.ID && ColName = V.ColName).Value, "—")})
+                            TemplatePadding: =0
+                            TemplateSize: =140
+                            Width: =Parent.Width
+                            ZIndex: =1
+
+                            galCellsLbl As label:
+                                Align: =If(ThisItem.Align="right", Align.Right, Align.Left)
+                                Color: =varTheme.Ink
+                                Height: =Parent.TemplateHeight
+                                Size: =11
+                                Text: =ThisItem.Value
+                                Width: =Parent.TemplateWidth - 8
+                                Wrap: =false
+                                X: =4
+                                ZIndex: =1
 
                     tcMOReason As dropdown:
                         AlignInContainer: =AlignInContainer.Center
@@ -358,14 +401,26 @@ scrCheckDetail As screen:
                 Width: =Parent.Width
                 ZIndex: =15
 
-                hcRead As label:
-                    Color: =varTheme.Muted
+                "galHdr As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                    AlignInContainer: =AlignInContainer.Center
                     FillPortions: =2
-                    FontWeight: =FontWeight.Semibold
-                    Height: =20
-                    Size: =11
-                    Text: ="READ · transaction"
+                    Height: =24
+                    Items: =varVisibleCols
+                    TemplatePadding: =0
+                    TemplateSize: =140
                     ZIndex: =1
+
+                    galHdrLbl As label:
+                        Align: =If(ThisItem.Align="right", Align.Right, Align.Left)
+                        Color: =varTheme.Muted
+                        FontWeight: =FontWeight.Semibold
+                        Height: =Parent.TemplateHeight
+                        Size: =11
+                        Text: =ThisItem.ColName
+                        Width: =Parent.TemplateWidth - 8
+                        Wrap: =false
+                        X: =4
+                        ZIndex: =1
 
                 hcReason As label:
                     Color: =varTheme.Blue

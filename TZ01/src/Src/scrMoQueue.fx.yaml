@@ -188,17 +188,30 @@ scrMoQueue As screen:
                     Width: =300
                     ZIndex: =1
 
+                mqShowAll As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderColor: =varTheme.Line
+                    BorderThickness: =1
+                    Color: =If(varShowAll, varTheme.White, varTheme.Muted)
+                    Fill: =If(varShowAll, varTheme.Blue, varTheme.Card)
+                    Height: =36
+                    OnSelect: =Set(varShowAll, !varShowAll)
+                    Size: =11
+                    Text: =If(varShowAll, "Show relevant columns", "Show all columns")
+                    Width: =180
+                    ZIndex: =2
+
                 mqToolSpace As label:
                     FillPortions: =1
                     Height: =20
                     Text: =""
-                    ZIndex: =2
+                    ZIndex: =3
 
             "galMqReplied As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
                 Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (varSearchQueue="" || varSearchQueue in TransactionNo || varSearchQueue in FOReviewer), (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))
                 Layout: =Layout.Vertical
                 TemplatePadding: =8
-                TemplateSize: =150
+                TemplateSize: =206
                 Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (varSearchQueue="" || varSearchQueue in TransactionNo || varSearchQueue in FOReviewer), (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))) > 0
                 Width: =Parent.Width
                 ZIndex: =3
@@ -236,6 +249,61 @@ scrMoQueue As screen:
                         Text: ="You asked " & Left(ThisItem.FOReviewer, Find("@", ThisItem.FOReviewer & "@") - 1) & " — " & ThisItem.MOComment
                         Width: =Parent.Width
                         ZIndex: =2
+
+                    mrFoRRec As groupContainer.verticalAutoLayoutContainer:
+                        BorderColor: =varTheme.Line
+                        BorderThickness: =1
+                        Fill: =RGBA(246,246,247,1)
+                        Height: =48
+                        LayoutGap: =2
+                        PaddingBottom: =3
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PaddingTop: =3
+                        Width: =Parent.Width
+                        ZIndex: =3
+
+                        "mrFoRHdr As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                            Height: =18
+                            Items: |-
+                                =If(varShowAll, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = ThisItem.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align}), ForAll(SortByColumns(Filter(colCheckColumns, Report = ThisItem.ReportType, CheckNo = ThisItem.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align}))
+                            ShowScrollbar: =false
+                            TemplatePadding: =0
+                            TemplateSize: =140
+                            Width: =Parent.Width
+                            ZIndex: =1
+
+                            mrFoRHdrLbl As label:
+                                Align: =If(ThisItem.Align="right", Align.Right, Align.Left)
+                                Color: =varTheme.Muted
+                                FontWeight: =FontWeight.Semibold
+                                Height: =Parent.TemplateHeight
+                                Size: =10
+                                Text: =ThisItem.ColName
+                                Width: =Parent.TemplateWidth - 8
+                                Wrap: =false
+                                X: =4
+                                ZIndex: =1
+
+                        "mrFoRCells As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                            Height: =24
+                            Items: |-
+                                =ForAll(If(varShowAll, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = ThisItem.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align}), ForAll(SortByColumns(Filter(colCheckColumns, Report = ThisItem.ReportType, CheckNo = ThisItem.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align})) As V, {ColName: V.ColName, Align: V.Align, Value: Coalesce(LookUp(colTxnCells, TxnID = ThisItem.ID && ColName = V.ColName).Value, "—")})
+                            TemplatePadding: =0
+                            TemplateSize: =140
+                            Width: =Parent.Width
+                            ZIndex: =2
+
+                            mrFoRCellLbl As label:
+                                Align: =If(ThisItem.Align="right", Align.Right, Align.Left)
+                                Color: =varTheme.Ink
+                                Height: =Parent.TemplateHeight
+                                Size: =11
+                                Text: =ThisItem.Value
+                                Width: =Parent.TemplateWidth - 8
+                                Wrap: =false
+                                X: =4
+                                ZIndex: =1
 
                     mrFo As label:
                         AlignInContainer: =AlignInContainer.Stretch
@@ -305,7 +373,7 @@ scrMoQueue As screen:
                 Items: =Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (varSearchQueue="" || varSearchQueue in TransactionNo || varSearchQueue in FOReviewer), Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))
                 Layout: =Layout.Vertical
                 TemplatePadding: =8
-                TemplateSize: =104
+                TemplateSize: =160
                 Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed), (varSearchQueue="" || varSearchQueue in TransactionNo || varSearchQueue in FOReviewer), Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn))) > 0
                 Width: =Parent.Width
                 ZIndex: =5
@@ -345,6 +413,61 @@ scrMoQueue As screen:
                         Text: ="Awaiting reply from " & Left(ThisItem.FOReviewer, Find("@", ThisItem.FOReviewer & "@") - 1)
                         Width: =Parent.Width
                         ZIndex: =2
+
+                    maFoRRec As groupContainer.verticalAutoLayoutContainer:
+                        BorderColor: =varTheme.Line
+                        BorderThickness: =1
+                        Fill: =RGBA(246,246,247,1)
+                        Height: =48
+                        LayoutGap: =2
+                        PaddingBottom: =3
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PaddingTop: =3
+                        Width: =Parent.Width
+                        ZIndex: =3
+
+                        "maFoRHdr As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                            Height: =18
+                            Items: |-
+                                =If(varShowAll, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = ThisItem.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align}), ForAll(SortByColumns(Filter(colCheckColumns, Report = ThisItem.ReportType, CheckNo = ThisItem.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align}))
+                            ShowScrollbar: =false
+                            TemplatePadding: =0
+                            TemplateSize: =140
+                            Width: =Parent.Width
+                            ZIndex: =1
+
+                            maFoRHdrLbl As label:
+                                Align: =If(ThisItem.Align="right", Align.Right, Align.Left)
+                                Color: =varTheme.Muted
+                                FontWeight: =FontWeight.Semibold
+                                Height: =Parent.TemplateHeight
+                                Size: =10
+                                Text: =ThisItem.ColName
+                                Width: =Parent.TemplateWidth - 8
+                                Wrap: =false
+                                X: =4
+                                ZIndex: =1
+
+                        "maFoRCells As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                            Height: =24
+                            Items: |-
+                                =ForAll(If(varShowAll, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = ThisItem.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align}), ForAll(SortByColumns(Filter(colCheckColumns, Report = ThisItem.ReportType, CheckNo = ThisItem.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align})) As V, {ColName: V.ColName, Align: V.Align, Value: Coalesce(LookUp(colTxnCells, TxnID = ThisItem.ID && ColName = V.ColName).Value, "—")})
+                            TemplatePadding: =0
+                            TemplateSize: =140
+                            Width: =Parent.Width
+                            ZIndex: =2
+
+                            maFoRCellLbl As label:
+                                Align: =If(ThisItem.Align="right", Align.Right, Align.Left)
+                                Color: =varTheme.Ink
+                                Height: =Parent.TemplateHeight
+                                Size: =11
+                                Text: =ThisItem.Value
+                                Width: =Parent.TemplateWidth - 8
+                                Wrap: =false
+                                X: =4
+                                ZIndex: =1
 
                     maRow As groupContainer.horizontalAutoLayoutContainer:
                         Fill: =RGBA(0,0,0,0)

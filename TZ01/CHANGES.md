@@ -1,5 +1,45 @@
 # TZ01 — change log
 
+## v3.1 delta (feature D — transaction detail in checks)
+
+In each check, MO **and** FO now see the transaction record: the **relevant columns
+per check** (driven by a config list), with a **Show all columns** toggle that reveals
+the full SAP source record with horizontal scroll. Only the check-detail screen, the
+FO inbox, the MO queue and `App.OnStart` were touched — everything else is unchanged.
+
+**Data layer (`App.OnStart`)**
+- `colAllColsForListing` — the full source schema (FX 34 + MM 19 = 53 rows) `{Listing, ColName, Align, Order}`; drives *Show all* and the headers.
+- `colCheckColumns` — per-check visible-column config (53 rows) `{Report, CheckNo, ColName, Order, Align}`; seeded from the v3.1 delta. **Production:** swap for `ClearCollect(colCheckColumns, RenameColumns('TZ01 Check Columns', "Check Number","CheckNo", "Column Name","ColName"))` (offline uses space-free field names for convenience).
+- Source columns added to every seeded transaction (FX records get the FX columns, MM the MM columns; shared columns once) with the meaningful per-finding values for demo parity.
+- `colTxnCells` — flatten: one row per (transaction × column-in-its-listing), value projected by a `Switch` over the 45-column union. Lets a gallery render columns chosen at runtime (Power Fx can't read a field by a variable name).
+
+**Check detail (`scrCheckDetail`)** — the flat transaction row became a **nested gallery**:
+outer `galTxn` (one row per finding) → inner **horizontal** `galCells` in a width-bounded,
+horizontally-scrolling area, plus a horizontal header gallery `galHdr` aligned above it.
+The fixed MO/FO edit controls (reason, comment, FO flag, state, FO reason/comment, resend)
+sit after the cells and **do not scroll**. `OnVisible` seeds `varVisibleCols` (relevant
+subset); the **Show all columns** button flips `varShowAll` and re-projects `varVisibleCols`
+to the full listing; an "N of M cols" hint updates.
+
+**FO inbox + MO queue** — each finding card now embeds the **same read-only cell table**
+(`fo_rectable`: header + horizontal cells), with per-card visible columns computed inline
+from the finding's `ReportType`/`CheckNumber` and the shared `varShowAll` toggle.
+
+**Provisioning** — `provisioning/TZ01_provision_v3_1_delta.ps1` adds the source columns to
+`TZ01 Daily Transactions` and creates + seeds `TZ01 Check Columns`.
+
+**Decisions / assumptions (flagged, not guessed silently)**
+- **Active Status casing:** FX `Active Status` / MM `Active status` unified to a single `Active Status` (per the schema delta).
+- **Column width:** cells/headers use a fixed 140px width with horizontal scroll. Header and cells align at rest; because each is its own gallery, scrolling one does not scroll the other (minor; functional parity with the prototype's single-scroll table is the only gap).
+- **Offline seed:** the demo seeds `colCheckColumns`/`colAllColsForListing` and the source-column values in `OnStart`; the commented production block must `ClearCollect` them from SharePoint instead.
+- **Dependency (outside the app):** import / Office Scripts must populate all source columns on each row, or *Show all columns* shows blank cells — the app is ready for the data.
+
+**Verified:** `pac canvas pack` is clean and the source round-trips losslessly (276 controls,
++23). **Not verifiable here (needs Power Apps Studio):** import-without-repair and the visual
+render of the nested galleries / horizontal scroll.
+
+
+
 ## UX pass 2 (backlog B, C, E, F, G — no dark mode)
 
 **B — filtering / search / sort.** Search boxes on Check Analysis (by name), check detail
