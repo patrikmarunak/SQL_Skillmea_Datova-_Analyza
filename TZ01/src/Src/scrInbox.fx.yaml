@@ -138,19 +138,6 @@ scrInbox As screen:
                     Width: =260
                     ZIndex: =1
 
-                inShowAll As button:
-                    AlignInContainer: =AlignInContainer.Center
-                    BorderColor: =varTheme.Line
-                    BorderThickness: =1
-                    Color: =If(varShowAll, varTheme.White, varTheme.Muted)
-                    Fill: =If(varShowAll, varTheme.Blue, varTheme.Card)
-                    Height: =36
-                    OnSelect: =Set(varShowAll, !varShowAll)
-                    Size: =11
-                    Text: =If(varShowAll, "Show relevant columns", "Show all columns")
-                    Width: =180
-                    ZIndex: =2
-
                 inToolSpace As label:
                     FillPortions: =1
                     Height: =20
@@ -161,7 +148,7 @@ scrInbox As screen:
                 Items: =Filter(colTransactions, FlaggedToFO, FOSent, (varSearchInbox="" || varSearchInbox in TransactionNo))
                 Layout: =Layout.Vertical
                 TemplatePadding: =8
-                TemplateSize: =252
+                TemplateSize: =300
                 Visible: =CountRows(Filter(colTransactions, FlaggedToFO, FOSent)) > 0
                 Width: =Parent.Width
                 ZIndex: =3
@@ -206,10 +193,10 @@ scrInbox As screen:
                         AlignInContainer: =AlignInContainer.Stretch
                         Color: =varTheme.Muted
                         Fill: =RGBA(246,246,247,1)
-                        Height: =26
                         PaddingLeft: =10
+                        PaddingTop: =4
                         Size: =11
-                        Text: ="MO asks — " & ThisItem.MOComment
+                        Text: ="MO asks (" & ThisItem.MOReason & ") — " & ThisItem.MOComment
                         Width: =Parent.Width
                         ZIndex: =3
 
@@ -217,7 +204,7 @@ scrInbox As screen:
                         BorderColor: =varTheme.Line
                         BorderThickness: =1
                         Fill: =RGBA(246,246,247,1)
-                        Height: =48
+                        Height: =74
                         LayoutGap: =2
                         PaddingBottom: =3
                         PaddingLeft: =8
@@ -226,10 +213,40 @@ scrInbox As screen:
                         Width: =Parent.Width
                         ZIndex: =3
 
+                        inFoBar As groupContainer.horizontalAutoLayoutContainer:
+                            Fill: =RGBA(0,0,0,0)
+                            Height: =22
+                            LayoutAlignItems: =LayoutAlignItems.Center
+                            LayoutGap: =6
+                            Width: =Parent.Width
+                            ZIndex: =0
+
+                            inFoCnt As label:
+                                Color: =varTheme.Muted
+                                FillPortions: =1
+                                Height: =20
+                                Size: =10
+                                Text: |-
+                                    =CountRows(If(ThisItem.ID in colExpanded.Value, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = ThisItem.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align}), ForAll(SortByColumns(Filter(colCheckColumns, Report = ThisItem.ReportType, CheckNo = ThisItem.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align}))) & " of " & CountRows(Filter(colAllColsForListing, Listing = ThisItem.ReportType)) & " cols"
+                                ZIndex: =1
+
+                            inFoTog As button:
+                                AlignInContainer: =AlignInContainer.Center
+                                BorderColor: =varTheme.Line
+                                BorderThickness: =1
+                                Color: =If(ThisItem.ID in colExpanded.Value, varTheme.White, varTheme.Muted)
+                                Fill: =If(ThisItem.ID in colExpanded.Value, varTheme.Blue, varTheme.Card)
+                                Height: =22
+                                OnSelect: |-
+                                    =If(ThisItem.ID in colExpanded.Value, RemoveIf(colExpanded, Value = ThisItem.ID), Collect(colExpanded, {Value: ThisItem.ID}))
+                                Size: =10
+                                Text: =If(ThisItem.ID in colExpanded.Value, "Show relevant columns", "Show all columns")
+                                ZIndex: =2
+
                         "inFoHdr As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
                             Height: =18
                             Items: |-
-                                =If(varShowAll, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = ThisItem.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align}), ForAll(SortByColumns(Filter(colCheckColumns, Report = ThisItem.ReportType, CheckNo = ThisItem.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align}))
+                                =If(ThisItem.ID in colExpanded.Value, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = ThisItem.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align}), ForAll(SortByColumns(Filter(colCheckColumns, Report = ThisItem.ReportType, CheckNo = ThisItem.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align}))
                             ShowScrollbar: =false
                             TemplatePadding: =0
                             TemplateSize: =140
@@ -251,7 +268,7 @@ scrInbox As screen:
                         "inFoCells As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
                             Height: =24
                             Items: |-
-                                =ForAll(If(varShowAll, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = ThisItem.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align}), ForAll(SortByColumns(Filter(colCheckColumns, Report = ThisItem.ReportType, CheckNo = ThisItem.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align})) As V, {ColName: V.ColName, Align: V.Align, Value: Coalesce(LookUp(colTxnCells, TxnID = ThisItem.ID && ColName = V.ColName).Value, "—")})
+                                =ForAll(If(ThisItem.ID in colExpanded.Value, ForAll(SortByColumns(Filter(colAllColsForListing, Listing = ThisItem.ReportType), "Order") As R, {ColName: R.ColName, Align: R.Align}), ForAll(SortByColumns(Filter(colCheckColumns, Report = ThisItem.ReportType, CheckNo = ThisItem.CheckNumber), "Order") As R, {ColName: R.ColName, Align: R.Align})) As V, {ColName: V.ColName, Align: V.Align, Value: Coalesce(LookUp(colTxnCells, TxnID = ThisItem.ID && ColName = V.ColName).Value, "—")})
                             TemplatePadding: =0
                             TemplateSize: =140
                             Width: =Parent.Width
@@ -324,6 +341,19 @@ scrInbox As screen:
                             Text: =If((ThisItem.FOSent && !IsBlank(ThisItem.FORespondedOn) && ThisItem.FORespondedOn >= ThisItem.FOSentOn), "Responded", "Send response to MO")
                             Width: =180
                             ZIndex: =3
+
+                        inOpen As button:
+                            AlignInContainer: =AlignInContainer.Center
+                            BorderColor: =varTheme.Line
+                            BorderThickness: =1
+                            Color: =varTheme.Muted
+                            Fill: =varTheme.Card
+                            Height: =36
+                            OnSelect: =Set(varCurrentReport, LookUp(colDailyReports, ID=ThisItem.DailyReportID)); Set(varCurrentCheck, LookUp(colChecks, ID=ThisItem.DailyReportCheckID)); Navigate(scrCheckDetail, ScreenTransition.Cover)
+                            Size: =11
+                            Text: ="Open check"
+                            Width: =110
+                            ZIndex: =4
 
             inEmpty As label:
                 Align: =Align.Center

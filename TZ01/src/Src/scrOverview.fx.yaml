@@ -155,7 +155,7 @@ scrOverview As screen:
                 Height: =34
                 OnSelect: =Navigate(scrMoQueue, ScreenTransition.Cover)
                 Size: =12
-                Text: ="FO responses (" & CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed))) & ")"
+                Text: ="My Queue (" & CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed))) & ")"
                 Width: =180
                 ZIndex: =2
 
@@ -179,7 +179,7 @@ scrOverview As screen:
                 PaddingRight: =14
                 PaddingTop: =8
                 Size: =11.5
-                Text: ="Clickable prototype. Open a report, then a check, to set MO reason & comment and flag items to FO. Send flagged items in one batch from the Check Analysis screen. Use FO responses to see replies in one place, or switch to Front Office (top right) to answer as FO."
+                Text: ="Clickable prototype. Open a report, then a check, to set MO reason & comment and flag items to FO. Send flagged items in one batch from the Check Analysis screen. Use My Queue to review findings, send to FO, and act on replies in one place, or switch to Front Office (top right) to answer as FO."
                 Width: =Parent.Width
                 ZIndex: =15
 

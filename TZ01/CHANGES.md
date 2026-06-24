@@ -1,5 +1,53 @@
 # TZ01 — change log
 
+## v3.2 delta (My Queue as an MO worklist + FO inbox parity)
+
+Ports the prototype's My-Queue rework to Power Apps. Touches only the MO queue
+(`scrMoQueue`), FO inbox (`scrInbox`), the check detail back-target, the overview
+entry button and `App.OnStart`.
+
+**Per-card "Show all columns".** The read-only cell table (`fo_rectable`) now carries
+its own toggle + "N of M cols" per card, driven by a `colExpanded` collection of
+expanded TxnIDs (`ThisItem.ID in colExpanded.Value`) instead of the screen-level
+`varShowAll`. The screen-level toggles were removed from the queue/inbox toolbars.
+(The check-detail screen keeps its screen-level toggle — one check, shared columns.)
+
+**MO reason on cards.** FO inbox and MO queue cards now show the MO **reason** next to
+the MO comment (`MO asks (reason) — comment` / `You asked … · reason: …`).
+
+**FO "Open check".** FO inbox cards gained an Open-check button → the read-only check
+detail (MO controls are already role-gated off for FO); the detail Back is now
+`If(varRole="FO", scrInbox, scrChecks)`.
+
+**MO worklist — "TO REVIEW — NOT SENT YET" section.** A new gallery in the queue lists
+current-day findings not yet sent to FO, each with the transaction table + full inline
+MO controls (reason dropdown keyed on the row's own check, comment, Flag-to-FO) +
+**Open check** + **Complete check** (enabled when every finding of that check is
+resolved and none await FO). A section-level **Send flagged to FO (N)** batches all
+flagged-not-sent findings (same per-reviewer grouping as Check Analysis). The per-check
+flow still works in parallel.
+
+**Resend with append.** On a replied card the MO adds a **new comment** (required;
+optional reason change) and Resend **appends** it to the `MOComment` thread
+(`[timestamp · reason] text`, like `FOComment`) and reopens the item for FO. Awaiting
+cards expose **Nudge FO** (re-notify, no new ask). Consistent with the detail screen.
+
+**Overview entry button** renamed **"FO responses (N)" → "My Queue (N)"**.
+
+**Decisions / simplifications (flagged)**
+- **Conversation thread:** Power Apps shows the MO-ask history and FO-reply history as
+  two stacked multiline labels (timestamps preserved) rather than the prototype's
+  interleaved bubbles — Power Fx can't cheaply interleave parsed text blobs.
+- **Resend validation:** requires a non-empty new comment; the prototype's extra
+  "must differ from last ask" check is dropped (MOComment is an append-only blob).
+- **MO reason dropdown** uses the single per-check `colReasonConfig` list (existing PA
+  model), not the prototype's hard-coded per-check arrays.
+
+**Verified:** `pac canvas pack` is clean and the source round-trips losslessly (311
+controls, +35). **Needs Power Apps Studio:** import-without-repair and the visual render
+of the nested galleries / per-card scroll.
+
+
 ## v3.1 delta (feature D — transaction detail in checks)
 
 In each check, MO **and** FO now see the transaction record: the **relevant columns

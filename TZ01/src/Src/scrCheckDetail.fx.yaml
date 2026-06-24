@@ -29,7 +29,7 @@ scrCheckDetail As screen:
                 Height: =34
                 HoverColor: =varTheme.White
                 HoverFill: =RGBA(255, 255, 255, 0.24)
-                OnSelect: =Navigate(scrChecks, ScreenTransition.UnCoverRight)
+                OnSelect: =Navigate(If(varRole="FO", scrInbox, scrChecks), ScreenTransition.UnCoverRight)
                 PressedColor: =varTheme.White
                 PressedFill: =RGBA(255, 255, 255, 0.24)
                 Size: =12
