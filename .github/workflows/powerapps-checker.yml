@@ -57,26 +57,9 @@ jobs:
         run: |
           echo "=== checker output tree ==="
           ls -R checkerout || true
-          for z in checkerout/*.zip; do [ -f "$z" ] && unzip -o "$z" -d checkerout/extracted >/dev/null; done
-          echo "=== SARIF findings (rule · level · message · location) ==="
-          for s in $(find checkerout -name "*.sarif"); do
-            echo "--- $s ---"
-            python3 - "$s" <<'PY' || cat "$s"
-import json,sys
-d=json.load(open(sys.argv[1]))
-for run in d.get("runs",[]):
-    for r in run.get("results",[]):
-        rule=r.get("ruleId","")
-        lvl=r.get("level","")
-        msg=(r.get("message",{}) or {}).get("text","")
-        locs=r.get("locations",[]) or []
-        where=""
-        if locs:
-            pl=locs[0].get("physicalLocation",{})
-            where=(pl.get("artifactLocation",{}) or {}).get("uri","")
-        print(f"[{lvl}] {rule} :: {msg} :: {where}")
-PY
-          done
+          for z in checkerout/*.zip; do [ -f "$z" ] && unzip -o "$z" -d checkerout/extracted >/dev/null || true; done
+          echo "=== SARIF findings ([level] ruleId :: message :: location) ==="
+          find checkerout -name "*.sarif" -print -exec sh -c 'jq -r ".runs[].results[]? | \"[\(.level)] \(.ruleId) :: \(.message.text) :: \(.locations[0].physicalLocation.artifactLocation.uri // \"\")\"" "$1" 2>/dev/null || cat "$1"' _ {} \; || true
 
       - name: Upload checker results
         if: always()
