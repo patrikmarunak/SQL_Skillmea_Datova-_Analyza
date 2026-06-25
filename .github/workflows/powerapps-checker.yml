@@ -1,10 +1,10 @@
 name: Power Apps Checker
 
-# Runs the Power Platform / App Checker (the same static-analysis engine as the
-# in-editor "App checker") against the TZ01 canvas app on every push, and uploads
-# the results (SARIF) as an artifact + prints a summary to the job log.
+# Runs the Power Platform Checker (the same static-analysis engine as the in-editor
+# "App checker") against the TZ01 canvas app on every push. Uses the pac CLI directly
+# (no marketplace actions) and prints the findings to the log + uploads the SARIF.
 #
-# SETUP: see TZ01/ci/SETUP.md  (service principal + 5 GitHub secrets + one-time solution export)
+# SETUP: see TZ01/ci/SETUP.md — 4 repo secrets (PP_ENV_URL, PP_APP_ID, PP_CLIENT_SECRET, PP_TENANT_ID).
 
 on:
   push:
@@ -13,53 +13,75 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  MSAPP: TZ01/solution/src/CanvasApps/mdlz_tz01_ff1a2_DocumentUri.msapp
+  GEO: UnitedStates
+
 jobs:
   checker:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
       - name: Install Power Platform CLI
-        uses: microsoft/powerplatform-actions/actions/tool-installer@v1
+        run: |
+          dotnet tool install --global Microsoft.PowerApps.CLI.Tool
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
-      # 1) Build the latest .msapp from the unpacked source (single source of truth)
       - name: Pack canvas app from source
-        shell: pwsh
-        run: |
-          pac canvas pack --sources TZ01/src --msapp "${{ env.MSAPP_IN_SOLUTION }}"
-        env:
-          # .msapp slot inside the unpacked solution (from the exported TZ01 CI solution)
-          MSAPP_IN_SOLUTION: TZ01/solution/src/CanvasApps/mdlz_tz01_ff1a2_DocumentUri.msapp
+        run: pac canvas pack --sources TZ01/src --msapp "$MSAPP"
 
-      # 2) Pack the unpacked solution (which now contains the fresh .msapp) into a zip
       - name: Pack solution
-        shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path out | Out-Null
+          mkdir -p out
           pac solution pack --zipfile out/TZ01_CI.zip --folder TZ01/solution/src --packagetype Unmanaged
 
-      # 3) Run the Power Platform Checker against the solution zip (uploads to the checker service)
-      - name: Run Power Apps / Solution Checker
-        uses: microsoft/powerplatform-actions/check-solution@v1
-        with:
-          path: out/TZ01_CI.zip
-          geo: UnitedStates
-          environment-url: ${{ secrets.PP_ENV_URL }}
-          app-id: ${{ secrets.PP_APP_ID }}
-          client-secret: ${{ secrets.PP_CLIENT_SECRET }}
-          tenant-id: ${{ secrets.PP_TENANT_ID }}
-          checker-logging-enabled: true
-          artifact-store-name: powerapps-checker-results
-          # report everything (don't fail the build on findings; we want to read them)
-          fail-on-power-apps-checker-analysis-error: false
+      - name: Authenticate (service principal)
+        run: |
+          pac auth create \
+            --environment "${{ secrets.PP_ENV_URL }}" \
+            --applicationId "${{ secrets.PP_APP_ID }}" \
+            --clientSecret "${{ secrets.PP_CLIENT_SECRET }}" \
+            --tenant "${{ secrets.PP_TENANT_ID }}"
 
-      - name: Upload checker results (SARIF)
+      - name: Run Power Apps / Solution Checker
+        run: pac solution check --path out/TZ01_CI.zip --geo "$GEO" --outputDirectory checkerout
+
+      - name: Print checker findings to log
+        if: always()
+        run: |
+          echo "=== checker output tree ==="
+          ls -R checkerout || true
+          for z in checkerout/*.zip; do [ -f "$z" ] && unzip -o "$z" -d checkerout/extracted >/dev/null; done
+          echo "=== SARIF findings (rule · level · message · location) ==="
+          for s in $(find checkerout -name "*.sarif"); do
+            echo "--- $s ---"
+            python3 - "$s" <<'PY' || cat "$s"
+import json,sys
+d=json.load(open(sys.argv[1]))
+for run in d.get("runs",[]):
+    for r in run.get("results",[]):
+        rule=r.get("ruleId","")
+        lvl=r.get("level","")
+        msg=(r.get("message",{}) or {}).get("text","")
+        locs=r.get("locations",[]) or []
+        where=""
+        if locs:
+            pl=locs[0].get("physicalLocation",{})
+            where=(pl.get("artifactLocation",{}) or {}).get("uri","")
+        print(f"[{lvl}] {rule} :: {msg} :: {where}")
+PY
+          done
+
+      - name: Upload checker results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: powerapps-checker-results
-          path: |
-            **/*.sarif
-            **/*.json
+          path: checkerout/**
           if-no-files-found: warn
