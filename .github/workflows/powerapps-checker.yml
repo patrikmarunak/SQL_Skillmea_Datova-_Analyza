@@ -29,8 +29,8 @@ jobs:
         run: |
           pac canvas pack --sources TZ01/src --msapp "${{ env.MSAPP_IN_SOLUTION }}"
         env:
-          # path to the .msapp slot inside the unpacked solution (set after the one-time export; see SETUP.md)
-          MSAPP_IN_SOLUTION: TZ01/solution/src/CanvasApps/REPLACE_WITH_APP_FILENAME.msapp
+          # .msapp slot inside the unpacked solution (from the exported TZ01 CI solution)
+          MSAPP_IN_SOLUTION: TZ01/solution/src/CanvasApps/mdlz_tz01_ff1a2_DocumentUri.msapp
 
       # 2) Pack the unpacked solution (which now contains the fresh .msapp) into a zip
       - name: Pack solution
@@ -44,7 +44,7 @@ jobs:
         uses: microsoft/powerplatform-actions/check-solution@v1
         with:
           path: out/TZ01_CI.zip
-          geo: Europe                              # change to your tenant's geo if not Europe
+          geo: UnitedStates
           environment-url: ${{ secrets.PP_ENV_URL }}
           app-id: ${{ secrets.PP_APP_ID }}
           client-secret: ${{ secrets.PP_CLIENT_SECRET }}
