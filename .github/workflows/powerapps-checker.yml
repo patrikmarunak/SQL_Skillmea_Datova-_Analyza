@@ -36,7 +36,10 @@ jobs:
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Pack canvas app from source
-        run: pac canvas pack --sources TZ01/src --msapp "$MSAPP" --overwrite
+        # pac 1.43.6 has no --overwrite, so pack to a fresh temp path then copy over the solution slot
+        run: |
+          pac canvas pack --sources TZ01/src --msapp /tmp/fresh.msapp
+          cp -f /tmp/fresh.msapp "$MSAPP"
 
       - name: Pack solution
         run: |
