@@ -1,0 +1,65 @@
+name: Power Apps Checker
+
+# Runs the Power Platform / App Checker (the same static-analysis engine as the
+# in-editor "App checker") against the TZ01 canvas app on every push, and uploads
+# the results (SARIF) as an artifact + prints a summary to the job log.
+#
+# SETUP: see TZ01/ci/SETUP.md  (service principal + 5 GitHub secrets + one-time solution export)
+
+on:
+  push:
+    branches:
+      - "claude/**"
+      - main
+  workflow_dispatch:
+
+jobs:
+  checker:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Power Platform CLI
+        uses: microsoft/powerplatform-actions/actions/tool-installer@v1
+
+      # 1) Build the latest .msapp from the unpacked source (single source of truth)
+      - name: Pack canvas app from source
+        shell: pwsh
+        run: |
+          pac canvas pack --sources TZ01/src --msapp "${{ env.MSAPP_IN_SOLUTION }}"
+        env:
+          # path to the .msapp slot inside the unpacked solution (set after the one-time export; see SETUP.md)
+          MSAPP_IN_SOLUTION: TZ01/solution/src/CanvasApps/REPLACE_WITH_APP_FILENAME.msapp
+
+      # 2) Pack the unpacked solution (which now contains the fresh .msapp) into a zip
+      - name: Pack solution
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          pac solution pack --zipfile out/TZ01_CI.zip --folder TZ01/solution/src --packagetype Unmanaged
+
+      # 3) Run the Power Platform Checker against the solution zip (uploads to the checker service)
+      - name: Run Power Apps / Solution Checker
+        uses: microsoft/powerplatform-actions/check-solution@v1
+        with:
+          path: out/TZ01_CI.zip
+          geo: Europe                              # change to your tenant's geo if not Europe
+          environment-url: ${{ secrets.PP_ENV_URL }}
+          app-id: ${{ secrets.PP_APP_ID }}
+          client-secret: ${{ secrets.PP_CLIENT_SECRET }}
+          tenant-id: ${{ secrets.PP_TENANT_ID }}
+          checker-logging-enabled: true
+          artifact-store-name: powerapps-checker-results
+          # report everything (don't fail the build on findings; we want to read them)
+          fail-on-power-apps-checker-analysis-error: false
+
+      - name: Upload checker results (SARIF)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: powerapps-checker-results
+          path: |
+            **/*.sarif
+            **/*.json
+          if-no-files-found: warn
