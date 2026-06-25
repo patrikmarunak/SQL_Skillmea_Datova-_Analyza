@@ -150,12 +150,12 @@ scrOverview As screen:
                 AlignInContainer: =AlignInContainer.Center
                 BorderColor: =varTheme.Line
                 BorderThickness: =1
-                Color: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, varTheme.White, varTheme.Muted)
-                Fill: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, varTheme.Green, varTheme.Card)
+                Color: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, varTheme.White, varTheme.Muted)
+                Fill: =If(CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed)))>0, varTheme.Green, varTheme.Card)
                 Height: =34
                 OnSelect: =Navigate(scrMoQueue, ScreenTransition.Cover)
                 Size: =12
-                Text: ="My Queue (" & CountRows(Filter(colTransactions, FlaggedToFO, FOSent, (FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn), Not(LookUp(colChecks, ID=DailyReportCheckID).Completed))) & ")"
+                Text: ="My Queue (" & CountRows(Filter(colTransactions, FlaggedToFO, FOSent, Not(LookUp(colChecks, ID=DailyReportCheckID).Completed))) & ")"
                 Width: =180
                 ZIndex: =2
 
