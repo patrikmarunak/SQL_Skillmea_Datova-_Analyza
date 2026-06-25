@@ -34,7 +34,7 @@ jobs:
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Pack canvas app from source
-        run: pac canvas pack --sources TZ01/src --msapp "$MSAPP"
+        run: pac canvas pack --sources TZ01/src --msapp "$MSAPP" --overwrite
 
       - name: Pack solution
         run: |
