@@ -29,8 +29,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install Power Platform CLI
+        # pinned to match the version used to author TZ01/src (source manifest format 0.24);
+        # newer pac (2.x) only reads format 0.30 and rejects this source with PA3002.
         run: |
-          dotnet tool install --global Microsoft.PowerApps.CLI.Tool
+          dotnet tool install --global Microsoft.PowerApps.CLI.Tool --version 1.43.6
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Pack canvas app from source
