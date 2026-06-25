@@ -350,14 +350,17 @@ scrChecks As screen:
                     Width: =80
                     ZIndex: =4
 
-    cfSubScrim As groupContainer.manualLayoutContainer:
+    cfSubScrim As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(20, 10, 30, 0.45)
         Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutJustifyContent: =LayoutJustifyContent.Center
         Visible: =varConfirmSubmit
         Width: =Parent.Width
         ZIndex: =900
 
         cfSubCard As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Center
             BorderColor: =varTheme.Line
             BorderThickness: =1
             Fill: =varTheme.Card
@@ -368,8 +371,6 @@ scrChecks As screen:
             PaddingRight: =22
             PaddingTop: =20
             Width: =460
-            X: =(Parent.Width - 460) / 2
-            Y: =(Parent.Height - 210) / 2
             ZIndex: =2
 
             cfSubTitle As label:

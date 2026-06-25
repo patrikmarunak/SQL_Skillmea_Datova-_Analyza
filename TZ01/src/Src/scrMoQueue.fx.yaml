@@ -823,14 +823,17 @@ scrMoQueue As screen:
                 Width: =Parent.Width
                 ZIndex: =6
 
-    cfMqScrim As groupContainer.manualLayoutContainer:
+    cfMqScrim As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(20, 10, 30, 0.45)
         Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutJustifyContent: =LayoutJustifyContent.Center
         Visible: =varQAction <> ""
         Width: =Parent.Width
         ZIndex: =900
 
         cfMqCard As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Center
             BorderColor: =varTheme.Line
             BorderThickness: =1
             Fill: =varTheme.Card
@@ -841,8 +844,6 @@ scrMoQueue As screen:
             PaddingRight: =22
             PaddingTop: =20
             Width: =460
-            X: =(Parent.Width - 460) / 2
-            Y: =(Parent.Height - 210) / 2
             ZIndex: =2
 
             cfMqTitle As label:

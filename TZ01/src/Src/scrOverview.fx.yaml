@@ -429,14 +429,17 @@ scrOverview As screen:
                             Width: =24
                             ZIndex: =4
 
-    ovLoadScrim As groupContainer.manualLayoutContainer:
+    ovLoadScrim As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(20, 10, 30, 0.35)
         Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutJustifyContent: =LayoutJustifyContent.Center
         Visible: =varLoading
         Width: =Parent.Width
         ZIndex: =950
 
         ovLoadCard As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Center
             BorderColor: =varTheme.Line
             BorderThickness: =1
             Fill: =varTheme.Card
@@ -447,8 +450,6 @@ scrOverview As screen:
             PaddingRight: =20
             PaddingTop: =20
             Width: =240
-            X: =(Parent.Width - 240) / 2
-            Y: =(Parent.Height - 90) / 2
             ZIndex: =1
 
             ovLoadTxt As label:

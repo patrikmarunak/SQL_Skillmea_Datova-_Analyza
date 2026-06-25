@@ -288,32 +288,26 @@ scrCheckDetail As screen:
                     Width: =Parent.TemplateWidth
                     ZIndex: =1
 
-                    tcReadWrap As groupContainer.manualLayoutContainer:
+                    "galCells As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
                         AlignInContainer: =AlignInContainer.Center
-                        Fill: =RGBA(0,0,0,0)
                         FillPortions: =2
                         Height: =36
+                        Items: |-
+                            =ForAll(varVisibleCols As V, {ColName: V.ColName, Align: V.Align, Value: Coalesce(LookUp(colTxnCells, TxnID = ThisItem.ID && ColName = V.ColName).Value, "—")})
+                        TemplatePadding: =0
+                        TemplateSize: =140
                         ZIndex: =1
 
-                        "galCells As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
-                            Height: =Parent.Height
-                            Items: |-
-                                =ForAll(varVisibleCols As V, {ColName: V.ColName, Align: V.Align, Value: Coalesce(LookUp(colTxnCells, TxnID = ThisItem.ID && ColName = V.ColName).Value, "—")})
-                            TemplatePadding: =0
-                            TemplateSize: =140
-                            Width: =Parent.Width
+                        galCellsLbl As label:
+                            Align: =If(ThisItem.Align="right", Align.Right, Align.Left)
+                            Color: =varTheme.Ink
+                            Height: =Parent.TemplateHeight
+                            Size: =11
+                            Text: =ThisItem.Value
+                            Width: =Parent.TemplateWidth - 8
+                            Wrap: =false
+                            X: =4
                             ZIndex: =1
-
-                            galCellsLbl As label:
-                                Align: =If(ThisItem.Align="right", Align.Right, Align.Left)
-                                Color: =varTheme.Ink
-                                Height: =Parent.TemplateHeight
-                                Size: =11
-                                Text: =ThisItem.Value
-                                Width: =Parent.TemplateWidth - 8
-                                Wrap: =false
-                                X: =4
-                                ZIndex: =1
 
                     tcMOReason As dropdown:
                         AlignInContainer: =AlignInContainer.Center
@@ -476,14 +470,17 @@ scrCheckDetail As screen:
                     Text: ="FO comment"
                     ZIndex: =1
 
-    cfCdScrim As groupContainer.manualLayoutContainer:
+    cfCdScrim As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(20, 10, 30, 0.45)
         Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutJustifyContent: =LayoutJustifyContent.Center
         Visible: =varConfirmComplete
         Width: =Parent.Width
         ZIndex: =900
 
         cfCdCard As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Center
             BorderColor: =varTheme.Line
             BorderThickness: =1
             Fill: =varTheme.Card
@@ -494,8 +491,6 @@ scrCheckDetail As screen:
             PaddingRight: =22
             PaddingTop: =20
             Width: =460
-            X: =(Parent.Width - 460) / 2
-            Y: =(Parent.Height - 210) / 2
             ZIndex: =2
 
             cfCdTitle As label:
