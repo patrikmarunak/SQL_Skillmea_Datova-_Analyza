@@ -64,3 +64,23 @@ The checker runs on a **solution**, so the app must live inside one. Do this onc
 5. uploads the **SARIF** report as an artifact and logs a summary.
 
 The assistant reads the run via GitHub (`actions_get` / `get_job_logs`) and fixes findings.
+
+---
+
+## ⚠️ Important limitation (what this checker does and does NOT catch)
+
+`pac solution check` runs the **Power Platform / Solution Checker** — great for solution-level
+rules (Dataverse security, performance, best-practices, unmanaged-layer hygiene). It returns a
+SARIF report and is a useful CI gate.
+
+It does **NOT** deeply analyze **canvas-app formulas**. It will **not** report the editor's
+"Name isn't valid", broken control/property bindings, invalid enum values (e.g.
+`LayoutDirection = Manual`) or layout-render errors. Those come from the **in-editor App Checker**,
+which has no headless/CLI equivalent. So a clean (0-issue) Solution Checker run does **not** mean
+the canvas app opens cleanly in Studio.
+
+**Practical split:**
+- **Solution Checker (this CI)** → solution/security/best-practice gate, run on every push.
+- **Canvas formula / render errors** → still need the editor's App Checker list (paste the
+  Issue + `control.property` rows) or a re-import test; the assistant fixes the root cause from that.
+
