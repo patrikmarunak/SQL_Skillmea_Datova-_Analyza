@@ -47,9 +47,11 @@ jobs:
           pac solution pack --zipfile out/TZ01_CI.zip --folder TZ01/solution/src --packagetype Unmanaged
 
       - name: Authenticate (service principal)
+        # tenant-scoped SP auth only — the checker is a tenant+geo service and does not need an
+        # environment binding. Passing --environment makes pac enumerate admin/environments, which
+        # the SP can't access unless it's a registered Power Platform management app.
         run: |
           pac auth create \
-            --environment "${{ secrets.PP_ENV_URL }}" \
             --applicationId "${{ secrets.PP_APP_ID }}" \
             --clientSecret "${{ secrets.PP_CLIENT_SECRET }}" \
             --tenant "${{ secrets.PP_TENANT_ID }}"
