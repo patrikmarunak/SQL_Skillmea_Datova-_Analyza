@@ -1,0 +1,562 @@
+# =============================================================================
+# TZ01 — Treasury Daily Transaction Review · APP BUILD CONFIG (single source of truth)
+# =============================================================================
+# One declarative file from which the generator emits the canvas app source
+# (App.OnStart + all screens) that `pac canvas pack` turns into TZ01.msapp.
+#
+# Design contract:
+#   - EVERYTHING configurable lives here: roles, deeplinks, patch/field ownership,
+#     confirm dialogs, attachments, notifications, per-check columns, reasons,
+#     theme, control set (classic vs modern) and the test-data seed.
+#   - The generator must not invent behaviour that is not stated here.
+#   - `data.mode` switches the emitted OnStart between the TEST seed below and
+#     the production SharePoint ClearCollects — same collections either way, so
+#     no screen formula changes between test and prod.
+#
+# Sources: TZ01_Prototype_Proposal_EN.docx (ch. 8.3, 12, 13, 14),
+#          TZ01/prototype/TZ01_prototype.html (behavioural spec),
+#          TZ01/CHANGES.md (Power Fx patterns already proven to pack/import).
+# =============================================================================
+
+meta:
+  name: TZ01 Daily Transaction Review
+  publisher: mdlz
+  version: 4.0.0
+  description: >
+    MO/FO daily review of FX & MM transaction listings: per-check findings,
+    MO reasons/comments, batched flag-to-FO routing, FO replies with append
+    history, completion & day sign-off, TOP report of late entries.
+
+# -----------------------------------------------------------------------------
+# BUILD — two emit targets from the same config
+# -----------------------------------------------------------------------------
+build:
+  # classic = current proven pipeline (.fx.yaml, source format 0.24, pac 1.43.6,
+  #           classic controls). Imports cleanly today; CI checker wired.
+  # modern  = modern source format (.pa.yaml / format 0.30+, pac >= 2.x) with
+  #           Fluent v9 ("modern") controls. Required for the modern-controls ask.
+  #           NOTE: format 0.24 + pac 1.43.6 CANNOT carry modern controls —
+  #           switching target to modern also means bumping the CI pac pin and
+  #           re-validating import (see config/README.md, "Build targets").
+  target: modern
+  fallbackTarget: classic          # generator must keep the classic emit working
+  appFeatures:
+    PaModernControls: true          # Studio setting: Modern controls and themes
+    ExplicitColumnNames: true
+    UseGUIDDataTypes: true
+  ci:
+    pacVersion-classic: "1.43.6"    # matches source format 0.24 (PA3002 otherwise)
+    pacVersion-modern: ">=2.0"      # modern source format
+    checker: pac solution check --geo UnitedStates
+
+  # Classic -> modern control mapping. "keep" = no modern equivalent, stay classic.
+  controlMapping:
+    label:            Text            # Fluent v9
+    text:             TextInput       # modern text input (single & multiline via Mode)
+    button:           Button          # modern button; icon via Icon property
+    dropdown:         Dropdown        # reason dropdowns
+    combobox:         ComboBox        # searchable pickers (FO reviewer)
+    checkbox:         CheckBox        # Flag-to-FO
+    datepicker:       DatePicker
+    badge:            Badge           # status chips (Awaiting you / Responded / …)
+    spinner:          Spinner         # loading overlay (replaces classic spinner label)
+    icon:             keep            # no modern icon control — classic icon stays
+    gallery:          keep            # no modern gallery — classic galleries stay
+    groupContainer:   keep            # auto-layout containers stay
+    rectangle:        keep
+    # Overlay dialogs: no modern Dialog control in canvas — keep the proven
+    # scrim + auto-layout-container pattern (see popups section).
+
+# -----------------------------------------------------------------------------
+# THEME — emitted as varTheme (first statement of App.OnStart); every control
+# references varTheme.X, never a baked-in RGBA.
+# -----------------------------------------------------------------------------
+theme:
+  Purple:  "#43164F"
+  PurpleD: "#34103D"
+  Blue:    "#1F60A8"
+  BlueL:   "#E9F2FB"
+  Orange:  "#BF5320"
+  Green:   "#3B6D11"
+  Red:     "#A32D2D"
+  Amber:   "#854F0B"
+  Ink:     "#2A2A2A"
+  Muted:   "#5A5A5E"
+  Faint:   "#9A9A9E"
+  Line:    "#E4E4E6"
+  Bg:      "#ECEEF1"
+  Card:    "#FFFFFF"
+  Thead:   "#EDEFF2"
+  TintAmber: "#FDF6E9"
+  TintRed:   "#FBECEC"
+  Scrim:     "RGBA(20,10,30,0.34)"
+  darkMode: false                    # explicitly out of scope (user decision)
+
+# -----------------------------------------------------------------------------
+# ROLES — identity, resolution order, capability matrix, control gating
+# -----------------------------------------------------------------------------
+roles:
+  resolution:
+    # first match wins
+    - source: deeplinkParam          # Param("Role") = "FO" forces FO view
+      formula: 'Param("Role")'
+    - source: reviewersList          # signer found in TZ01 Reviewers => FO
+      formula: >
+        If(!IsBlank(LookUp(colReviewers, Lower(Reviewer.Email) = Lower(User().Email)
+           && Active)), "FO", Blank())
+    - source: default
+      value: MO
+    - source: manualToggle           # header MO/FO segmented toggle, shown ONLY
+      visibleWhen: identityUnresolved  # when neither param nor list resolves (demo)
+  variable: varRole
+  identityLabel: '"Signed in as " & User().Email & " · " & varRole'
+
+  capabilities:
+    MO:
+      screens: [scrOverview, scrChecks, scrCheckDetail, scrMoQueue, scrTop]
+      canEdit:  [MOReason, MOComment, FlaggedToFO, FOReviewer]
+      actions:  [sendFlaggedToFO, resendToFO, nudgeFO, completeCheck, submitReport,
+                 attachEvidence, uploadInputFile]
+    FO:
+      screens: [scrInbox, scrCheckDetail(readonly), scrTop(readonly)]
+      canEdit:  [FOReason, FOComment]
+      actions:  [sendResponsesToMO, attachEvidence]
+      # FO NEVER edits MO fields, never completes checks, never submits reports.
+  gating:
+    # generator emits DisplayMode gates, not just Visible tricks (field-level security)
+    pattern: 'If(varRole = "MO" && <editableState>, DisplayMode.Edit, DisplayMode.View)'
+    foInputsOnMoScreens: DisplayMode.View     # FO reason/comment read-only in check detail
+    pastDays: DisplayMode.View                # non-current DayKey is always read-only
+
+# -----------------------------------------------------------------------------
+# DEEPLINKS — email -> app navigation (params read once in App.OnStart,
+# App.StartScreen switches on them)
+# -----------------------------------------------------------------------------
+deeplinks:
+  params: [DayKey, Report, Check, Screen, Role]
+  onStart: |
+    Set(varP_DayKey,  Param("DayKey"));
+    Set(varP_Report,  Param("Report"));    // FX | MM
+    Set(varP_Check,   Param("Check"));     // 1..6
+    Set(varP_Screen,  Param("Screen"));    // overview|checks|detail|moqueue|inbox
+    Set(varP_Role,    Param("Role"));
+    Set(varSelectedItem,
+        Coalesce(LookUp(colDailyItems, DayKey = varP_DayKey),
+                 First(SortByColumns(colDailyItems, "DayKey", SortOrder.Descending))));
+  startScreen: |
+    If(varP_Role = "FO" || varRole = "FO", scrInbox,
+       Switch(varP_Screen,
+              "detail",  scrCheckDetail,
+              "checks",  scrChecks,
+              "moqueue", scrMoQueue,
+              "inbox",   scrInbox,
+              scrOverview))
+  # Link formats the Power Automate flows put into notification emails:
+  emailLinks:
+    appBaseUrl: "https://apps.powerapps.com/play/e/{ENV_ID}/a/{APP_ID}"
+    notifyMO:   "?DayKey={DayKey}&Screen=overview"                       # ch.10: to overview, day pre-selected
+    notifyFO:   "?DayKey={DayKey}&Screen=inbox&Role=FO"                  # grouped per reviewer
+    checkDeep:  "?DayKey={DayKey}&Report={FX|MM}&Check={n}&Screen=detail"
+
+# -----------------------------------------------------------------------------
+# DATA — SharePoint lists (ch. 14), collections, and the test/prod switch
+# -----------------------------------------------------------------------------
+data:
+  mode: test                    # test | production  (build-time switch)
+  sharepoint:
+    siteUrl: "https://mdlz.sharepoint.com/sites/TZ01"   # placeholder — set at deploy
+    lists:                       # names must match ch. 14.1
+      dailyItems:    TZ01 Daily Item
+      dailyReports:  TZ01 Daily Reports
+      checks:        TZ01 Daily Report Checks
+      transactions:  TZ01 Daily Transactions
+      topReport:     TZ01 Top Report
+      reasonConfig:  TZ01 Reason Config
+      reviewers:     TZ01 Reviewers
+      checkColumns:  TZ01 Check Columns
+      inputFiles:    TZ01 Input Files          # document library (manual uploads)
+
+  collections:
+    # collection -> list binding + rename map (space-free working names)
+    colDailyItems:   { list: dailyItems }
+    colDailyReports: { list: dailyReports }
+    colChecks:       { list: checks,
+                       renames: { "Check Number": CheckNumber, "Check Name": CheckName,
+                                  "Report Type": ReportType, "Findings Count": FindingsCount,
+                                  "FO Flagged Count": FOFlaggedCount, "Not Compared": NotCompared,
+                                  "Is Late": IsLate, "Completed On": CompletedOn } }
+    colTransactions: { list: transactions,
+                       filter: 'DayKey = varSelectedItem.DayKey',
+                       renames: { "MO Reason": MOReason, "MO Comment": MOComment,
+                                  "Flagged To FO": FlaggedToFO, "FO Reviewer": FOReviewer,
+                                  "FO Sent": FOSent, "FO Sent On": FOSentOn,
+                                  "FO Reason": FOReason, "FO Comment": FOComment,
+                                  "FO Responded On": FORespondedOn,
+                                  "Is Late": IsLate, "Days Late": DaysLate,
+                                  "Report Type": ReportType, "Check Number": CheckNumber },
+                       localFlags: [_state, _isDirty] }   # app-only, never patched to SP
+    colTopReport:    { list: topReport }
+    colReasonConfig: { list: reasonConfig,
+                       renames: { "Report Type": ReportType, "Check Number": CheckNumber,
+                                  "Requires Comment": RequiresComment, "Auto Flag FO": AutoFlagFO } }
+    colReviewers:    { list: reviewers,
+                       renames: { "Report Type": ReportType, "Check Number": CheckNumber } }
+    colCheckColumns: { list: checkColumns,
+                       renames: { "Check Number": CheckNo, "Column Name": ColName } }
+    # derived / app-internal:
+    colAllColsForListing: { derived: sourceSchema }        # FX 34 + MM 19 headers
+    colTxnCells:          { derived: flatten }             # txn × visible column (Switch projection)
+    colExpanded:          { derived: empty }               # per-card show-all TxnIDs
+    colAudit:             { derived: auditSeed }           # live review log
+
+  # ---- derived status: NEVER stored by the app (concurrency-safe) ----
+  derivedStatus:
+    FOAnswered:   'FOSent && FORespondedOn >= FOSentOn'
+    checkStatus:  |
+      If(FindingsCount = 0 || Completed, "Completed",
+         If(CountRows(Filter(txns, FlaggedToFO && FOSent && !FOAnswered)) > 0,
+            "Awaiting FO review", "Awaiting MO review"))
+    canComplete:  |
+      FindingsCount > 0 && !Completed
+      && IsEmpty(Filter(txns, FlaggedToFO && !FOAnswered))
+      && IsEmpty(Filter(txns, IsBlank(MOReason)))
+    reportStatus: 'If(Submitted, "Completed", "In review")'
+
+# -----------------------------------------------------------------------------
+# PATCH CONTRACTS — field ownership + canonical write templates.
+# MO and FO never write the same column, so saves can run concurrently.
+# Every write is IfError-wrapped; every action appends an audit entry.
+# -----------------------------------------------------------------------------
+patches:
+  ownership:
+    MO: [MOReason, MOComment, FlaggedToFO, FOReviewer, FOSent, FOSentOn]     # + Checks.Completed/CompletedOn, Reports."Submitted by"/"Submitted On"
+    FO: [FOReason, FOComment, FORespondedOn]
+    app-never-writes: [Status, FOResponded]          # status is derived, not stored
+
+  wrapper: |
+    IfError( <patch> ,
+      Notify("Save failed — " & FirstError.Message, NotificationType.Error))
+
+  actions:
+    setMOReason:
+      screen: [scrCheckDetail, scrMoQueue]
+      write:  'Patch(txnSource, row, {MOReason: value})'
+      after:  |
+        // auto-flag when Reason Config row has AutoFlagFO (e.g. "Request FO explanation")
+        If(LookUp(colReasonConfig, Reason = value && AppliesToRow(ThisRecord)).AutoFlagFO
+           && !row.FlaggedToFO,
+           Patch(txnSource, row, {FlaggedToFO: true,
+                 FOReviewer: Coalesce(row.FOReviewer, DefaultReviewer(row))}))
+    setMOComment:
+      write:  'Patch(txnSource, row, {MOComment: value}); dirty-track only, no re-render'
+    toggleFlagToFO:
+      write: |
+        Patch(txnSource, row,
+          If(on, {FlaggedToFO: true,
+                  FOReviewer: Coalesce(row.FOReviewer, DefaultReviewer(row))},
+                 {FlaggedToFO: false, FOSent: false}))
+    sendFlaggedToFO:                       # batched; MO; confirm dialog first
+      scope: 'Filter(colTransactions, FlaggedToFO && !FOSent && !FOAnswered [&& report scope])'
+      validate: |
+        // mandatory comment where Reason Config says RequiresComment
+        IsEmpty(Filter(toSend, RequiresComment(MOReason) && IsBlank(MOComment)))
+      write: |
+        ForAll(toSend As T, Patch(txnSource, T,
+          {FOSent: true, FOSentOn: Now(),
+           MOComment: T.MOComment /* ask history handled as append convention */}));
+      notifyText: '"Sent " & n & " findings to " & m & " FO reviewers · " & m & " grouped emails"'
+      flowContract: app sets FOSent/FOSentOn + FOReviewer; the Notify-FO flow groups per reviewer and emails ONE deeplink each
+    foReply:
+      role: FO
+      write: |
+        Patch(txnSource, row,
+          {FOReason: reason,
+           FOComment: row.FOComment & Char(10) &
+                      "[" & Text(Now(),"dd mmm hh:mm") & " - " & reason & "] " & comment,   // append-only
+           FORespondedOn: Now()})
+    sendResponsesToMO:                     # batched; FO; confirm dialog first (v4)
+      scope: 'Filter(inboxItems, !FOAnswered && !IsBlank(pendingReason))'
+      write: 'ForAll(ready As R, foReply(R))'
+      notifyText: '"Sent " & n & " responses to MO"'
+    resendToFO:                            # MO not satisfied with reply
+      require: new MO comment (non-empty); optional reason change
+      write: |
+        Patch(txnSource, row,
+          {MOReason: newReason,
+           MOComment: row.MOComment & Char(10) &
+                      "[" & Text(Now(),"dd mmm hh:mm") & " - " & newReason & "] " & newComment,
+           FOSentOn: Now()})               // FOAnswered derives false -> reopens for FO
+    nudgeFO:                               # sent, no reply yet — re-notify only
+      write: 'Patch(txnSource, row, {FOSentOn: Now()})'
+    completeCheck:
+      guard: canComplete
+      write: 'Patch(checkSource, chk, {Completed: true, "Completed On": Now()})'
+    submitReport:
+      guard: 'every check of the report has checkStatus = "Completed"'
+      write: |
+        Patch(reportSource, rep, {Status: "Completed",
+              "Submitted by": User().Email, "Submitted On": Now()})
+    lateEntryToTop:
+      trigger: on completeCheck of an IsLate check (FX5 / MM4)
+      write: 'Collect/Patch TZ01 Top Report {TxnKey, ReportType, Transaction, ProductType, EnteredOn, ContractDate, DaysLate, Amount, Reason: MOReason, Month, ReportDate}'
+
+# -----------------------------------------------------------------------------
+# POPUPS — confirmation dialogs (scrim + centered auto-layout card; the proven
+# pattern from UX pass 1 + v4 prototype). All batched sends warn about
+# notification spam and ask the user to review ALL findings first.
+# -----------------------------------------------------------------------------
+popups:
+  pattern: verticalAutoLayoutContainer scrim (varTheme.Scrim) + card; OK runs the
+    action inside IfError; Cancel just hides. One overlay per screen, content set
+    by context variables (cfTitle/cfMsg/cfAction).
+  dialogs:
+    confirmSendToFO:
+      screens: [scrChecks, scrMoQueue]
+      title: Send flagged findings to Front Office?
+      message: >
+        This notifies {m} FO reviewer(s) with {n} flagged finding(s), grouped into
+        {m} email(s) (one per reviewer). Please make sure you have reviewed ALL
+        findings first — each reviewer gets a single notification, so sending them
+        together avoids spamming them.
+      ok: Yes, send to FO
+      cancel: Cancel — keep reviewing
+      action: sendFlaggedToFO
+    confirmSendToMO:
+      screens: [scrInbox]
+      title: Send your responses to Middle Office?
+      message: >
+        You are about to send {n} response(s) back to MO in one batch.
+        {remaining, if any: "{r} finding(s) still have no reason and will NOT be
+        sent yet." else: "This covers every finding awaiting you."}
+        Please review ALL findings above before sending — MO gets a single
+        grouped notification.
+      ok: Yes, send to MO
+      cancel: Cancel — keep reviewing
+      action: sendResponsesToMO
+    confirmComplete:
+      screens: [scrCheckDetail, scrMoQueue]
+      title: Mark check complete?
+      message: All findings of this check are resolved. Completing writes the
+        result to the review log and (for late-entry checks) to the TOP report.
+      ok: Complete check
+      action: completeCheck
+    confirmResend:
+      screens: [scrCheckDetail, scrMoQueue]
+      title: Resend to Front Office?
+      message: Your new comment is appended to the conversation and the finding
+        reopens for the FO reviewer.
+      ok: Resend
+      action: resendToFO
+    confirmSubmit:
+      screens: [scrChecks]
+      title: Submit report?
+      message: 'Submitting completes the {FX|MM} report for {date}. This is the day sign-off step and is recorded in the review log.'
+      ok: Submit report
+      action: submitReport
+
+# -----------------------------------------------------------------------------
+# ATTACHMENTS — evidence storage (ch. 14: native SP attachments, no Evidence lib)
+# -----------------------------------------------------------------------------
+attachments:
+  levels:
+    check:  { list: checks,      use: "check evidence; VITUS approval (FX Check 6)" }
+    report: { list: dailyReports, use: "report-level evidence" }
+    day:    { list: dailyItems,   use: "day-level evidence" }
+  pattern: >
+    Canvas apps can only write SP attachments through an Attachments control
+    hosted in an (invisible) Edit form bound to the target list item:
+    frmAttach.Item = LookUp(list, ID = targetId); user drops files into the
+    Attachments control; SubmitForm(frmAttach) persists; OnSuccess -> audit entry
+    + Notify. Read side: Gallery over targetItem.Attachments (Name, link).
+  vitus:
+    check: FX 6 (Hedging, Characteristics = EXCEPTIONAL)
+    rule:  approval uploaded by MO, or FO uploads the approval email; check cannot
+      complete while MOReason = "Missing approval (goes to FO)" and no attachment.
+  inputFiles:
+    library: inputFiles
+    fields:  { DayKey: text, FileKind: "FX Listing·MM Listing·ZTRM Export·US Bank Report·Other", ReportType: "FX|MM", ReceivedOn: now }
+    trigger: overview "Upload Input File" button (manual fallback when the mail
+      flow does not deliver the report; ch. 14.10)
+
+# -----------------------------------------------------------------------------
+# AUDIT + NOTIFICATIONS
+# -----------------------------------------------------------------------------
+audit:
+  collection: colAudit                 # {Seq, Stamp, Text}; newest first on overview
+  persistTo: 'Daily Reports "Review Log" (append) -> aggregates into Daily Item "Review Log"'
+  events: [validationSeed, sendFlaggedToFO, foReply, sendResponsesToMO, resendToFO,
+           nudgeFO, completeCheck, submitReport, attachmentAdded, inputFileUploaded]
+
+notifications:                          # app sets flags; Power Automate acts (ch. 10)
+  appSends: nothing directly (no Office365Outlook.SendEmail from the app)
+  flows:
+    NotifyMO:       { trigger: validation scripts completed, link: deeplinks.emailLinks.notifyMO }
+    NotifyFO:       { trigger: FOSent set true, grouping: one email per FOReviewer, link: deeplinks.emailLinks.notifyFO }
+    EscalationMOFO: { trigger: "18:00 CET, findings still awaiting action" }
+    AttachmentCopy: { trigger: report/evidence mail arrives }
+    MonthlyTopSnapshot: { trigger: monthly, source: IsLate transactions -> Top Report }
+
+# -----------------------------------------------------------------------------
+# QUICK-VIEW COLUMNS per check (ch. 8.3 — seeds TZ01 Check Columns / colCheckColumns)
+# Display names must match Daily Transactions display names (incl. "Oposit …").
+# -----------------------------------------------------------------------------
+quickViewColumns:
+  FX:
+    1: [Company Code, Transaction, Business Partner, Product Type, Name of Transaction Type, Traded Currency, Payment Amount in Payment Currency, Trader]
+    2: [Company Code, Transaction, Business Partner, Product Type, Name of Transaction Type, Traded Currency, Payment Amount in Payment Currency, Characteristics, Trader]
+    3: [Company Code, Transaction, Business Partner, Product Type, Name of Transaction Type]
+    4: [Company Code, Transaction, Business Partner, Traded Currency, Oposit Currency, Trader, Transaction Rate, Market spot rate]
+    5: [Company Code, Transaction, Business Partner, Contract Date, Entered On]
+    6: [Company Code, Transaction, Business Partner, Product Type, Name of Transaction Type, Trader]
+  MM:
+    1: [Company Code, Transaction, Product Type, Business Partner, Trader]
+    2: [Company Code, Transaction, Product Type, Business Partner, Amount/start, Entered On, Contract Date, Trader]
+    3: [Company Code, Transaction, Product Type, Trader]
+    4: [Company Code, Transaction, Product Type, Business Partner, Entered On, Contract Date, Trader]
+  rightAligned: [Payment Amount in Payment Currency, Oposit Amount, Premium Amount,
+                 Transaction Rate, Market spot rate, Amount/start, Interest Rate, Interest amount]
+  showAllToggle: per card (queues/inbox, colExpanded) and per screen (check detail, varShowAll)
+
+# -----------------------------------------------------------------------------
+# REASON DROPDOWNS — PRODUCTION seeds (proposal ch. 14.7.1/14.7.2 DRP lists).
+# These replace the demo reasons used so far. AutoFlagFO / RequiresComment drive
+# the auto-flag + mandatory-comment logic in patches.setMOReason / sendFlaggedToFO.
+# -----------------------------------------------------------------------------
+reasons:
+  FX:
+    1: { MO: [Missing mirror (FO query pre-selected)*, Request FO explanation*, Other*],
+         FO: [Master Data, Technical Issue, Other] }
+    2: { MO: [Exposure trade, Netting trade, Testing, Write-off IHC balance,
+              Dividend Repatriation, Request FO explanation*, Other*],
+         FO: [Internal deal not created, One leg of swap not traded, Other] }
+    3: { MO: [Manually resent from SAP, Technical issue - ticket created,
+              Request FO explanation*, Other*],
+         FO: [] }                        # ch. 14.7.1 — FX3 "does not go to FO"
+    4: { MO: [Hedge rate, Display issue, Request FO explanation*, Other*],
+         FO: [Wrong currency pair used, Wrong transaction rate used,
+              Special condition driven by market, Other] }
+    5: { MO: [Processing error, Confirmation sent late by the bank, Spot out of option,
+              Time zone difference, Technical issue, Other*],
+         FO: [Processing error, Confirmation sent late by the bank, Spot out of option,
+              Time zone difference, Technical issue, Driven by business, Other] }
+    6: { MO: [Approval attached (by MO), Missing approval (goes to FO)*,
+              Request FO explanation*, Other*],
+         FO: [Approval attached, Other] }
+  MM:
+    1: { MO: [Missing mirror (FO query pre-selected)*, Request FO explanation*, Other*],
+         FO: [Master Data, Technical Issue, Other] }
+    2: { MO: [Sum amount mismatch - corrected, Sum amount mismatch (goes to FO)*,
+              Request FO explanation*, Other*],
+         FO: [Additional trade booked, Correction made, Duplicate reversed, Other] }
+    3: { MO: [Request FO explanation*, Other*],
+         FO: [Deleted, Other] }
+    4: { MO: [Processing error, Confirmation sent late by bank, Time zone difference,
+              Technical issue, Other reason, Restricted cash,
+              Confirmation sent late by local Team, Missing information (goes to FO)*],
+         FO: [Processing error, Confirmation sent late by bank, Time zone difference,
+              Technical issue, Other reason, Restricted cash,
+              Confirmation sent late by local Team] }
+  legend: "* = AutoFlagFO where the name says 'goes to FO'/'FO query'/'Request FO explanation'; RequiresComment on 'Request FO explanation' and 'Other'"
+  autoReasons:
+    FX4: 'Hedge rate when (>5% && ValueDate-ContractDate > 1y) or TransactionType=107; else MO picks'
+    MM4: 'Credit line auto-set for ProductType 56D'
+  autoClear:
+    FX2: 'Characteristics = EXPOSURE -> not a real finding (auto-cleared)'
+  notCompared:
+    FX3: 'empty ZTRM_TRR_M export -> check Result = "Not compared", auto-completes'
+
+# -----------------------------------------------------------------------------
+# SCREENS — what the generator emits per screen (behaviour per prototype v4)
+# -----------------------------------------------------------------------------
+screens:
+  scrOverview:
+    role: MO
+    parts: [dayList, stepper(Imported/Validated/Completed), liveAuditFeed(colAudit),
+            reportsTable, MyQueueButton(badge = open FO queue count),
+            uploadInputFile, topReportButtons]
+  scrChecks:
+    role: MO
+    parts: [breadcrumb(Day›Report), search+statusFilter, checksTable(result colours,
+            tinted rows), foRoutingCounts, SendFlaggedToFO(+confirmSendToFO),
+            saveDraft, submitReport(+confirmSubmit), unsavedIndicator]
+  scrCheckDetail:
+    role: MO edit / FO+pastDay read-only
+    parts: [breadcrumb(Day›Report›Check), search+FOStateFilter(Unflagged/Queued/Sent/Replied),
+            showAllColumnsToggle(screen-level), nestedGallery(galTxn -> galHdr+galCells,
+            quick-view cols from colCheckColumns), MO edit zone(reason/comment/FO flag),
+            FO zone(read-only + state), conversationThread(MO asks + FO replies),
+            resend(+confirmResend)/nudge, attachEvidence(frmAttach), completeCheck(+confirmComplete),
+            notCompared/emptyStates]
+  scrMoQueue:
+    role: MO
+    parts: [search, section TO-REVIEW-NOT-SENT(cards: per-card show-all, MO controls,
+            flag, OpenCheck, CompleteCheck, section-level SendFlaggedToFO(+confirm)),
+            section REPLIED-READY(resend-with-append + confirm), section STILL-WITH-FO(nudge),
+            conversationThread, per-card recTable]
+  scrInbox:
+    role: FO
+    parts: [search, header count(pending/responded), screen-level SendResponsesToMO
+            (+confirmSendToMO; enabled when ≥1 reason picked; NO per-card send,
+            NO open-check), cards: per-card show-all recTable, MO reason badge,
+            conversationThread, reason+comment inputs, attach, MO-asked-again badge]
+  scrTop:
+    role: both (read-only)
+    parts: [search, sort(DaysLate/Amount/Date), lateEntriesTable, sendToPowerBI]
+  global:
+    loadingOverlay: Spinner + scrim while varLoading (production ClearCollects)
+    offlineBanner: '!Connection.Connected -> amber banner, edits kept locally'
+    unsavedIndicator: 'CountRows(Filter(colTransactions, _isDirty)) with Save draft'
+
+# -----------------------------------------------------------------------------
+# TEST DATA — seeded when data.mode = test. Same shapes as production collections
+# (all FX/MM source columns present via defaults + overrides, like the prototype's
+# fxRec/mmRec factories). Dates fixed so derived states are deterministic.
+# -----------------------------------------------------------------------------
+testData:
+  currentDay: { DayKey: "2026-02-16", ItemID: 41, Status: In review }
+  pastDays:
+    - { DayKey: "2026-02-13", ItemID: 40, submitted: true, lates: 2 }
+    - { DayKey: "2026-02-12", ItemID: 39, submitted: true, lates: 1 }
+  reviewers:
+    - { Reviewer: fo.fx@mdlz.com,       ReportType: FX,  Default: true }
+    - { Reviewer: fo.mm@mdlz.com,       ReportType: MM,  Default: true }
+    - { Reviewer: ivan.horvat@mdlz.com, ReportType: FX,  CheckNumber: 4 }
+    - { Reviewer: ana.kovac@mdlz.com,   ReportType: FX,  CheckNumber: 6 }
+    - { Reviewer: peter.cerny@mdlz.com, ReportType: MM }
+  recordDefaults:
+    fx: { CompanyCode: CH06, ProductType: 60B, ProductTypeName: FX Forward,
+          TransactionType: "102", BuySell: Buy, ValueDate: 2026-03-16,
+          TradedCurrency: EUR, OpositCurrency: USD, TransactionRate: 1.0850,
+          MarketSpotRate: 1.0850, ContractDate: 2026-02-16, ContractConclTime: "10:24",
+          Trader: M. Novak, Characteristics: Standard, TradingPlatformID: 360T,
+          EnteredOn: 2026-02-16, ActiveStatus: Active, ReleaseStatus: Released }
+    mm: { CompanyCode: CH06, ProductType: 55A, CompanyName: Mondelez CH,
+          TransactionCategory: Investment, BusinessPartner: I_DE01,
+          TransactionCurrency: EUR, InterestRate: 3.10, EnteredOn: 2026-02-16,
+          ContractDate: 2026-02-16, Trader: M. Novak, TermStart: 2026-02-16,
+          TermEnd: 2026-03-16, ActivityCategory: "100", ActiveStatus: Active }
+  findings:      # ID, check, source-column overrides, workflow state
+    - { ID: 101, FX: 2, TransactionNo: CH061000000070312, TxnTypeName: Forward-liquidity, Amount: -1000000, BusinessPartner: I_US10 }
+    - { ID: 102, FX: 2, TransactionNo: CH061000000070318, TxnTypeName: Forward-Exposure, Amount: -2000000, BusinessPartner: I_US10, Characteristics: Exposure }
+    - { ID: 103, FX: 3, TransactionNo: CH061000000088210, ProductType: 60C, BusinessPartner: I_US10, Amount: 3400000, state: notCompared-context }
+    - { ID: 104, FX: 4, TransactionNo: CH061000000091120, ProductType: 60C, TransactionRate: 1.1840, MarketSpotRate: 1.1010, MOReason: Hedge rate }
+    - { ID: 105, FX: 4, TransactionNo: CH061000000091150, ProductType: 60A, TransactionRate: 1.0710, MarketSpotRate: 0.9950,
+        MOReason: Other, MOComment: "Rate looks off, please explain.", FlaggedToFO: true, FOReviewer: ivan.horvat@mdlz.com }
+    - { ID: 106, FX: 5, TransactionNo: CH061000000072201, EnteredOn: 2026-02-12, ContractDate: 2026-02-09, Amount: 1500000,
+        MOReason: Processing error, IsLate: true, DaysLate: 3 }
+    - { ID: 107, FX: 6, TransactionNo: CH061000000088210, ProductType: 60C, Characteristics: Exceptional, Amount: 4200000,
+        MOReason: Request FO explanation, MOComment: "Attach Vitus approval please.", FlaggedToFO: true, FOReviewer: ana.kovac@mdlz.com }
+    - { ID: 108, MM: 1, TransactionNo: MM0000000055120, CompanyCode: SA04, Amount: 10000000,
+        MOReason: Request FO explanation, MOComment: "Borrowing leg not posted — please post or confirm.",
+        FlaggedToFO: true, FOSent: true, FOSentOn: 2026-02-15T16:00, FOReviewer: peter.cerny@mdlz.com,
+        FOReason: Technical Issue, FOComment: "Borrowing leg will be posted today, SAP ticket raised.", FORespondedOn: 2026-02-15T16:40 }
+    - { ID: 109, MM: 2, TransactionNo: MM0000000053088, ProductType: 53A, TransactionCurrency: USD, Amount: 25000000,
+        BusinessPartner: DealerBk, MOReason: Request FO explanation, MOComment: "Check US bank report / SAP upload.",
+        FlaggedToFO: true, FOSent: true, FOSentOn: 2026-02-16T09:10, FOReviewer: peter.cerny@mdlz.com }
+    - { ID: 110, MM: 4, TransactionNo: MM000000000056d44, ProductType: 56D, EnteredOn: 2026-02-14, ContractDate: 2026-02-11,
+        Amount: 8000000, MOReason: Credit line, IsLate: true, DaysLate: 3 }
+    - { ID: 111, MM: 4, TransactionNo: MM0000000055201, EnteredOn: 2026-02-13, ContractDate: 2026-02-10,
+        Amount: 5000000, MOReason: Processing error, MOComment: "Entered 3 days late.", IsLate: true, DaysLate: 3 }
+  auditSeed:
+    - { at: 2026-02-16T09:14, text: "FO query sent for CH06 DTCC deal by MO" }
+    - { at: 2026-02-16T08:31, text: "Automatic validation — FX 6 findings, MM 4 findings" }
