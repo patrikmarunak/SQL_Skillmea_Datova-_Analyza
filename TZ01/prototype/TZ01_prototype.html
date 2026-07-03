@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TZ01 · Treasury Transaction Review</title>
+<style>
+:root{
+  --purple:#43164f; --purple-d:#34103d; --blue:#1f60a8; --blue-l:#e9f2fb;
+  --orange:#bf5320; --green:#3b6d11; --red:#a32d2d; --amber:#854f0b;
+  --ink:#2a2a2a; --muted:#5a5a5e; --faint:#9a9a9e; --line:#e4e4e6;
+  --bg:#eceef1; --card:#ffffff; --thead:#edeff2;
+  --sans:"Segoe UI",Arial,Helvetica,sans-serif; --mono:"Consolas","Courier New",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:18px auto;padding:0 14px}
+.app{background:var(--card);border:1px solid #d8d8da;border-radius:12px;overflow:hidden;box-shadow:0 6px 26px rgba(40,10,55,.10)}
+.hdr{background:var(--purple);padding:13px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hdr .title{display:flex;align-items:center;gap:12px;color:#fff;font-size:16px;font-weight:600;letter-spacing:.04em}
+.hdr .right{display:flex;align-items:center;gap:14px}
+.hdr .logo{color:#fff;font-style:italic;font-size:14px;opacity:.96;white-space:nowrap}
+.hdr .logo small{font-style:normal;font-size:9px;opacity:.8}
+.backbtn{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.14);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12.5px;cursor:pointer}
+.backbtn:hover{background:rgba(255,255,255,.24)}
+.roleseg{display:flex;background:rgba(255,255,255,.13);border-radius:8px;padding:3px}
+.roleseg button{border:none;background:none;color:#e3d6ed;font-size:11.5px;padding:6px 14px;border-radius:6px;cursor:pointer;letter-spacing:.03em;font-weight:600}
+.roleseg button.on{background:#fff;color:var(--purple)}
+.roleseg button:not(.on):hover{color:#fff}
+.body{padding:16px 20px;min-height:320px}
+.subrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+.subrow .lead{font-size:13px;color:var(--muted)}
+.tools{display:flex;align-items:center;gap:10px}
+.ico-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #dcdce0;background:#fff;border-radius:6px;padding:6px 11px;font-size:12px;color:var(--muted);cursor:pointer}
+.ico-btn:hover{border-color:#bfbfc4}
+.ico-btn.disabled{color:#b6b6ba;cursor:default}
+.ico-btn.active{background:var(--purple);border-color:var(--purple);color:#fff}
+.refresh{color:var(--blue);cursor:pointer;display:inline-flex}.refresh:hover{opacity:.7}
+.eyebrow{font-size:11px;font-weight:600;color:#3a3a3a;letter-spacing:.05em;margin:0 0 9px}
+.split{display:flex;gap:14px;align-items:flex-start}
+.col-list{width:230px;flex:0 0 230px}
+.col-main{flex:1;min-width:0}
+.item{border-radius:8px;padding:10px 12px;margin-bottom:9px;cursor:pointer;border:1px solid var(--line);background:#fff;transition:.12s}
+.item:hover{border-color:#c7c7cc;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.item.sel{background:var(--purple);border-color:var(--purple)}
+.item .row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.item .d{font-size:12px;font-weight:600}.item .id{font-size:11px}
+.item.sel .d{color:#fff}.item.sel .id{color:#d9c9e2}
+.item:not(.sel) .d{color:var(--ink)}.item:not(.sel) .id{color:var(--faint)}
+.pill{border-radius:5px;padding:4px 9px;font-size:11.5px;margin-bottom:4px}
+.item.sel .pill{background:#fff;color:var(--purple)}
+.item:not(.sel) .pill{background:var(--blue-l);color:#2c4a63}
+.pill:last-child{margin-bottom:0}
+.stepper{display:flex;align-items:center;margin:6px 0 18px}
+.step{display:flex;align-items:center;gap:7px}
+.dot{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex:0 0 22px}
+.dot.on{background:var(--blue)}.dot.off{background:#cfd6dd}
+.step .lab{font-size:11.5px}.step .lab.on{color:var(--ink)}.step .lab.off{color:var(--faint)}
+.bar{flex:1;height:2px;margin:0 8px}.bar.on{background:var(--blue)}.bar.off{background:#cfd6dd}
+.logbox{background:#f6f6f7;border-radius:8px;padding:11px 13px;margin-bottom:14px}
+.logbox h4{margin:0 0 5px;font-size:11.5px;font-weight:600;color:#3a3a3a}
+.logbox p{margin:0;font-size:11px;color:var(--muted);line-height:1.65}
+.tbl-wrap{border:1px solid var(--line);border-radius:8px;overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:12px}
+thead.simple th{background:var(--thead);text-align:left;padding:9px 11px;font-weight:600;color:#4a4a4f}
+tbody td{padding:10px 11px;border-top:1px solid #efeff1}
+tr.click{cursor:pointer}tr.click:hover{background:#f3f8fd}
+.mono{font-family:var(--mono);font-size:10.5px}
+.dotr{font-size:13px;vertical-align:-1px;margin-right:2px}
+.r-red{color:var(--red)}.r-green{color:var(--green)}.r-amber{color:var(--amber)}.r-blue{color:var(--blue)}.r-orange{color:var(--orange)}
+.grp-read{background:#eef0f2;color:#5a5a5e}.grp-mo{background:#eaf1fb;color:var(--blue)}.grp-fo{background:#faf3e8;color:#a07b2e}
+.findtbl thead .grp th{padding:7px 11px;text-align:left;font-size:10.5px;font-weight:700}
+.findtbl thead .cols th{background:#f5f6f7;text-align:left;padding:8px 9px;font-weight:600;color:#4a4a4f;font-size:11px;white-space:nowrap}
+.findtbl td{vertical-align:middle}
+.sep{border-right:2px solid #d9d9dd}
+.inp,.sel{width:100%;border:1px solid #cfcfd2;border-radius:5px;padding:5px 8px;font-size:11.5px;font-family:var(--sans);color:var(--ink);background:#fff}
+.inp:focus,.sel:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(31,96,168,.12)}
+.sel.green{border-color:#bcd6bc;background:#f1f8f1;color:var(--green)}
+.fo-inp{border-color:#e0cfa8}.fo-inp:disabled{background:#faf8f3;color:#bdbdbd}
+.inp:disabled,.sel:disabled{background:#f3f3f4;color:#9a9a9e}
+.chk{width:17px;height:17px;cursor:pointer;accent-color:var(--blue)}
+.cellmin{min-width:135px}.cellmin-s{min-width:115px}
+.muted-note{font-size:10.5px;color:#8a8a8e;margin:9px 2px 0}.warn-note{color:var(--orange)}
+.attach-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#eef3f9;border:1px solid #d6e3f1;color:#345;border-radius:13px;padding:3px 10px;font-size:11px}
+.chip button{border:none;background:none;color:#789;cursor:pointer;font-size:13px;line-height:1}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .ic{font-size:30px;color:var(--green);margin-bottom:8px}
+.empty h3{margin:0 0 4px;font-size:15px;color:var(--ink)}.empty p{margin:0;font-size:12.5px}
+.foot{background:#fafafa;border-top:1px solid var(--line);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.foot .left{font-size:11px;color:#8a8a8e;display:flex;align-items:center;gap:6px}
+.foot .right{display:flex;gap:9px;flex-wrap:wrap}
+.btn{border:none;border-radius:6px;padding:8px 17px;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-purple{background:var(--purple);color:#fff}.btn-blue{background:var(--blue);color:#fff}
+.btn-orange{background:var(--orange);color:#fff}.btn-ghost{background:#fff;border:1px solid #dcdce0;color:var(--muted)}
+.btn-green{background:var(--green);color:#fff}.btn:hover{filter:brightness(1.06)}
+.btn[disabled]{background:#fff;border:1px solid var(--line);color:#b6b6ba;cursor:not-allowed;filter:none}
+.linklike{font-size:11px;color:var(--orange);border:1px solid #e6c4b0;background:#fff;border-radius:5px;padding:4px 9px;cursor:pointer}
+.linklike:hover{background:#fbf2ec}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#23123a;color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.demo-tag{font-size:9.5px;letter-spacing:.05em;background:rgba(255,255,255,.16);color:#fff;border-radius:4px;padding:2px 7px;text-transform:uppercase}
+.help{font-size:11.5px;color:var(--muted);background:#fbf7fe;border:1px solid #ead9f3;border-radius:8px;padding:9px 13px;margin-bottom:14px}
+.help b{color:var(--purple)}
+.inbox-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.inbox-head .cnt{font-size:12px;color:var(--muted)}
+.fcard{border:1px solid var(--line);border-radius:9px;padding:13px 15px;margin-bottom:11px;background:#fff}
+.fcard.done{background:#fafbfc}
+.fcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px}
+.fcard .where{font-size:12.5px;color:var(--ink);font-weight:600;line-height:1.5}
+.fcard .where span{color:var(--muted);font-weight:400}
+.fcard .ask{background:#f6f6f7;border-radius:7px;padding:9px 11px;font-size:11.5px;color:var(--muted);margin-bottom:11px}
+.fcard .ask b{color:var(--ink)}
+.fcard .resp{display:grid;grid-template-columns:200px 1fr auto;gap:9px;align-items:end}
+.fcard .fld label{display:block;font-size:10px;color:#a07b2e;margin-bottom:3px}
+.deeplink{font-size:10.5px;color:var(--blue);display:inline-flex;align-items:center;gap:4px}
+.badge{display:inline-block;border-radius:11px;padding:2px 10px;font-size:11px;white-space:nowrap}
+.b-amber{background:#fdf0db;color:var(--amber)}.b-green{background:#e7f3e7;color:var(--green)}
+.topnote{font-size:11.5px;color:var(--muted);margin:0 0 12px;display:flex;gap:6px;align-items:flex-start}
+svg{display:block}
+@media(max-width:820px){.split{flex-direction:column}.col-list{width:100%;flex:auto}.fcard .resp{grid-template-columns:1fr}}
+
+/* ===== UX pass 2 (B filter/search/sort · C responsive · E breadcrumb/unsaved · F states/audit · G theme) ===== */
+:root{ --tint-amber:#fdf6e9; --tint-red:#fbecec; --tint-grey:#f6f6f7; --scrim:rgba(20,10,30,.34); }
+.crumb{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:0 0 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.crumb .sepc{color:var(--faint)}
+.toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 12px}
+.toolbar .search input{border:1px solid #cfcfd2;border-radius:6px;padding:7px 11px;font-size:12px;font-family:var(--sans);color:var(--ink);min-width:230px}
+.toolbar .search input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(31,96,168,.12)}
+.toolbar select.fsel{border:1px solid #cfcfd2;border-radius:6px;padding:7px 10px;font-size:12px;font-family:var(--sans);color:var(--ink);background:#fff}
+.toolbar label.slab{font-size:11.5px;color:var(--muted)}
+.toolbar .spacer{flex:1}
+.toolbar .count{font-size:11.5px;color:var(--muted)}
+.unsaved{color:var(--amber);font-weight:600}
+.offline-banner{display:none;background:var(--amber);color:#fff;font-size:11.5px;padding:7px 20px}
+body.offline .offline-banner{display:block}
+#loading{position:fixed;inset:0;background:var(--scrim);display:none;align-items:center;justify-content:center;z-index:60}
+#loading.show{display:flex}
+#loading .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 30px;font-size:13px;color:var(--ink);box-shadow:0 10px 30px rgba(0,0,0,.2);display:flex;align-items:center;gap:12px}
+.spin{width:18px;height:18px;border:2.5px solid #d8d2e0;border-top-color:var(--purple);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.logfeed{margin:0;padding:0;list-style:none}
+.logfeed li{font-size:11px;color:var(--muted);line-height:1.7;display:flex;gap:8px}
+.logfeed li .t{color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rec-wrap{margin:6px 0 10px}
+.rec-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:4px}
+.rec-bar .ico-btn{padding:4px 9px;font-size:11px}
+.rec-cnt{font-size:10.5px;color:var(--muted)}
+/* confirm-before-send dialog (avoids notification spam — one batched send per queue) */
+#confirm{position:fixed;inset:0;background:var(--scrim);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
+#confirm.show{display:flex}
+#confirm .cf-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;max-width:460px;width:100%;box-shadow:0 16px 44px rgba(0,0,0,.28)}
+#confirm .cf-title{font-size:15px;font-weight:600;color:var(--ink);margin:0 0 9px;display:flex;align-items:center;gap:10px}
+#confirm .cf-title .ic{color:var(--amber);flex:0 0 auto;display:inline-flex}
+#confirm .cf-msg{font-size:12.5px;color:var(--muted);line-height:1.65;margin-bottom:18px}
+#confirm .cf-msg b{color:var(--ink)}
+#confirm .cf-actions{display:flex;justify-content:flex-end;gap:9px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="app">
+    <div class="hdr">
+      <div class="title">
+        <button class="backbtn" id="backBtn" style="display:none" onclick="App.back()">‹ Back</button>
+        <span id="hdrTitle">TZ01 DAILY TRANSACTION REVIEW</span>
+        <span class="demo-tag">prototype</span>
+      </div>
+      <div class="right">
+        <div class="roleseg">
+          <button data-role="MO" class="on" onclick="setRole('MO')">Middle Office</button>
+          <button data-role="FO" onclick="setRole('FO')">Front Office</button>
+        </div>
+        <div class="logo">Mondelēz <small>International</small></div>
+      </div>
+    </div>
+    <div class="offline-banner">● Offline — showing the last loaded data. Changes are saved locally and sync when you reconnect.</div>
+    <div class="body" id="screen"></div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="loading"><div class="card"><span class="spin"></span> Loading data…</div></div>
+<div id="confirm"><div class="cf-card">
+  <div class="cf-title"><span class="ic" id="cfIcon"></span><span id="cfTitle"></span></div>
+  <div class="cf-msg" id="cfMsg"></div>
+  <div class="cf-actions"><button class="btn btn-ghost" onclick="hideConfirm()">Cancel — keep reviewing</button><button class="btn btn-blue" id="cfOk"></button></div>
+</div></div>
+
+<script>
+const I = {
+  check:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  chevR:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  refresh:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>',
+  upload:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><polyline points="7 9 12 4 17 9"/><path d="M4 20h16"/></svg>',
+  clip:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5 12.5 20a5 5 0 0 1-7-7L14 4.5a3.5 3.5 0 0 1 5 5L10.5 18a2 2 0 0 1-3-3l8-8"/></svg>',
+  file:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2Z"/></svg>',
+  ext:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>',
+  chart:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="13" y="6" width="3" height="11"/></svg>',
+  info:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+  link:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 0 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>',
+  send:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9 22 2z"/></svg>',
+  inbox:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
+  warn:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+};
+const REASONS = {
+  fx1:["Missing twin → SAP ticket","Master data","Technical","Other"],
+  fx2:["Master data","Request FO explanation","Technical","Other"],
+  fx3:["Request FO explanation","Reported in export","Not compared","Other"],
+  fx4:["Hedge rate","Possible hedge rate","Display issue","Other"],
+  fx5:["Late booking","System delay","Holiday / weekend","Other"],
+  fx6:["Request FO explanation","VITUS approved","Exceptional","Other"],
+  mm1:["Request FO explanation","Master data → SAP ticket","Technical","Other"],
+  mm2:["Request FO explanation","US bank mismatch","SAP upload pending","Other"],
+  mm3:["Product type not permitted","Request FO explanation","Other"],
+  mm4:["Late booking","Credit line","System delay","Other"],
+};
+const FO_REASONS=["Confirmed correct","Corrected in SAP","Hedge","Will fix in SAP","Other"];
+function nowLabel(){const d=new Date();return ("0"+d.getDate()).slice(-2)+" Feb "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);}
+// ===== master listing columns (source schema from SAP) =====
+const FX_COLS=[
+ {k:"companyCode",l:"Company Code"},{k:"transaction",l:"Transaction"},{k:"businessPartner",l:"Business Partner"},
+ {k:"productType",l:"Product Type"},{k:"productTypeName",l:"Product type name"},{k:"transactionType",l:"Transaction Type"},
+ {k:"transactionTypeName",l:"Name of Transaction Type"},{k:"buySell",l:"Buy/Sell Indicator"},{k:"valueDate",l:"Value Date"},
+ {k:"expirationDate",l:"Expiration Date"},{k:"tradedCurrency",l:"Traded Currency"},{k:"paymentAmount",l:"Payment Amount in Payment Currency",a:"right"},
+ {k:"oppositeCurrency",l:"Oposit Currency"},{k:"oppositeAmount",l:"Oposit Amount",a:"right"},{k:"premiumCurrency",l:"Premium Currency"},
+ {k:"premiumAmount",l:"Premium Amount",a:"right"},{k:"transactionRate",l:"Transaction Rate",a:"right"},{k:"leadingCurrency",l:"Leading Currency"},
+ {k:"followingCurrency",l:"Following Currency"},{k:"contractDate",l:"Contract Date"},{k:"contractConclTime",l:"Contract.Concl.Time"},
+ {k:"trader",l:"Trader"},{k:"reference",l:"Reference"},{k:"assignment",l:"Assignment"},{k:"characteristics",l:"Characteristics"},
+ {k:"internalReference",l:"Internal Reference"},{k:"tradingPlatformId",l:"Trading Platform ID"},{k:"hedgeRequest",l:"Hedge request"},
+ {k:"enteredOn",l:"Entered On"},{k:"expireExercise",l:"Expire/Exercise"},{k:"activeStatus",l:"Active Status"},
+ {k:"releaseStatus",l:"Release Status"},{k:"activeActivity",l:"Active activity"},{k:"marketSpotRate",l:"Market spot rate",a:"right"},
+];
+const MM_COLS=[
+ {k:"companyCode",l:"Company Code"},{k:"transaction",l:"Transaction"},{k:"productType",l:"Product Type"},{k:"companyName",l:"Company Name"},
+ {k:"transactionCategory",l:"Transaction category"},{k:"businessPartner",l:"Business Partner"},{k:"transactionCurrency",l:"Transaction Currency"},
+ {k:"amountStart",l:"Amount/start",a:"right"},{k:"interestRate",l:"Interest Rate",a:"right"},{k:"interestAmount",l:"Interest amount",a:"right"},
+ {k:"enteredOn",l:"Entered On"},{k:"contractDate",l:"Contract Date"},{k:"trader",l:"Trader"},{k:"termStart",l:"Term Start"},
+ {k:"termEnd",l:"Term End"},{k:"changedOn",l:"Changed On"},{k:"activityCategory",l:"Activity Category"},
+ {k:"activityCategoryName",l:"Activity Categ. Name"},{k:"activeStatus",l:"Active status"},
+];
+const COLMAP={fx:FX_COLS,mm:MM_COLS};
+function listOf(chk){return (chk.id||chk).toString().startsWith("mm")?"mm":"fx";}
+function colDef(listKey,k){return (COLMAP[listKey]||FX_COLS).find(c=>c.k===k)||{k:k,l:k};}
+// per-check displayed columns: relevant subset, or the full record when App.showAll is on
+function colsFor(chk){const all=COLMAP[listOf(chk)];return App.showAll?all:(chk.cols||[]).map(k=>colDef(listOf(chk),k));}
+function txnNo(fd){return cellText(fd.rec.transaction);}
+function recCell(fd,c){const raw=fd.rec[c.k];const o=(raw&&typeof raw==="object")?raw:{t:(raw===undefined||raw==="")?"\u2014":raw};return o;}
+
+// ===== full-record factories (source schema; pass overrides for the meaningful fields) =====
+function fxRec(o){return Object.assign({companyCode:"CH06",transaction:"\u2014",businessPartner:"\u2014",productType:"60B",productTypeName:"FX Forward",transactionType:"102",transactionTypeName:"Forward",buySell:"Buy",valueDate:"16 Mar 2026",expirationDate:"\u2014",tradedCurrency:"EUR",paymentAmount:"0",oppositeCurrency:"USD",oppositeAmount:"0",premiumCurrency:"\u2014",premiumAmount:"\u2014",transactionRate:"1.0850",leadingCurrency:"EUR",followingCurrency:"USD",contractDate:"16 Feb 2026",contractConclTime:"10:24",trader:"M. Novak",reference:"\u2014",assignment:"\u2014",characteristics:"Standard",internalReference:"\u2014",tradingPlatformId:"360T",hedgeRequest:"\u2014",enteredOn:"16 Feb 2026",expireExercise:"\u2014",activeStatus:"Active",releaseStatus:"Released",activeActivity:"Contract",marketSpotRate:"1.0850"},o||{});}
+function mmRec(o){return Object.assign({companyCode:"CH06",transaction:"\u2014",productType:"55A",companyName:"Mondelez CH",transactionCategory:"Investment",businessPartner:"I_DE01",transactionCurrency:"EUR",amountStart:"0",interestRate:"3.10%",interestAmount:"\u2014",enteredOn:"16 Feb 2026",contractDate:"16 Feb 2026",trader:"M. Novak",termStart:"16 Feb 2026",termEnd:"16 Mar 2026",changedOn:"\u2014",activityCategory:"100",activityCategoryName:"Contract",activeStatus:"Active"},o||{});}
+
+function f(rec, opt){opt=opt||{};return{rec:rec,mo:{reason:opt.reason||"",comment:opt.comment||"",asks: opt.sent?[{reason:opt.reason||"",comment:opt.comment||"",at:opt.askAt||"earlier"}]:[]},fo:{flagged:!!opt.flagged,sent:!!opt.sent,responded:!!opt.responded,reason:opt.foReason||"",comment:opt.foComment||"",reviewer:opt.reviewer||"",replies: opt.responded?[{reason:opt.foReason||"",comment:opt.foComment||"",at:opt.foAt||"earlier"}]:[]}};}
+function foDefault(chkId){return chkId.startsWith("mm")?"fo.mm@mdlz.com":"fo.fx@mdlz.com";}
+
+const FX = {key:"fx",name:"FX Listing",id:41,date:"16 Feb 2026",submitted:false,checks:[
+  {id:"fx1",n:"Check 1",scope:"Internal deals net to zero",cols:["companyCode","transaction","businessPartner","productType","transactionTypeName","tradedCurrency","paymentAmount","trader"],findings:[],completed:false,att:[]},
+  {id:"fx2",n:"Check 2",scope:"CH06 pairwise offset",cols:["companyCode","transaction","businessPartner","productType","transactionTypeName","tradedCurrency","paymentAmount","characteristics","trader"],completed:false,att:[],findings:[
+    f(fxRec({transaction:"CH06...070312",transactionTypeName:"Forward-liquidity",productType:"60B",characteristics:"Standard",paymentAmount:{t:"-1 000 000",c:"ink"},tradedCurrency:"EUR",businessPartner:"I_US10"})),
+    f(fxRec({transaction:"CH06...070318",transactionTypeName:"Forward-Exposure",productType:"60B",characteristics:"Exposure",paymentAmount:{t:"-2 000 000",c:"ink"},tradedCurrency:"EUR",businessPartner:"I_US10"})),
+  ]},
+  {id:"fx3",n:"Check 3",scope:"DTCC transactions",cols:["companyCode","transaction","businessPartner","productType","transactionTypeName"],completed:false,att:[],notCompared:true,findings:[
+  ],note:"Reference export (ZTRM) was empty today, so DTCC deals could not be compared — recorded as Not compared for audit."},
+  {id:"fx4",n:"Check 4",scope:"Spot vs transaction rate ±5%",cols:["companyCode","transaction","businessPartner","tradedCurrency","oppositeCurrency","trader","transactionRate","marketSpotRate"],completed:false,att:[],findings:[
+    f(fxRec({transaction:"CH06...091120",productType:"60C",transactionType:"102",transactionRate:{t:"1.1840",c:"ink"},marketSpotRate:{t:"1.1010"},tradedCurrency:"USD"}),{reason:"Hedge rate"}),
+    f(fxRec({transaction:"CH06...091150",productType:"60A",transactionType:"\u2014",transactionRate:{t:"1.0710",c:"red"},marketSpotRate:{t:"0.9950"},tradedCurrency:"USD"}),{reason:"Other",comment:"Rate looks off, please explain.",flagged:true,reviewer:"ivan.horvat@mdlz.com"}),
+  ],note:"Transaction rate deviates more than ±5% from the market spot rate."},
+  {id:"fx5",n:"Check 5",scope:"Late entry → TOP report",isLate:true,cols:["companyCode","transaction","businessPartner","contractDate","enteredOn"],completed:false,att:[],findings:[
+    f(fxRec({transaction:"CH06...072201",productType:"60B",enteredOn:{t:"12 Feb 2026",c:"red"},contractDate:"09 Feb 2026",paymentAmount:{t:"1 500 000",c:"ink"}}),{reason:"Late booking",comment:"Entered 3 days after contract."}),
+  ],note:"MO reason for a late entry is also written to the TOP report against this transaction."},
+  {id:"fx6",n:"Check 6",scope:"Hedging (exceptional → VITUS)",cols:["companyCode","transaction","businessPartner","productType","transactionTypeName","trader"],completed:false,att:[],attachLabel:"Attach VITUS approval / evidence",findings:[
+    f(fxRec({transaction:"CH06...088210",productType:"60C",valueDate:"16 Mar 2026",characteristics:{t:"Exceptional",c:"red"},paymentAmount:{t:"4 200 000",c:"ink"}}),{reason:"Request FO explanation",comment:"Attach Vitus approval please.",flagged:true,reviewer:"ana.kovac@mdlz.com"}),
+  ],note:"VITUS approval is uploaded via the check attachment (MO or FO)."},
+]};
+const MM = {key:"mm",name:"MM Listing",id:42,date:"16 Feb 2026",submitted:false,checks:[
+  {id:"mm1",n:"Check 1",scope:"55A intercompany both legs",cols:["companyCode","transaction","productType","businessPartner","trader"],completed:false,att:[],findings:[
+    f(mmRec({transaction:"MM...055120",companyCode:"SA04",businessPartner:"I_DE01",transactionCategory:{t:"Investment"},amountStart:{t:"10 000 000",c:"ink"},transactionCurrency:"EUR"}),{reason:"Request FO explanation",comment:"Borrowing leg not posted — please post or confirm.",flagged:true,sent:true,responded:true,foReason:"Will fix in SAP",foComment:"Borrowing leg will be posted today, SAP ticket raised.",foAt:"15 Feb 16:40",reviewer:"peter.cerny@mdlz.com"}),
+  ],note:"Root cause is always technical / master data → SAP ticket."},
+  {id:"mm2",n:"Check 2",scope:"53A commercial paper sum",cols:["companyCode","transaction","productType","businessPartner","amountStart","enteredOn","contractDate","trader"],completed:false,att:[],findings:[
+    f(mmRec({transaction:"MM...053088",productType:"53A",transactionCurrency:"USD",amountStart:{t:"25 000 000",c:"ink"},businessPartner:"DealerBk",transactionCategory:"Commercial paper"}),{reason:"Request FO explanation",comment:"Check US bank report / SAP upload.",flagged:true,sent:true,reviewer:"peter.cerny@mdlz.com"}),
+  ],note:"US Bank Dealer Performance Report is not yet an input — source and format to be defined.",warn:true},
+  {id:"mm3",n:"Check 3",scope:"No transaction under 56A/56B/56C",cols:["companyCode","transaction","productType","trader"],findings:[],completed:false,att:[]},
+  {id:"mm4",n:"Check 4",scope:"Late entry (56D → Credit line)",isLate:true,cols:["companyCode","transaction","productType","businessPartner","enteredOn","contractDate","trader"],completed:false,att:[],findings:[
+    f(mmRec({transaction:"MM...056d44",productType:"56D",transactionCategory:"Credit line",enteredOn:{t:"14 Feb 2026",c:"red"},contractDate:"11 Feb 2026",amountStart:{t:"8 000 000",c:"ink"}}),{reason:"Credit line"}),
+    f(mmRec({transaction:"MM...055201",productType:"55A",enteredOn:{t:"13 Feb 2026",c:"red"},contractDate:"10 Feb 2026",amountStart:{t:"5 000 000",c:"ink"}}),{reason:"Late booking",comment:"Entered 3 days late."}),
+  ],note:"Reason flows to the TOP report. For 56D the reason is auto-set to “Credit line”."},
+]};
+
+function pastReport(src,id,date,lates){
+  const isMM=src.key==="mm";
+  const mk=(l)=>{const base={transaction:l.txn,productType:l.pt,enteredOn:{t:l.entered,c:"red"},contractDate:l.contract};
+    if(isMM){base.amountStart={t:l.amount,c:"ink"};return f(mmRec(base),{reason:l.reason});}
+    base.paymentAmount={t:l.amount,c:"ink"};return f(fxRec(base),{reason:l.reason});};
+  const checks = src.checks.map(c=>({id:c.id,n:c.n,scope:c.scope,cols:c.cols,isLate:c.isLate,completed:true,att:[],
+    findings: c.isLate ? lates.map(mk) : []
+  }));
+  return {key:src.key,name:src.name,id,date,submitted:true,checks};
+}
+const DAYS = [
+  {date:"16 Feb 2026",id:41,current:true,reports:{fx:FX,mm:MM}},
+  {date:"13 Feb 2026",id:40,current:false,reports:{
+    fx:pastReport(FX,40,"13 Feb 2026",[{txn:"CH06...071980",pt:"60B",entered:"13 Feb 2026",contract:"11 Feb 2026",amount:"900 000",reason:"Late booking"}]),
+    mm:pastReport(MM,40,"13 Feb 2026",[{txn:"MM...056d12",pt:"56D",entered:"13 Feb 2026",contract:"10 Feb 2026",amount:"6 000 000",reason:"Credit line"}]),
+  }},
+  {date:"12 Feb 2026",id:39,current:false,reports:{
+    fx:pastReport(FX,39,"12 Feb 2026",[{txn:"CH06...071640",pt:"60A",entered:"12 Feb 2026",contract:"06 Feb 2026",amount:"2 100 000",reason:"System delay"}]),
+    mm:pastReport(MM,39,"12 Feb 2026",[]),
+  }},
+];
+
+function checkStatus(chk){
+  if(chk.findings.length===0) return "Completed";
+  if(chk.completed) return "Completed";
+  // only findings that have actually been SENT to FO and not yet answered are "Awaiting FO".
+  // flagged-but-not-sent stay with MO (MO still has to send them).
+  if(chk.findings.some(x=>x.fo.flagged && x.fo.sent && !x.fo.responded)) return "Awaiting FO review";
+  return "Awaiting MO review";
+}
+function canComplete(chk){
+  if(chk.findings.length===0||chk.completed) return false;
+  if(chk.findings.some(x=>x.fo.flagged && !x.fo.responded)) return false; // flagged (sent or not) must be answered first
+  return chk.findings.every(x=>x.mo.reason);
+}
+function reportStatus(rep){
+  // Overall (report) status is only In review / Completed.
+  // Awaiting MO / FO review live at the individual check level.
+  return rep.submitted ? "Completed" : "In review";
+}
+function reportFindings(rep){return rep.checks.reduce((a,c)=>a+c.findings.length,0);}
+function statusColor(s){return {"Completed":"green","Review completed":"green","Ready to submit":"green","Awaiting FO review":"blue","Awaiting FO":"blue","Awaiting MO review":"amber","In review":"amber"}[s]||"amber";}
+function cellText(v){return (typeof v==="object")?v.t:v;}
+
+const App = { role:"MO", dayIndex:0, screen:"overview", report:null, check:null,
+  // B: per-screen filter / search / sort state
+  filters:{ checks:{q:"",status:"All statuses"}, detail:{q:"",state:"All"}, top:{q:"",sort:"Days late"}, inbox:{q:""}, queue:{q:""} },
+  dirty:new Set(),               // E: keys of edited findings (unsaved)
+  showAll:false,                 // transaction table: relevant columns vs full record (check detail = screen-level)
+  showAllItems:new Set(),        // per-card show-all (My Queue / FO inbox)
+  go(s,opt){opt=opt||{}; this.screen=s; if(opt.report!==undefined)this.report=opt.report; if(opt.check!==undefined)this.check=opt.check; render();},
+  back(){ if(this.screen==="detail")this.go(this.role==="FO"?"inbox":"checks"); else if(this.screen==="checks"||this.screen==="top"||this.screen==="moqueue")this.go("overview"); },
+};
+function toggleAllCols(){App.showAll=!App.showAll;render();}
+// per-card (item-level) show-all for the My Queue / FO inbox cards
+function itKey(it){return it.chk.id+":"+it.idx+(it.dayIndex!==undefined?":"+it.dayIndex:"");}
+function colsForKey(chk,key){const all=COLMAP[listOf(chk)];return App.showAllItems.has(key)?all:(chk.cols||[]).map(k=>colDef(listOf(chk),k));}
+function toggleItemCols(key){if(App.showAllItems.has(key))App.showAllItems.delete(key);else App.showAllItems.add(key);render();}
+function moReasonBadge(fd){return fd.mo.reason?'<span class="badge b-amber" style="margin-right:7px">MO reason: '+fd.mo.reason+'</span>':'';}
+
+// ===== F: live audit log =====
+const AUDIT=[
+  {at:"16 Feb 09:14", text:"FO query sent for CH06 DTCC deal by MO"},
+  {at:"16 Feb 08:31", text:"Automatic validation — FX 6 findings, MM 4 findings"},
+];
+function logAudit(text){AUDIT.unshift({at:nowLabel(),text:text});}
+function auditFeed(n){return '<ul class="logfeed">'+AUDIT.slice(0,n||6).map(e=>'<li><span class="t">'+e.at+'</span><span>'+e.text+'</span></li>').join("")+'</ul>';}
+
+// ===== F: loading overlay + offline banner =====
+function showLoading(ms){const el=document.getElementById("loading");el.classList.add("show");clearTimeout(showLoading._t);showLoading._t=setTimeout(()=>el.classList.remove("show"),ms||650);}
+// ===== confirm-before-send dialog: one review-all warning before a batched send, so reviewers aren't spammed =====
+function showConfirm(opt){
+  document.getElementById("cfIcon").innerHTML=I.warn;
+  document.getElementById("cfTitle").textContent=opt.title||"Please confirm";
+  document.getElementById("cfMsg").innerHTML=opt.msg||"";
+  const ok=document.getElementById("cfOk");
+  ok.innerHTML=(opt.okLabel||"Confirm & send");
+  ok.onclick=function(){hideConfirm();if(opt.onOk)opt.onOk();};
+  document.getElementById("confirm").classList.add("show");
+}
+function hideConfirm(){document.getElementById("confirm").classList.remove("show");}
+window.addEventListener("offline",()=>{document.body.classList.add("offline");toast("You are offline");});
+window.addEventListener("online",()=>{document.body.classList.remove("offline");toast("Back online");});
+if(!navigator.onLine)document.body.classList.add("offline");
+
+// ===== B: search input keeps focus across re-render =====
+function onSearch(scope,key,el){const pos=el.selectionStart;App.filters[scope][key]=el.value;render();const n=document.getElementById(el.id);if(n){n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}}}
+function setFilter(scope,key,val){App.filters[scope][key]=val;render();}
+function contains(hay,needle){return (""+hay).toLowerCase().indexOf((""+needle).toLowerCase())>=0;}
+function searchBox(scope,key,ph,id){return '<span class="search"><input id="'+id+'" placeholder="'+ph+'" value="'+esc(App.filters[scope][key])+'" oninput="onSearch(\''+scope+'\',\''+key+'\',this)"></span>';}
+function selBox(scope,key,opts){return '<select class="fsel" onchange="setFilter(\''+scope+'\',\''+key+'\',this.value)">'+opts.map(o=>'<option'+(o===App.filters[scope][key]?' selected':'')+'>'+o+'</option>').join("")+'</select>';}
+
+// ===== E: breadcrumb + unsaved =====
+function crumb(parts){return '<div class="crumb">'+parts.map(esc).join('<span class="sepc">›</span>')+'</div>';}
+function foState(fd){if(!fd.fo.flagged)return "Unflagged";if(!fd.fo.sent)return "Queued";if(!fd.fo.responded)return "Sent";return "Replied";}
+function matchDetail(fd){const FD=App.filters.detail;return (FD.q===""||contains(txnNo(fd),FD.q))&&(FD.state==="All"||foState(fd)===FD.state);}
+function markDirty(id,i){App.dirty.add(id+":"+i);}
+function unsavedHtml(){return App.dirty.size?'<span class="unsaved">● '+App.dirty.size+' unsaved edit'+(App.dirty.size>1?'s':'')+'</span>':'';}
+function saveDraft(){if(App.dirty.size){toast("Draft saved · "+App.dirty.size+" edit"+(App.dirty.size>1?'s':'')+" kept");App.dirty.clear();}else{toast("Draft saved");}render();}
+function curDay(){return DAYS[App.dayIndex];}
+function setRole(r){App.role=r; if(r==="FO"){App.dayIndex=0; App.screen="inbox";} else {App.screen="overview";} render();}
+function selectDay(i){App.dayIndex=i; App.screen="overview"; render();}
+
+function stepper(steps){let h='<div class="stepper">';steps.forEach((st,i)=>{if(i>0)h+='<div class="bar '+(st.on?'on':'off')+'"></div>';h+='<div class="step"><span class="dot '+(st.on?'on':'off')+'">'+I.check+'</span><span class="lab '+(st.on?'on':'off')+'">'+st.lab+'</span></div>';});return h+'</div>';}
+function col(c){return typeof c==="string"?{l:c}:c;}
+function cellColor(c){return ({ink:"var(--ink)",red:"var(--red)",green:"var(--green)",amber:"var(--amber)",orange:"var(--orange)"})[c]||"var(--muted)";}
+function esc(s){return (s||"").replace(/"/g,'&quot;');}
+
+function renderOverview(){
+  const day=curDay();
+  const reps=[day.reports.fx,day.reports.mm];
+  let rows="";
+  reps.forEach(r=>{const st=reportStatus(r),fc=reportFindings(r);
+    rows+='<tr class="click" onclick="App.go(\'checks\',{report:\''+r.key+'\'})">'+
+      '<td><span style="color:#7a7a7e;margin-right:6px;display:inline-block;vertical-align:-2px">'+I.file+'</span>'+r.name+'</td>'+
+      '<td><span class="r-'+statusColor(st)+'">'+st+'</span></td>'+
+      '<td><span class="r-'+(fc?'amber':'green')+'">'+(fc?fc+' finding'+(fc>1?'s':''):'No findings')+'</span></td>'+
+      '<td style="color:var(--muted)">'+r.date+'</td>'+
+      '<td style="text-align:right;color:var(--faint)">'+I.chevR+'</td></tr>';
+  });
+  let list="";
+  DAYS.forEach((d,i)=>{
+    const sel=i===App.dayIndex;
+    const tot=reportFindings(d.reports.fx)+reportFindings(d.reports.mm);
+    let inner = d.current ? '<div class="pill">Findings: '+tot+'</div><div class="pill">In review</div>' : '<div class="pill">Completed</div>';
+    list+='<div class="item'+(sel?' sel':'')+'" onclick="selectDay('+i+')"><div class="row1"><span class="d">'+d.date+'</span><span class="id">ID: '+d.id+'</span></div>'+inner+'</div>';
+  });
+  const allDone=reps.every(r=>reportStatus(r)==="Completed");
+  const steps=[{lab:"Imported",on:true},{lab:"Validated",on:true},{lab:"Completed",on:allDone}];
+  const log = day.current
+    ? 'Automatic validation on 2026-02-16T08:31Z: FX '+reportFindings(day.reports.fx)+' findings, MM '+reportFindings(day.reports.mm)+' finding;<br>2026-02-16 09:14 (CET) – FO query sent for CH06 DTCC deal by MO;'
+    : 'Automatic validation on '+day.date+': all checks reviewed;<br>Review completed by MO: martina.medvedova@mdlz.com';
+  const helpBox = day.current
+    ? '<div class="help">'+I.info+' Clickable prototype. Open a report, then a check, to set MO reason &amp; comment, flag items to FO, and complete checks. Send flagged items in one batch from the Check Analysis screen. Use <b>My Queue</b> to review findings, send to FO, and act on replies in one place, or switch to <b>Front Office</b> (top right) to answer as FO.</div>'
+    : '<div class="help">'+I.info+' This is a past day — shown read-only. Reports were already reviewed and submitted.</div>';
+  // MO queue counts (current day)
+  let moReplied=0, moAwait=0;
+  DAYS.forEach(d=>["fx","mm"].forEach(k=>{const rp=d.reports[k];if(!rp)return;rp.checks.forEach(c=>{if(c.completed)return;c.findings.forEach(fd=>{if(fd.fo.flagged&&fd.fo.sent){if(fd.fo.responded)moReplied++;else moAwait++;}});});}));
+  const moBtn = day.current
+    ? '<button class="ico-btn" style="border-color:'+(moReplied?'#bcd6bc':'#dcdce0')+';color:'+(moReplied?'var(--green)':'var(--muted)')+'" onclick="App.dayIndex=0;App.go(\'moqueue\')">'+I.inbox+' My Queue'+(moReplied?' ('+moReplied+')':'')+'</button>'
+    : '';
+  document.getElementById("screen").innerHTML = helpBox +
+    '<div class="subrow"><span class="lead">Review and validate daily FX &amp; MM listings.</span>'+
+      '<div class="tools">'+moBtn+'<span class="refresh" title="Refresh" onclick="showLoading();setTimeout(()=>{toast(\'List refreshed\');render();},650)">'+I.refresh+'</span>'+
+      '<span class="ico-btn '+(day.current?'':'disabled')+'">'+I.upload+' Upload Input File</span></div></div>'+
+    '<div class="split"><div class="col-list"><p class="eyebrow">DAILY ITEM LIST</p>'+list+'</div>'+
+      '<div class="col-main"><p class="eyebrow">DAILY ITEM DETAILS · '+day.date+'</p>'+stepper(steps)+
+        '<div class="logbox"><h4>Review Log'+(day.current?' (live)':'')+'</h4>'+(day.current?auditFeed(6):'<p>'+log+'</p>')+'</div>'+
+        '<p class="eyebrow">TO REVIEW, SELECT REPORT BELOW</p>'+
+        '<div class="tbl-wrap"><table><thead class="simple"><tr><th>Report</th><th>Status</th><th>Findings</th><th>Date</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '</div></div>';
+  document.getElementById("foot").innerHTML='<div class="left"></div><div class="right">'+
+    '<button class="btn btn-purple" onclick="App.go(\'top\')">'+I.ext+' Monthly TOP Report</button>'+
+    '<button class="btn btn-blue" onclick="toast(\'Opens Power BI\')">'+I.chart+' TOP Report PowerBI</button></div>';
+}
+
+function renderChecks(){
+  const rep=curDay().reports[App.report];
+  const rst=reportStatus(rep);
+  const F=App.filters.checks;
+  const shown=rep.checks.filter(chk=> (F.q===""||contains(chk.n,F.q)||contains(chk.scope,F.q)) && (F.status==="All statuses"||checkStatus(chk)===F.status));
+  let rows="";
+  shown.forEach(chk=>{const st=checkStatus(chk),fc=chk.findings.length;
+    let result,rc;
+    if(chk.notCompared){result="Not compared";rc="amber";}
+    else if(fc===0){result="No finding";rc="green";}
+    else if(chk.id==="fx5"||chk.id==="mm4"){result="Late";rc="amber";}
+    else if(chk.id==="fx6"){result="Exceptional";rc="red";}
+    else {result="Finding";rc="red";}
+    const bg=chk.notCompared?'background:#fdf6e9':(fc===0?'':(rc==="amber"?'background:#fdf6e9':'background:#fbecec'));
+    rows+='<tr class="click" style="'+bg+'" onclick="App.go(\'detail\',{check:\''+chk.id+'\'})">'+
+      '<td>'+chk.n+'</td><td style="color:var(--muted)">'+chk.scope+'</td>'+
+      '<td><span class="r-'+rc+'"><span class="dotr">●</span>'+result+'</span></td>'+
+      '<td style="text-align:center;color:'+(fc?'var(--'+rc+')':'var(--muted)')+'">'+fc+'</td>'+
+      '<td><span class="r-'+statusColor(st)+'">'+st+'</span></td>'+
+      '<td style="text-align:right;color:var(--faint)">'+I.chevR+'</td></tr>';
+  });
+  const allDone=rep.checks.every(c=>checkStatus(c)==="Completed");
+  const steps=[{lab:"In review",on:true},{lab:"Completed",on:rep.submitted}];
+  // counts across the whole report
+  let toSend=0, awaiting=0, replied=0;
+  rep.checks.forEach(c=>c.findings.forEach(fd=>{
+    if(fd.fo.flagged && !fd.fo.sent && !fd.fo.responded) toSend++;
+    else if(fd.fo.flagged && fd.fo.sent && !fd.fo.responded) awaiting++;
+    else if(fd.fo.flagged && fd.fo.responded) replied++;
+  }));
+  const foLine = (toSend||awaiting||replied)
+    ? '<p class="muted-note">FO routing: <b>'+toSend+'</b> flagged and ready to send \u00b7 <b>'+awaiting+'</b> awaiting FO \u00b7 <b>'+replied+'</b> replied. Flagged findings are grouped per reviewer and sent in one email each.</p>'
+    : '';
+  const tools='<div class="toolbar">'+searchBox("checks","q","Search checks…","srch-checks")+
+    selBox("checks","status",["All statuses","Awaiting MO review","Awaiting FO review","Completed"])+
+    '<span class="spacer"></span><span class="count">'+shown.length+' / '+rep.checks.length+' checks</span></div>';
+  const noRows=shown.length===0?'<p class="muted-note">No checks match your filter.</p>':'';
+  document.getElementById("screen").innerHTML=stepper(steps)+
+    crumb([curDay().date, rep.name])+
+    '<p class="eyebrow">CHECK RESULTS OVERVIEW · '+rep.name.toUpperCase()+' · '+rep.date+'</p>'+tools+
+    '<div class="tbl-wrap"><table><thead class="simple"><tr><th style="width:12%">Check</th><th style="width:34%">Scope</th><th style="width:16%">Result</th><th style="width:10%;text-align:center">Flagged</th><th style="width:20%">Status</th><th style="width:8%"></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+noRows+
+    '<p class="muted-note">Open a check to review its findings. The report can be submitted once every check is <b>Completed</b>.</p>'+foLine;
+  let right='';
+  if(!rep.submitted){
+    right += toSend>0
+      ? '<button class="btn btn-blue" onclick="askSendFOReport()">'+I.send+' Send flagged to FO ('+toSend+')</button>'
+      : '<button class="btn" disabled>'+I.send+' Send flagged to FO</button>';
+  }
+  right+='<button class="btn btn-ghost" onclick="saveDraft()">Save draft</button>';
+  if(rep.submitted) right+='<button class="btn" disabled>Report submitted</button>';
+  else if(allDone) right+='<button class="btn btn-green" onclick="submitReport()">Submit report</button>';
+  else right+='<button class="btn" disabled>Submit report</button>';
+  const leftCk=unsavedHtml()+(App.dirty.size?' &nbsp;·&nbsp; ':'')+'Report status: <span class="r-'+statusColor(rst)+'" style="margin-left:4px">'+rst+'</span>';
+  document.getElementById("foot").innerHTML='<div class="left">'+leftCk+'</div><div class="right">'+right+'</div>';
+}
+function submitReport(){const rep=curDay().reports[App.report];if(!rep.checks.every(c=>checkStatus(c)==="Completed"))return;rep.submitted=true;App.dirty.clear();logAudit('Report submitted — '+rep.name);toast(rep.name+' submitted');render();}
+
+function findCheck(id){const d=curDay();for(const k of ["fx","mm"]){const r=d.reports[k];const c=r&&r.checks.find(x=>x.id===id);if(c)return{rep:r,chk:c};}}
+function renderDetail(){
+  const {rep,chk}=findCheck(App.check); const ro=!curDay().current || App.role==="FO"; const st=checkStatus(chk);
+  if(chk.findings.length===0){
+    const html = chk.notCompared
+      ? '<div class="empty"><div class="ic" style="color:var(--amber)">'+I.info+'</div><h3>Not compared</h3><p>'+(chk.note||(chk.scope+' could not be compared — the reference export was empty.'))+'</p><p style="margin-top:6px;font-size:11.5px">Recorded as <b>Not compared</b> for audit. No action needed; the check is complete.</p></div>'
+      : '<div class="empty"><div class="ic">'+I.check+'</div><h3>No findings — check passed</h3><p>'+chk.scope+'. Nothing to review for '+chk.n+'.</p></div>';
+    document.getElementById("screen").innerHTML=crumb([curDay().date, rep.name, chk.n])+html;
+    document.getElementById("foot").innerHTML='<div class="left"></div><div class="right"><button class="btn btn-orange" onclick="App.back()">Back to checks</button></div>';
+    return;
+  }
+  const cols=colsFor(chk);
+  let head='<thead><tr class="grp"><th class="grp-read sep" colspan="'+cols.length+'">READ · from SAP export'+(App.showAll?' · all columns':'')+'</th><th class="grp-mo sep" colspan="3">MO · edit</th><th class="grp-fo" colspan="2">FO · edit</th></tr><tr class="cols">';
+  cols.forEach((c,i)=>head+='<th style="text-align:'+(c.a||'left')+';white-space:nowrap"'+(i===cols.length-1?' class="sep"':'')+'>'+c.l+'</th>');
+  head+='<th>MO reason</th><th>MO comment</th><th class="sep" style="text-align:center">FO?</th><th>FO reason</th><th>FO comment</th></tr></thead>';
+  let body="";
+  chk.findings.forEach((fd,idx)=>{
+    if(!matchDetail(fd))return;   // B: search / FO-state filter (idx stays original)
+    let reads="";
+    cols.forEach((c,i)=>{const o=recCell(fd,c);const isLast=i===cols.length-1;const cls=((c.k==="transaction"?'mono ':'')+(isLast?'sep':'')).trim();reads+='<td style="text-align:'+(o.a||c.a||'left')+';color:'+cellColor(o.c)+';white-space:nowrap"'+(cls?' class="'+cls+'"':'')+'>'+o.t+'</td>';});
+    const opts=REASONS[chk.id].map(o=>'<option'+(o===fd.mo.reason?' selected':'')+'>'+o+'</option>').join("");
+    const selGreen=(fd.mo.reason==="Hedge rate"||fd.mo.reason==="Credit line")?' green':'';
+    const dis=ro?' disabled':'';
+    const moSel='<select class="sel'+selGreen+'"'+dis+' onchange="setMO(\''+chk.id+'\','+idx+',\'reason\',this.value)"><option value="">— choose —</option>'+opts+'</select>';
+    const moCom='<input class="inp cellmin"'+dis+' value="'+esc(fd.mo.comment)+'" placeholder="comment" oninput="setMO(\''+chk.id+'\','+idx+',\'comment\',this.value)">';
+    const foChk='<input type="checkbox" class="chk" '+(fd.fo.flagged?'checked':'')+dis+' onchange="toggleFO(\''+chk.id+'\','+idx+',this.checked)">';
+    let foMeta='';
+    if(fd.fo.flagged){
+      const who=fd.fo.reviewer?fd.fo.reviewer.split("@")[0]:'FO';
+      const stt=!fd.fo.sent?'<span style="color:var(--amber)">queued</span>':(fd.fo.responded?'<span style="color:var(--green)">replied</span>':'<span style="color:var(--blue)">sent</span>');
+      foMeta='<div style="font-size:9px;margin-top:4px;line-height:1.45;color:#8a8a8e">'+stt+'<br>'+who+'</div>';
+    }
+    const foDis=' disabled'; // FO fills these in the FO queue, not here
+    const foOpts=FO_REASONS.map(o=>'<option'+(o===fd.fo.reason?' selected':'')+'>'+o+'</option>').join("");
+    const foSel='<select class="sel fo-inp cellmin-s"'+foDis+'><option value="">'+(fd.fo.flagged?(fd.fo.responded?'':'—'):'—')+'</option>'+foOpts+'</select>';
+    const foCom='<input class="inp fo-inp cellmin"'+foDis+' value="'+esc(fd.fo.comment)+'" placeholder="'+(fd.fo.flagged&&fd.fo.sent&&!fd.fo.responded?'awaiting…':'—')+'">';
+    const sim=(!ro&&fd.fo.flagged&&fd.fo.sent&&!fd.fo.responded)?'<div style="margin-top:5px"><span class="linklike" onclick="simFO(\''+chk.id+'\','+idx+')">Simulate FO reply</span></div>':'';
+    const resend=(!ro&&fd.fo.flagged&&fd.fo.sent&&fd.fo.responded)?'<div style="margin-top:5px"><span class="linklike" onclick="resendFO(\''+chk.id+'\','+idx+')">'+I.send+' Resend to FO</span>'+(fd.fo.replies.length>1?'<span style="font-size:9px;color:var(--faint);margin-left:6px">'+fd.fo.replies.length+' replies</span>':'')+'</div>':'';
+    body+='<tr>'+reads+'<td>'+moSel+'</td><td>'+moCom+'</td><td class="sep" style="text-align:center">'+foChk+foMeta+'</td><td>'+foSel+sim+resend+'</td><td>'+foCom+'</td></tr>';
+  });
+  let chips=chk.att.map((a,i)=>'<span class="chip">'+I.file+' '+a+(ro?'':'<button onclick="rmAtt(\''+chk.id+'\','+i+')">×</button>')+'</span>').join("");
+  const note=chk.note?'<p class="muted-note '+(chk.warn?'warn-note':'')+'">'+(chk.warn?'⚠ ':'→ ')+chk.note+'</p>':'';
+  const attachBtn=ro?'':'<span class="ico-btn" onclick="addAtt(\''+chk.id+'\')">'+I.clip+' '+(chk.attachLabel||'Attach check evidence')+'</span>';
+  const tools='<div class="toolbar">'+searchBox("detail","q","Search transaction no…","srch-detail")+
+    selBox("detail","state",["All","Unflagged","Queued","Sent","Replied"])+
+    '<button class="ico-btn'+(App.showAll?' active':'')+'" onclick="toggleAllCols()">'+(App.showAll?'Show relevant columns':'Show all columns')+'</button>'+
+    '<span class="spacer"></span><span class="muted-note" style="margin:0">'+cols.length+' of '+COLMAP[listOf(chk)].length+' cols</span></div>';
+  const noBody=body===""?'<p class="muted-note">No transactions match your filter.</p>':'';
+  document.getElementById("screen").innerHTML=
+    crumb([curDay().date, rep.name, chk.n])+
+    '<div class="subrow"><span class="eyebrow" style="margin:0">FLAGGED TRANSACTIONS · '+chk.scope.toUpperCase()+'</span>'+attachBtn+'</div>'+tools+
+    '<div class="tbl-wrap"><table class="findtbl">'+head+'<tbody>'+body+'</tbody></table></div>'+noBody+note+
+    (chips?'<div class="attach-row"><span style="font-size:11px;color:var(--muted)">Evidence:</span>'+chips+'</div>':'');
+  if(ro){const why=App.role==="FO"?"Front Office — read only":"Past day — read only";document.getElementById("foot").innerHTML='<div class="left">'+I.info+' '+why+' · Status: <span class="r-'+statusColor(st)+'" style="margin-left:4px">'+st+'</span></div><div class="right"><button class="btn btn-orange" onclick="App.back()">Back</button></div>';return;}
+  footDetail(chk,st);
+}
+function footDetail(chk,st){
+  const completeBtn=canComplete(chk)?'<button class="btn btn-green" onclick="completeCheck(\''+chk.id+'\')">'+I.check+' Mark check complete</button>':'<button class="btn" disabled>'+I.check+' Mark check complete</button>';
+  const left = App.dirty.size
+    ? unsavedHtml()+' &nbsp;\u00b7&nbsp; Save draft to keep them'
+    : I.info+' Status: <span class="r-'+statusColor(st)+'" style="margin-left:4px">'+st+'</span> &nbsp;\u00b7&nbsp; flag rows for FO, then send them together from the Check Analysis screen';
+  document.getElementById("foot").innerHTML='<div class="left">'+left+'</div><div class="right"><button class="btn btn-orange" onclick="App.back()">Back</button><button class="btn btn-ghost" onclick="saveDraft()">Save draft</button>'+completeBtn+'</div>';
+}
+
+// read-only transaction table with a per-card "Show all columns" toggle — used in FO inbox + MO queue
+function recTableHtml(chk,fd,key){
+  const all=COLMAP[listOf(chk)];
+  const expanded=App.showAllItems.has(key);
+  const cols=colsForKey(chk,key);
+  let h='<div class="rec-wrap"><div class="rec-bar"><span class="rec-cnt">'+cols.length+' of '+all.length+' cols</span>'+
+    '<button class="ico-btn'+(expanded?' active':'')+'" onclick="toggleItemCols(\''+key+'\')">'+(expanded?'Show relevant columns':'Show all columns')+'</button></div>';
+  h+='<div class="tbl-wrap" style="margin:0 0 4px"><table class="findtbl"><thead class="simple"><tr>';
+  cols.forEach(c=>h+='<th style="text-align:'+(c.a||'left')+';white-space:nowrap">'+c.l+'</th>');
+  h+='</tr></thead><tbody><tr>';
+  cols.forEach(c=>{const o=recCell(fd,c);h+='<td style="text-align:'+(o.a||c.a||'left')+';color:'+cellColor(o.c)+';white-space:nowrap"'+(c.k==="transaction"?' class="mono"':'')+'>'+o.t+'</td>';});
+  h+='</tr></tbody></table></div></div>';
+  return h;
+}
+function inboxItems(){const out=[];const day=DAYS[0];["fx","mm"].forEach(k=>{const rep=day.reports[k];rep.checks.forEach(chk=>{chk.findings.forEach((fd,i)=>{if(fd.fo.flagged&&fd.fo.sent)out.push({repName:rep.name,chk,idx:i,fd});});});});return out;}
+function renderInbox(){
+  const total=inboxItems();
+  if(total.length===0){
+    document.getElementById("screen").innerHTML='<div class="empty"><div class="ic">'+I.check+'</div><h3>Nothing to respond to</h3><p>No findings have been flagged to Front Office for 16 Feb 2026.</p></div>';
+    document.getElementById("foot").innerHTML='<div class="left">'+I.info+' Front Office view — you only see items MO flagged to you.</div><div class="right"></div>';return;
+  }
+  const Q=App.filters.inbox.q;
+  const items=Q?total.filter(x=>contains(txnNo(x.fd),Q)):total;
+  const pending=items.filter(x=>!x.fd.fo.responded), done=items.filter(x=>x.fd.fo.responded);
+  // queue-wide truth (ignores the search box) drives the header count and the screen-level send button
+  const allPending=total.filter(x=>!x.fd.fo.responded), allDone=total.filter(x=>x.fd.fo.responded);
+  const readyCount=allPending.filter(x=>x.fd.fo.reason).length;
+  const tools='<div class="toolbar">'+searchBox("inbox","q","Search transaction no…","srch-inbox")+
+    '<span class="spacer"></span></div>';
+  // screen-level batched send (mirrors MO My Queue "Send flagged to FO"): one response batch → MO gets one notification
+  const sendBtn = allPending.length
+    ? (readyCount>0
+        ? '<button class="btn btn-blue" onclick="askSendFOResponses()">'+I.send+' Send response'+(readyCount>1?'s':'')+' to MO ('+readyCount+')</button>'
+        : '<button class="btn" disabled title="Choose a reason on at least one finding first">'+I.send+' Send response to MO</button>')
+    : '';
+  let html='<div class="help">'+I.info+' You are in the <b>Front Office</b> view. These are the findings Middle Office flagged to you via deeplink. Add your reason and comment on each, then send all your responses back to MO in one batch.</div>'+tools+
+    '<div class="inbox-head"><span class="eyebrow" style="margin:0">ITEMS AWAITING YOUR RESPONSE <span class="cnt" style="font-weight:400;margin-left:8px">'+allPending.length+' pending · '+allDone.length+' responded</span></span>'+sendBtn+'</div>';
+  const card=(it)=>{
+    const fd=it.fd, ck=it.chk, resp=fd.fo.responded, txn=txnNo(fd);
+    const opts=FO_REASONS.map(o=>'<option'+(o===fd.fo.reason?' selected':'')+'>'+o+'</option>').join("");
+    const resentNote=(!resp && fd.fo.replies.length>0)?'<span class="badge" style="background:#fbe7d8;color:var(--orange);margin-left:8px">MO asked again</span>':'';
+    const respArea = resp
+      ? ''
+      : '<div class="resp"><div class="fld"><label>Your reason</label><select class="sel fo-inp" onchange="setFO(\''+ck.id+'\','+it.idx+',\'reason\',this.value)"><option value="">— choose —</option>'+opts+'</select></div>'+
+        '<div class="fld"><label>Your '+(fd.fo.replies.length>0?'new ':'')+'comment</label><input class="inp fo-inp" value="'+esc(fd.fo.comment)+'" placeholder="explain or confirm…" oninput="setFO(\''+ck.id+'\','+it.idx+',\'comment\',this.value)"></div>'+
+        '<div style="display:flex;gap:7px;align-items:center"><span class="ico-btn" onclick="toast(\'Evidence attached\')">'+I.clip+' Attach</span></div></div>';
+    return '<div class="fcard'+(resp?' done':'')+'"><div class="top"><div class="where">'+it.repName+' · '+ck.n+' <span>· '+ck.scope+'</span><br><span class="mono" style="font-size:11px">'+txn+'</span></div>'+
+      (resp?'<span class="badge b-green">Responded</span>':'<span class="badge b-amber">Awaiting you</span>')+resentNote+'</div>'+
+      '<div class="ask"><span class="deeplink">'+I.link+' Opened from email deeplink</span> &nbsp; <b>MO ⇄ FO conversation</b> '+moReasonBadge(fd)+'</div>'+
+      recTableHtml(ck,fd,itKey(it))+
+      conversationHtml(fd)+
+      respArea+'</div>';
+  };
+  if(pending.length) html+=pending.map(card).join("");
+  if(done.length) html+='<p class="eyebrow" style="margin-top:18px">ALREADY RESPONDED</p>'+done.map(card).join("");
+  if(items.length===0) html+='<p class="muted-note">No items match your search.</p>';
+  document.getElementById("screen").innerHTML=html;
+  document.getElementById("foot").innerHTML='<div class="left">'+I.info+' Front Office view — you only see items MO flagged to you. Respond to all, then send in one batch.</div><div class="right"></div>';
+}
+// FO batched send: every pending finding that has a reason is answered in one go, so MO gets one grouped notification.
+function askSendFOResponses(){
+  const ready=inboxItems().filter(x=>!x.fd.fo.responded && x.fd.fo.reason);
+  if(ready.length===0){toast("Choose a reason on at least one finding first");return;}
+  const remaining=inboxItems().filter(x=>!x.fd.fo.responded && !x.fd.fo.reason).length;
+  const tail=remaining>0
+    ? ' <b>'+remaining+'</b> finding'+(remaining>1?'s':'')+' still ha'+(remaining>1?'ve':'s')+' no reason and will <b>not</b> be sent yet.'
+    : ' This covers every finding awaiting you.';
+  showConfirm({
+    title:"Send your responses to Middle Office?",
+    msg:"You are about to send <b>"+ready.length+"</b> response"+(ready.length>1?"s":"")+" back to MO in one batch."+tail+
+        " Please make sure you have reviewed <b>all</b> the findings above — MO gets a single grouped notification, so answering everything before sending avoids spamming them.",
+    okLabel:I.send+" Yes, send to MO",
+    onOk:sendFOResponses
+  });
+}
+function sendFOResponses(){
+  const ready=inboxItems().filter(x=>!x.fd.fo.responded && x.fd.fo.reason);
+  if(ready.length===0){toast("Choose a reason on at least one finding first");return;}
+  ready.forEach(x=>{const fd=x.fd;fd.fo.replies.push({reason:fd.fo.reason,comment:fd.fo.comment,at:nowLabel()});fd.fo.responded=true;logAudit("FO replied on "+txnNo(fd)+" ("+fd.fo.reason+")");});
+  toast("Sent "+ready.length+" response"+(ready.length>1?"s":"")+" to MO");
+  renderInbox();
+}
+// renders the full FO reply history (newest last), keeping previous replies visible
+function foRepliesHtml(fd){
+  if(!fd.fo.replies||fd.fo.replies.length===0) return '';
+  return fd.fo.replies.map((r,i)=>'<div style="background:#f3f8f3;border:1px solid #cfe3cf;border-radius:7px;padding:8px 10px;margin-bottom:6px"><div style="font-size:10px;color:var(--green);margin-bottom:2px">FO reply '+(fd.fo.replies.length>1?'#'+(i+1)+' ':'')+'\u00b7 '+r.at+(r.reason?' \u00b7 '+r.reason:'')+'</div><div style="font-size:11.5px;color:var(--ink)">'+(r.comment||'\u2014')+'</div></div>').join("");
+}
+// MO ask bubble (purple) + FO reply bubble (green), interleaved into one conversation thread
+function askBubble(a,i,n){return '<div style="background:#f4eef6;border:1px solid #e2d3ea;border-radius:7px;padding:8px 10px;margin-bottom:6px"><div style="font-size:10px;color:var(--purple);margin-bottom:2px">MO ask '+(n>1?'#'+(i+1)+' ':'')+'\u00b7 '+a.at+(a.reason?' \u00b7 '+a.reason:'')+'</div><div style="font-size:11.5px;color:var(--ink)">'+(a.comment||'\u2014')+'</div></div>';}
+function replyBubble(r,i,n){return '<div style="background:#f3f8f3;border:1px solid #cfe3cf;border-radius:7px;padding:8px 10px;margin-bottom:6px"><div style="font-size:10px;color:var(--green);margin-bottom:2px">FO reply '+(n>1?'#'+(i+1)+' ':'')+'\u00b7 '+r.at+(r.reason?' \u00b7 '+r.reason:'')+'</div><div style="font-size:11.5px;color:var(--ink)">'+(r.comment||'\u2014')+'</div></div>';}
+function conversationHtml(fd){
+  const asks=fd.mo.asks||[], reps=fd.fo.replies||[], n=Math.max(asks.length,reps.length);
+  if(n===0) return '';
+  let h='';
+  for(let i=0;i<n;i++){ if(asks[i])h+=askBubble(asks[i],i,asks.length); if(reps[i])h+=replyBubble(reps[i],i,reps.length); }
+  return '<div class="thread" style="margin:8px 0">'+h+'</div>';
+}
+
+// ===== MO MY QUEUE — review, send to FO, and act on replies in one place =====
+function moQueueItems(){const out=[];DAYS.forEach(day=>{["fx","mm"].forEach(k=>{const rep=day.reports[k];if(!rep)return;rep.checks.forEach(chk=>{if(chk.completed)return;chk.findings.forEach((fd,i)=>{if(fd.fo.flagged&&fd.fo.sent)out.push({repName:rep.name,date:day.date,dayIndex:DAYS.indexOf(day),chk,idx:i,fd});});});});});return out;}
+// step 2: MO worklist — current-day findings not yet sent to FO (analyse + flag + batch-send from here)
+function toReviewItems(){const out=[];const day=DAYS[0];["fx","mm"].forEach(k=>{const rep=day.reports[k];if(!rep)return;rep.checks.forEach(chk=>{if(chk.completed)return;chk.findings.forEach((fd,i)=>{if(!fd.fo.sent)out.push({repName:rep.name,date:day.date,dayIndex:0,chk,idx:i,fd});});});});return out;}
+// confirm-then-send: warn MO to review every finding before the batch goes out (reviewers get one notification each)
+function askSendFOQueue(){
+  const day=DAYS[0];const toSend=[];
+  ["fx","mm"].forEach(k=>{const rep=day.reports[k];if(!rep)return;rep.checks.forEach(c=>{if(c.completed)return;c.findings.forEach(fd=>{if(fd.fo.flagged&&!fd.fo.sent)toSend.push(fd);});});});
+  if(toSend.length===0){toast("No flagged findings to send");return;}
+  const missing=toSend.filter(fd=>(fd.mo.reason==="Request FO explanation"||fd.mo.reason==="Other")&&!fd.mo.comment);
+  if(missing.length>0){toast("Add a comment for "+cellText(missing[0].rec.transaction)+" before sending to FO");return;}
+  const byRev={};toSend.forEach(fd=>{const r=fd.fo.reviewer||"fo@mdlz.com";byRev[r]=(byRev[r]||0)+1;});
+  const m=Object.keys(byRev).length;
+  showConfirm({
+    title:"Send flagged findings to Front Office?",
+    msg:"This notifies <b>"+m+"</b> FO reviewer"+(m>1?"s":"")+" with <b>"+toSend.length+"</b> flagged finding"+(toSend.length>1?"s":"")+", grouped into <b>"+m+"</b> email"+(m>1?"s":"")+" (one per reviewer). Please make sure you have reviewed <b>all</b> findings first — each reviewer gets a single notification, so sending them together avoids spamming them.",
+    okLabel:I.send+" Yes, send to FO",
+    onOk:sendFOQueue
+  });
+}
+// batched send from the queue — same semantics as Check Analysis (group per reviewer, one email each)
+function sendFOQueue(){
+  const day=DAYS[0];const toSend=[];
+  ["fx","mm"].forEach(k=>{const rep=day.reports[k];if(!rep)return;rep.checks.forEach(c=>{if(c.completed)return;c.findings.forEach(fd=>{if(fd.fo.flagged&&!fd.fo.sent)toSend.push(fd);});});});
+  if(toSend.length===0){toast("No flagged findings to send");return;}
+  const missing=toSend.filter(fd=>(fd.mo.reason==="Request FO explanation"||fd.mo.reason==="Other")&&!fd.mo.comment);
+  if(missing.length>0){toast("Add a comment for "+cellText(missing[0].rec.transaction)+" before sending to FO");return;}
+  const byRev={};
+  toSend.forEach(fd=>{fd.fo.sent=true;fd.fo.sentOn=nowLabel();fd.mo.asks.push({reason:fd.mo.reason,comment:fd.mo.comment,at:nowLabel()});const r=fd.fo.reviewer||"fo@mdlz.com";byRev[r]=(byRev[r]||0)+1;});
+  const m=Object.keys(byRev).length;
+  logAudit("Sent "+toSend.length+" finding"+(toSend.length>1?"s":"")+" to FO from My Queue");
+  toast("Sent "+toSend.length+" finding"+(toSend.length>1?"s":"")+" to "+m+" FO reviewer"+(m>1?"s":"")+" · "+m+" grouped email"+(m>1?"s":""));
+  render();
+}
+function renderMoQueue(){
+  const sent=moQueueItems(), review=toReviewItems();
+  if(sent.length===0 && review.length===0){
+    document.getElementById("screen").innerHTML='<div class="empty"><div class="ic">'+I.check+'</div><h3>Your queue is clear</h3><p>Nothing to review and nothing out with Front Office.</p></div>';
+    document.getElementById("foot").innerHTML='<div class="left">'+I.info+' Middle Office queue — analyse findings, send to FO, and act on replies in one place.</div><div class="right"><button class="btn btn-orange" onclick="App.back()">Back</button></div>';return;
+  }
+  const Q=App.filters.queue.q;
+  const match=x=>!Q||contains(txnNo(x.fd),Q)||contains(x.fd.fo.reviewer||"",Q)||contains(x.fd.mo.reason||"",Q);
+  const rev=review.filter(match), sentF=sent.filter(match);
+  const replied=sentF.filter(x=>x.fd.fo.responded), awaiting=sentF.filter(x=>!x.fd.fo.responded);
+  const flaggedNotSent=review.filter(x=>x.fd.fo.flagged).length;
+  const tools='<div class="toolbar">'+searchBox("queue","q","Search transaction, reviewer or reason…","srch-queue")+'<span class="spacer"></span></div>';
+  let html='<div class="help">'+I.info+' Your <b>Middle Office queue</b> — analyse findings, flag &amp; send them to Front Office, and act on replies, without opening each check. The per-check flow on Check Analysis still works too.</div>'+tools;
+
+  // section 1 - TO REVIEW / NOT SENT YET: full MO controls + one batched send (like Check Analysis)
+  const reviewCard=(it)=>{
+    const fd=it.fd, ck=it.chk, key=itKey(it), flagged=fd.fo.flagged;
+    const opts=REASONS[ck.id].map(o=>'<option'+(o===fd.mo.reason?' selected':'')+'>'+o+'</option>').join("");
+    const selGreen=(fd.mo.reason==="Hedge rate"||fd.mo.reason==="Credit line")?' green':'';
+    return '<div class="fcard"><div class="top"><div class="where">'+it.repName+' · '+ck.n+' <span>· '+ck.scope+'</span><br><span class="mono" style="font-size:11px">'+txnNo(fd)+'</span></div>'+
+      (flagged?'<span class="badge b-amber">Flagged to FO</span>':'<span class="badge" style="background:#eef0f2;color:var(--muted)">Not flagged</span>')+'</div>'+
+      recTableHtml(ck,fd,key)+
+      '<div class="resp" style="grid-template-columns:190px 1fr auto;align-items:end">'+
+        '<div class="fld"><label>MO reason</label><select class="sel'+selGreen+'" onchange="setMO(\''+ck.id+'\','+it.idx+',\'reason\',this.value)"><option value="">— choose —</option>'+opts+'</select></div>'+
+        '<div class="fld"><label>MO comment</label><input class="inp" value="'+esc(fd.mo.comment)+'" placeholder="comment for FO…" oninput="setMO(\''+ck.id+'\','+it.idx+',\'comment\',this.value)"></div>'+
+        '<div style="display:flex;gap:10px;align-items:center">'+
+          '<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input type="checkbox" class="chk" '+(flagged?'checked':'')+' onchange="toggleFO(\''+ck.id+'\','+it.idx+',this.checked)"> Flag to FO</label>'+
+          '<button class="btn btn-ghost" onclick="openCheckFromQueue(\''+ck.id+'\',0)">Open check</button>'+
+          (canComplete(ck)
+            ? '<button class="btn btn-green" onclick="completeCheckQ(\''+ck.id+'\',0)">'+I.check+' Complete check</button>'
+            : '<button class="btn" disabled title="Set an MO reason on every finding of this check (and resolve or answer any flagged item) first">'+I.check+' Complete check</button>')+
+        '</div>'+
+      '</div></div>';
+  };
+  if(rev.length){
+    const sendBtn=flaggedNotSent>0?'<button class="btn btn-blue" onclick="askSendFOQueue()">'+I.send+' Send flagged to FO ('+flaggedNotSent+')</button>':'<button class="btn" disabled>'+I.send+' Send flagged to FO</button>';
+    html+='<div class="inbox-head"><span class="eyebrow" style="margin:0">TO REVIEW — NOT SENT YET</span>'+sendBtn+'</div>'+rev.map(reviewCard).join("");
+  }
+
+  // sections 2 & 3 - REPLIED / STILL WITH FO: read + conversation thread + resend(-with-append) / nudge
+  const sentCard=(it)=>{
+    const fd=it.fd, ck=it.chk, key=itKey(it), resp=fd.fo.responded, who=fd.fo.reviewer?fd.fo.reviewer.split("@")[0]:'FO';
+    const dayTag='<span style="font-size:10px;color:var(--faint)"> · '+it.date+'</span>';
+    let actions;
+    if(resp){
+      const ropts=REASONS[ck.id].map(o=>'<option'+(o===fd.mo.reason?' selected':'')+'>'+o+'</option>').join("");
+      actions='<div class="resp" style="grid-template-columns:190px 1fr auto;align-items:end;margin-top:6px">'+
+        '<div class="fld"><label>MO reason (optional change)</label><select id="rr-'+key+'" class="sel">'+ropts+'</select></div>'+
+        '<div class="fld"><label>New comment to FO (required to resend)</label><input id="rc-'+key+'" class="inp" placeholder="why the reply is not enough…"></div>'+
+        '<div style="display:flex;gap:7px;align-items:center">'+
+          (canComplete(ck)?'<button class="btn btn-green" onclick="completeCheckQ(\''+ck.id+'\','+it.dayIndex+')">'+I.check+' Complete</button>':'')+
+          '<button class="btn btn-orange" onclick="resendFO(\''+ck.id+'\','+it.idx+','+it.dayIndex+',\''+key+'\')">'+I.send+' Resend</button>'+
+          '<button class="btn btn-ghost" onclick="openCheckFromQueue(\''+ck.id+'\','+it.dayIndex+')">Open check</button>'+
+        '</div></div>';
+    } else {
+      actions='<div class="resp" style="grid-template-columns:1fr auto"><div class="fld"><label>Status</label><div class="inp" style="background:#eef4fb;border-color:#cfe0f2;color:var(--blue)">Awaiting reply from '+who+'</div></div><div style="display:flex;gap:7px;align-items:center"><button class="btn btn-orange" onclick="resendFO(\''+ck.id+'\','+it.idx+','+it.dayIndex+')">'+I.send+' Nudge FO</button><button class="btn btn-ghost" onclick="openCheckFromQueue(\''+ck.id+'\','+it.dayIndex+')">Open check</button></div></div>';
+    }
+    return '<div class="fcard'+(resp?'':' done')+'"><div class="top"><div class="where">'+it.repName+' · '+ck.n+dayTag+' <span>· '+ck.scope+'</span><br><span class="mono" style="font-size:11px">'+txnNo(fd)+'</span></div>'+
+      (resp?'<span class="badge b-green">FO replied</span>':'<span class="badge b-blue" style="background:#e3eefb;color:var(--blue)">Awaiting FO</span>')+'</div>'+
+      recTableHtml(ck,fd,key)+
+      conversationHtml(fd)+
+      actions+'</div>';
+  };
+  if(replied.length) html+='<p class="eyebrow" style="margin-top:18px">REPLIED — READY FOR YOU</p>'+replied.map(sentCard).join("");
+  if(awaiting.length) html+='<p class="eyebrow" style="margin-top:18px">STILL WITH FRONT OFFICE</p>'+awaiting.map(sentCard).join("");
+  if(rev.length===0 && replied.length===0 && awaiting.length===0) html+='<p class="muted-note">No items match your search.</p>';
+  document.getElementById("screen").innerHTML=html;
+  document.getElementById("foot").innerHTML='<div class="left">'+I.info+' Middle Office queue — analyse, send to FO, and act on replies in one place.</div><div class="right"><button class="btn btn-orange" onclick="App.back()">Back</button></div>';
+}
+const MON={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+function pd(s){const m=s.split(" ");return new Date(+m[2],MON[m[1]],+m[0]);}
+function daysLate(e,c){return Math.round((pd(e)-pd(c))/86400000);}
+function topRows(){const rows=[];DAYS.forEach(day=>{["fx","mm"].forEach(k=>{const rep=day.reports[k];if(!rep)return;const isMM=k==="mm";rep.checks.forEach(chk=>{if(!chk.isLate)return;chk.findings.forEach(fd=>{const ent=cellText(fd.rec.enteredOn),con=cellText(fd.rec.contractDate);rows.push({date:day.date,report:rep.name,txn:cellText(fd.rec.transaction),pt:cellText(fd.rec.productType),entered:ent,contract:con,amount:cellText(isMM?fd.rec.amountStart:fd.rec.paymentAmount),late:daysLate(ent,con),reason:fd.mo.reason||"—"});});});});});return rows;}
+function renderTop(){
+  const T=App.filters.top;
+  let rows=topRows();const total=rows.length;
+  rows=rows.filter(r=>T.q===""||contains(r.txn,T.q)||contains(r.reason,T.q));
+  const amt=r=>parseFloat((""+r.amount).replace(/[^0-9.]/g,""))||0, dt=r=>pd(r.date).getTime();
+  rows.sort((a,b)=> T.sort==="Amount"?amt(b)-amt(a) : T.sort==="Date"?dt(b)-dt(a) : b.late-a.late);
+  let body=rows.map(r=>'<tr><td style="color:var(--muted)">'+r.date+'</td><td>'+r.report+'</td><td class="mono">'+r.txn+'</td><td>'+r.pt+'</td><td>'+r.entered+'</td><td>'+r.contract+'</td><td style="text-align:center"><span class="r-amber">'+r.late+'</span></td><td style="text-align:right">'+r.amount+'</td><td>'+r.reason+'</td></tr>').join("");
+  const tools='<div class="toolbar">'+searchBox("top","q","Search transaction / reason…","srch-top")+
+    '<label class="slab">Sort by</label>'+selBox("top","sort",["Days late","Amount","Date"])+
+    '<span class="spacer"></span><span class="count">'+rows.length+' / '+total+' late entries</span></div>';
+  const noRows=rows.length===0?'<p class="muted-note">No entries match your filter.</p>':'';
+  document.getElementById("screen").innerHTML=
+    '<p class="topnote">'+I.info+'<span>Only late entries flow to the monthly TOP report — Entered on later than Contract date — together with the MO reason. This is the source for the monthly Power BI.</span></p>'+tools+
+    '<div class="tbl-wrap"><table><thead class="simple"><tr><th>Date</th><th>Report</th><th>Transaction</th><th>PT</th><th>Entered on</th><th>Contract date</th><th style="text-align:center">Days late</th><th style="text-align:right">Amount</th><th>Reason</th></tr></thead><tbody>'+body+'</tbody></table></div>'+noRows+
+    '<p class="muted-note">'+total+' late entries across '+DAYS.length+' days.</p>';
+  document.getElementById("foot").innerHTML='<div class="left"></div><div class="right"><button class="btn btn-orange" onclick="App.back()">Back</button><button class="btn btn-blue" onclick="toast(\'Exported to Power BI\')">'+I.chart+' Send to Power BI</button></div>';
+}
+
+function setMO(id,i,field,val){
+  const{chk}=findCheck(id);const fd=chk.findings[i];fd.mo[field]=val;markDirty(id,i);
+  if(field==="reason"){
+    // (1) "Request FO explanation" auto-flags the row to FO
+    if(val==="Request FO explanation" && !fd.fo.flagged){fd.fo.flagged=true; if(!fd.fo.reviewer)fd.fo.reviewer=foDefault(chk.id);}
+    if(App.screen==="detail") renderDetail(); else render();
+  } else if(App.screen==="detail") footDetail(chk,checkStatus(chk)); // comment: data only elsewhere (keep input focus)
+}
+function setFO(id,i,field,val){const{chk}=findCheck(id);chk.findings[i].fo[field]=val;
+  // reason is committed via a <select> (no focus to lose) → refresh so the queue count + Send button stay live
+  if(field==="reason" && App.role==="FO" && App.screen==="inbox") renderInbox();}
+function toggleFO(id,i,on){const{chk}=findCheck(id);const fd=chk.findings[i];fd.fo.flagged=on;markDirty(id,i);if(on){if(!fd.fo.reviewer)fd.fo.reviewer=foDefault(chk.id);}else{fd.fo.sent=false;fd.fo.responded=false;fd.fo.reason="";fd.fo.comment="";}if(App.screen==="detail") renderDetail(); else render();}
+// confirm-then-send for the Check Analysis screen (same review-all warning as My Queue)
+function askSendFOReport(){
+  const rep=curDay().reports[App.report];const toSend=[];
+  rep.checks.forEach(c=>c.findings.forEach(fd=>{if(fd.fo.flagged && !fd.fo.sent && !fd.fo.responded)toSend.push(fd);}));
+  if(toSend.length===0){toast("No new flagged findings to send");return;}
+  const missing=toSend.filter(fd=>(fd.mo.reason==="Request FO explanation"||fd.mo.reason==="Other") && !fd.mo.comment);
+  if(missing.length>0){toast("Add a comment for "+txnNo(missing[0])+" before sending to FO");return;}
+  const byRev={};toSend.forEach(fd=>{const r=fd.fo.reviewer||foDefault(App.report);byRev[r]=(byRev[r]||0)+1;});
+  const m=Object.keys(byRev).length;
+  showConfirm({
+    title:"Send flagged findings to Front Office?",
+    msg:"This notifies <b>"+m+"</b> FO reviewer"+(m>1?"s":"")+" with <b>"+toSend.length+"</b> flagged finding"+(toSend.length>1?"s":"")+" from "+rep.name+", grouped into <b>"+m+"</b> email"+(m>1?"s":"")+" (one per reviewer). Please make sure you have reviewed <b>all</b> flagged rows first — each reviewer gets a single notification, so sending them together avoids spamming them.",
+    okLabel:I.send+" Yes, send to FO",
+    onOk:sendFOReport
+  });
+}
+// (2) Report-level batch send: groups all flagged-not-sent findings per FO reviewer -> one email each
+function sendFOReport(){
+  const rep=curDay().reports[App.report];
+  const toSend=[];
+  rep.checks.forEach(c=>c.findings.forEach(fd=>{if(fd.fo.flagged && !fd.fo.sent && !fd.fo.responded)toSend.push(fd);}));
+  if(toSend.length===0){toast("No new flagged findings to send");return;}
+  // mandatory comment for "Request FO explanation" / "Other"
+  const missing=toSend.filter(fd=>(fd.mo.reason==="Request FO explanation"||fd.mo.reason==="Other") && !fd.mo.comment);
+  if(missing.length>0){toast("Add a comment for "+txnNo(missing[0])+" before sending to FO");return;}
+  const byRev={};
+  toSend.forEach(fd=>{fd.fo.sent=true; fd.fo.sentOn=nowLabel(); fd.mo.asks.push({reason:fd.mo.reason,comment:fd.mo.comment,at:nowLabel()}); const r=fd.fo.reviewer||foDefault(App.report); byRev[r]=(byRev[r]||0)+1;});
+  const m=Object.keys(byRev).length;
+  logAudit("Sent "+toSend.length+" finding"+(toSend.length>1?"s":"")+" to FO \u2014 "+rep.name);
+  toast("Sent "+toSend.length+" finding"+(toSend.length>1?"s":"")+" to "+m+" FO reviewer"+(m>1?"s":"")+" \u00b7 "+m+" grouped email"+(m>1?"s":""));
+  render();
+}
+function simFO(id,i){const{chk}=findCheck(id);const fd=chk.findings[i];if(!fd.fo.sent){toast("Send it to FO first");return;}fd.fo.reason=fd.fo.reason||"Corrected in SAP";fd.fo.comment=fd.fo.comment||"Checked and corrected in SAP today.";fd.fo.replies.push({reason:fd.fo.reason,comment:fd.fo.comment,at:nowLabel()});fd.fo.responded=true;toast("FO replied — review and complete");renderDetail();}
+function completeCheck(id){const{chk}=findCheck(id);if(!canComplete(chk))return;chk.completed=true;App.dirty.clear();logAudit("Check completed — "+chk.scope);toast(chk.n+" completed");App.go("checks");}
+function completeCheckQ(id,di){if(di!==undefined)App.dayIndex=di;const{chk}=findCheck(id);if(!canComplete(chk))return;chk.completed=true;logAudit("Check completed — "+chk.scope);toast(chk.n+" completed");renderMoQueue();}
+function openCheckFromQueue(id,di){App.dayIndex=di!==undefined?di:0;App.report=id.startsWith("mm")?"mm":"fx";App.go("detail",{check:id});}
+// Resend to FO.
+//  - never replied yet (a nudge): just re-notify, no new ask.
+//  - replied (MO not satisfied): require a NEW MO comment -> append to the MO ask thread, reopen for FO.
+// key (My Queue card) reads the inline reason/comment inputs; without it (check detail) the row's MO comment is used.
+function resendFO(id,i,di,key){
+  if(di!==undefined)App.dayIndex=di;
+  const{chk}=findCheck(id);const fd=chk.findings[i];const who=fd.fo.reviewer?fd.fo.reviewer.split("@")[0]:"FO";
+  const rerender=()=>{ if(App.screen==="moqueue")renderMoQueue(); else if(App.screen==="detail")renderDetail(); else render(); };
+  if((fd.fo.replies||[]).length===0){ // nudge \u2014 FO has not replied yet
+    fd.fo.sentOn=nowLabel(); logAudit("Re-notified "+who+" \u2014 "+txnNo(fd)); toast("Re-notified "+who); rerender(); return;
+  }
+  // replied -> new comment required, appended to the thread
+  const rcEl=key?document.getElementById("rc-"+key):null, rrEl=key?document.getElementById("rr-"+key):null;
+  const newC=(rcEl?rcEl.value:fd.mo.comment||"").trim();
+  const newR=rrEl?rrEl.value:fd.mo.reason;
+  const last=fd.mo.asks[fd.mo.asks.length-1];
+  if(!newC){ toast("Add a new comment before resending"); return; }
+  if(last && newC===last.comment){ toast("Comment must be new (different from your last ask)"); return; }
+  fd.mo.reason=newR; fd.mo.comment=newC; markDirty(id,i);
+  fd.mo.asks.push({reason:newR,comment:newC,at:nowLabel()});
+  fd.fo.responded=false; fd.fo.reason=""; fd.fo.comment=""; fd.fo.sentOn=nowLabel();
+  logAudit("Resent to "+who+" \u2014 "+txnNo(fd)+" (new MO comment)");
+  toast("Resent to "+who+" \u00b7 new comment added to the thread");
+  rerender();
+}
+function addAtt(id){const{chk}=findCheck(id);chk.att.push("evidence_"+(chk.att.length+1)+".xlsx");toast("Evidence attached");renderDetail();}
+function rmAtt(id,i){const{chk}=findCheck(id);chk.att.splice(i,1);renderDetail();}
+
+function render(){
+  document.querySelectorAll('.roleseg button').forEach(b=>b.classList.toggle('on',b.dataset.role===App.role));
+  const back=document.getElementById("backBtn"), ttl=document.getElementById("hdrTitle");
+  if(App.role==="FO"){
+    if(App.screen==="detail"){const{chk}=findCheck(App.check);ttl.textContent=(chk.id.startsWith("mm")?"MM ":"")+chk.n.toUpperCase()+" · "+chk.scope.toUpperCase();back.style.display="inline-flex";renderDetail();return;}
+    ttl.textContent="TZ01 · FRONT OFFICE — MY QUEUE";back.style.display="none";renderInbox();return;
+  }
+  if(App.screen==="overview"){ttl.textContent="TZ01 DAILY TRANSACTION REVIEW";back.style.display="none";renderOverview();}
+  else if(App.screen==="checks"){ttl.textContent="CHECK ANALYSIS: "+curDay().reports[App.report].name.toUpperCase();back.style.display="inline-flex";renderChecks();}
+  else if(App.screen==="detail"){const{chk}=findCheck(App.check);ttl.textContent=(chk.id.startsWith("mm")?"MM ":"")+chk.n.toUpperCase()+" · "+chk.scope.toUpperCase();back.style.display="inline-flex";renderDetail();}
+  else if(App.screen==="top"){ttl.textContent="MONTHLY TOP REPORT — LATE ENTRIES";back.style.display="inline-flex";renderTop();}
+  else if(App.screen==="moqueue"){ttl.textContent="MIDDLE OFFICE — MY QUEUE";back.style.display="inline-flex";renderMoQueue();}
+}
+let toastT;function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2200);}
+showLoading(700);   // F: brief loading state on first paint
+render();
+</script>
+</body>
+</html>
