@@ -316,7 +316,7 @@ scrCheckDetail As screen:
                         Height: =36
                         Items: =SortByColumns(Filter(colReasonConfig, ReportType=varCurrentCheck.ReportType, CheckNumber=varCurrentCheck.CheckNumber, AppliesTo<>"FO"), "Sort").Reason
                         OnChange: |-
-                            =Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"}); If(LookUp(colReasonConfig, AppliesTo="MO" && ReportType=varCurrentCheck.ReportType && CheckNumber=varCurrentCheck.CheckNumber && Reason=Self.Selected.Value).AutoFlagFO && !ThisItem.FlaggedToFO, Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(varCurrentCheck.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true}))
+                            =/* PROD: MO edits also Patch('TZ01 Daily Transactions', LookUp by ID, {MO Reason/MO Comment/Flagged To FO/FO Reviewer}) — MO-owned columns only */ Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"}); If(LookUp(colReasonConfig, AppliesTo="MO" && ReportType=varCurrentCheck.ReportType && CheckNumber=varCurrentCheck.CheckNumber && Reason=Self.Selected.Value).AutoFlagFO && !ThisItem.FlaggedToFO, Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(varCurrentCheck.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true}))
                         Width: =160
                         ZIndex: =2
 

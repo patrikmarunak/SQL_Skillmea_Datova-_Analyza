@@ -277,7 +277,7 @@ scrMoQueue As screen:
                             Height: =36
                             Items: =SortByColumns(Filter(colReasonConfig, ReportType=ThisItem.ReportType, CheckNumber=ThisItem.CheckNumber, AppliesTo<>"FO"), "Sort").Reason
                             OnChange: |-
-                                =Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"}); If(LookUp(colReasonConfig, AppliesTo="MO" && ReportType=ThisItem.ReportType && CheckNumber=ThisItem.CheckNumber && Reason=Self.Selected.Value).AutoFlagFO && !ThisItem.FlaggedToFO, Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(ThisItem.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true}))
+                                =/* PROD: mirror to 'TZ01 Daily Transactions' (MO-owned columns) */ Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"}); If(LookUp(colReasonConfig, AppliesTo="MO" && ReportType=ThisItem.ReportType && CheckNumber=ThisItem.CheckNumber && Reason=Self.Selected.Value).AutoFlagFO && !ThisItem.FlaggedToFO, Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(ThisItem.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true}))
                             Width: =180
                             ZIndex: =1
 
@@ -895,7 +895,7 @@ scrMoQueue As screen:
                     Fill: =varTheme.Blue
                     Height: =36
                     OnSelect: |-
-                        =If(varQAction="resend", IfError(Patch(colTransactions, varQTarget, {FOSentOn: Now(), _isDirty:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Resent to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1) & " — " & varQTarget.TransactionNo}); Notify("Resent to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1), NotificationType.Information), Notify("Could not resend — please retry", NotificationType.Error)), IfError(Patch(colChecks, LookUp(colChecks, ID=varQTarget.DailyReportCheckID), {Completed:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Check completed from queue — " & varQTarget.TransactionNo}); Notify("Check completed", NotificationType.Success), Notify("Could not complete — please retry", NotificationType.Error))); Set(varQAction, "")
+                        =/* PROD: resend bumps 'TZ01 Daily Transactions'.FO Sent On; complete writes 'TZ01 Daily Report Checks' */ If(varQAction="resend", IfError(Patch(colTransactions, varQTarget, {FOSentOn: Now(), _isDirty:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Resent to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1) & " — " & varQTarget.TransactionNo}); Notify("Resent to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1), NotificationType.Information), Notify("Could not resend — please retry", NotificationType.Error)), IfError(Patch(colChecks, LookUp(colChecks, ID=varQTarget.DailyReportCheckID), {Completed:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Check completed from queue — " & varQTarget.TransactionNo}); Notify("Check completed", NotificationType.Success), Notify("Could not complete — please retry", NotificationType.Error))); Set(varQAction, "")
                     Size: =12
                     Text: =If(varQAction="resend", "Resend", "Complete check")
                     Width: =190
@@ -972,7 +972,7 @@ scrMoQueue As screen:
                     Fill: =varTheme.Blue
                     Height: =36
                     OnSelect: |-
-                        =With({toSend: Filter(colTransactions, FlaggedToFO, !FOSent)}, IfError(ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " finding(s) to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Sent " & CountRows(toSend) & " finding(s) to FO from My Queue"}), Notify("Could not send — please retry", NotificationType.Error))); Set(varConfirmQSend, false)
+                        =With({toSend: Filter(colTransactions, FlaggedToFO, !FOSent)}, /* PROD: mirror to Patch of TZ01 Daily Transactions (LookUp by ID) */ IfError(ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " finding(s) to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Sent " & CountRows(toSend) & " finding(s) to FO from My Queue"}), Notify("Could not send — please retry", NotificationType.Error))); Set(varConfirmQSend, false)
                     Size: =12
                     Text: ="Yes, send to FO"
                     Width: =190

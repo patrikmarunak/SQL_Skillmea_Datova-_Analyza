@@ -159,6 +159,20 @@ scrOverview As screen:
                 Width: =180
                 ZIndex: =2
 
+            ovUpload As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =varTheme.Line
+                BorderThickness: =1
+                Color: =varTheme.Muted
+                DisplayMode: =If(varRole="MO", DisplayMode.Edit, DisplayMode.Disabled)
+                Fill: =varTheme.Card
+                Height: =34
+                OnSelect: =Set(varShowUpload, true)
+                Size: =12
+                Text: ="Upload input file"
+                Width: =150
+                ZIndex: =3
+
             ovAdmin As button:
                 AlignInContainer: =AlignInContainer.Center
                 BorderColor: =varTheme.Line
@@ -171,7 +185,7 @@ scrOverview As screen:
                 Text: ="Configuration"
                 Visible: =varIsAdmin
                 Width: =140
-                ZIndex: =3
+                ZIndex: =4
 
         ovHelpWrap As groupContainer.verticalAutoLayoutContainer:
             Fill: =RGBA(0,0,0,0)
@@ -297,6 +311,78 @@ scrOverview As screen:
                             Text: ="Findings " & (ThisItem.FXFindings + ThisItem.MMFindings) & "  ·  " & ThisItem.Status
                             Width: =Parent.Width
                             ZIndex: =2
+
+                "galInputFiles As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                    Height: =130
+                    Items: =Filter(colInputFiles, DayKey = varSelectedItem.DayKey)
+                    Layout: =Layout.Vertical
+                    TemplatePadding: =2
+                    TemplateSize: =40
+                    Width: =Parent.Width
+                    ZIndex: =3
+
+                    ifRow As groupContainer.verticalAutoLayoutContainer:
+                        BorderColor: =varTheme.Line
+                        BorderThickness: =1
+                        Fill: =varTheme.Card
+                        Height: =Parent.TemplateHeight - 2
+                        PaddingBottom: =3
+                        PaddingLeft: =8
+                        PaddingRight: =8
+                        PaddingTop: =3
+                        Width: =Parent.TemplateWidth
+                        Y: =1
+                        ZIndex: =1
+
+                        ifKind As label:
+                            AlignInContainer: =AlignInContainer.Stretch
+                            Color: =If(ThisItem.Validated, varTheme.Green, varTheme.Amber)
+                            FontWeight: =FontWeight.Semibold
+                            Height: =15
+                            Size: =10
+                            Text: =ThisItem.FileKind & If(ThisItem.Validated, "  ✓ validated", "  · not validated")
+                            Width: =Parent.Width
+                            ZIndex: =1
+
+                        ifMeta As groupContainer.horizontalAutoLayoutContainer:
+                            Fill: =RGBA(0,0,0,0)
+                            Height: =17
+                            LayoutAlignItems: =LayoutAlignItems.Center
+                            LayoutGap: =6
+                            Width: =Parent.Width
+                            ZIndex: =2
+
+                            ifName As label:
+                                Color: =varTheme.Faint
+                                FillPortions: =1
+                                Height: =15
+                                Size: =9
+                                Text: =ThisItem.FileName & "  ·  " & ThisItem.Source
+                                Wrap: =false
+                                ZIndex: =1
+
+                            ifValidate As button:
+                                AlignInContainer: =AlignInContainer.Center
+                                BorderThickness: =0
+                                Color: =varTheme.White
+                                DisplayMode: =If(varRole="MO", DisplayMode.Edit, DisplayMode.Disabled)
+                                Fill: =varTheme.Orange
+                                Height: =17
+                                OnSelect: =Set(varConfirmValidate, true)
+                                Size: =9
+                                Text: ="Validate"
+                                Visible: =!ThisItem.Validated
+                                Width: =60
+                                ZIndex: =2
+
+                ovFilesEye As label:
+                    AlignInContainer: =AlignInContainer.Start
+                    Color: =varTheme.Ink
+                    FontWeight: =FontWeight.Semibold
+                    Height: =20
+                    Size: =11
+                    Text: ="INPUT FILES · SELECTED DAY"
+                    ZIndex: =4
 
             ovMain As groupContainer.verticalAutoLayoutContainer:
                 Fill: =RGBA(0,0,0,0)
@@ -442,6 +528,174 @@ scrOverview As screen:
                             OnSelect: =Set(varCurrentReport, ThisItem); Navigate(scrChecks, ScreenTransition.Cover)
                             Width: =24
                             ZIndex: =4
+
+    cfValScrim As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(20, 10, 30, 0.45)
+        Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutJustifyContent: =LayoutJustifyContent.Center
+        Visible: =varConfirmValidate
+        Width: =Parent.Width
+        ZIndex: =900
+
+        cfValCard As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Center
+            BorderColor: =varTheme.Line
+            BorderThickness: =1
+            Fill: =varTheme.Card
+            Height: =210
+            LayoutGap: =12
+            PaddingBottom: =20
+            PaddingLeft: =22
+            PaddingRight: =22
+            PaddingTop: =20
+            Width: =460
+            ZIndex: =2
+
+            cfValTitle As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Ink
+                FontWeight: =FontWeight.Semibold
+                Height: =26
+                Size: =15
+                Text: ="Run validation now?"
+                Width: =Parent.Width
+                ZIndex: =1
+
+            cfValMsg As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Muted
+                FillPortions: =1
+                Size: =12
+                Text: ="The file is saved to Input Files for " & varSelectedItem.DayKey & ". Running validation will (re)generate the checks and findings for this day and append the review log. Nothing runs and nobody is notified until you confirm — you can also validate later from the Input files list."
+                Width: =Parent.Width
+                ZIndex: =2
+
+            cfValBtns As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutGap: =10
+                LayoutJustifyContent: =LayoutJustifyContent.End
+                Width: =Parent.Width
+                ZIndex: =3
+
+                cfValCancel As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderColor: =varTheme.Line
+                    BorderThickness: =1
+                    Color: =varTheme.Muted
+                    Fill: =varTheme.Card
+                    Height: =36
+                    OnSelect: =Set(varConfirmValidate, false); Notify("Upload saved — validate any time from the Input files list", NotificationType.Information)
+                    Size: =12
+                    Text: ="Cancel"
+                    Width: =110
+                    ZIndex: =1
+
+                cfValOk As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderThickness: =0
+                    Color: =varTheme.White
+                    Fill: =varTheme.Orange
+                    Height: =36
+                    OnSelect: |-
+                        =IfError(/* PROD-FLOW: TZ01_Run_Validation_App.Run(varSelectedItem.ID, ...) fires HERE — after that reload colChecks/colTransactions and re-run the colTxnCells flatten; offline we mark the rows validated */ ForAll(Filter(colInputFiles, DayKey = varSelectedItem.DayKey, !Validated) As F, Patch(colInputFiles, F, {Validated: true})); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Validation triggered for " & varSelectedItem.DayKey & " (manual upload)"}); Notify("Validation started — checks and findings will refresh when it completes", NotificationType.Success), Notify("Could not start validation — please retry", NotificationType.Error)); Set(varConfirmValidate, false)
+                    Size: =12
+                    Text: ="Run validation"
+                    Width: =190
+                    ZIndex: =2
+
+    ovUpScrim As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(20, 10, 30, 0.45)
+        Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutJustifyContent: =LayoutJustifyContent.Center
+        Visible: =varShowUpload
+        Width: =Parent.Width
+        ZIndex: =940
+
+        ovUpCard As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Center
+            BorderColor: =varTheme.Line
+            BorderThickness: =1
+            Fill: =varTheme.Card
+            Height: =250
+            LayoutGap: =10
+            PaddingBottom: =20
+            PaddingLeft: =22
+            PaddingRight: =22
+            PaddingTop: =20
+            Width: =460
+            ZIndex: =1
+
+            ovUpTitle As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Ink
+                FontWeight: =FontWeight.Semibold
+                Height: =24
+                Size: =15
+                Text: ="Upload input file — " & varSelectedItem.DayKey
+                Width: =Parent.Width
+                ZIndex: =1
+
+            ovUpHint As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Muted
+                Height: =44
+                Size: =11
+                Text: ="Manual fallback when the report email did not arrive. The file is stored in the Input Files library; validation runs ONLY after you confirm it in the next step."
+                Width: =Parent.Width
+                ZIndex: =2
+
+            ovUpKind As dropdown:
+                AlignInContainer: =AlignInContainer.Stretch
+                Default: =""
+                Height: =36
+                Items: =["FX Listing","MM Listing","ZTRM Export","US Bank Report","Other"]
+                Width: =Parent.Width
+                ZIndex: =3
+
+            ovUpFile As text:
+                AlignInContainer: =AlignInContainer.Stretch
+                Default: =""
+                Height: =36
+                HintText: ="file name (optional — generated if empty)"
+                Width: =Parent.Width
+                ZIndex: =4
+
+            ovUpBtns As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutGap: =10
+                LayoutJustifyContent: =LayoutJustifyContent.End
+                Width: =Parent.Width
+                ZIndex: =5
+
+                ovUpCancel As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderColor: =varTheme.Line
+                    BorderThickness: =1
+                    Color: =varTheme.Muted
+                    Fill: =varTheme.Card
+                    Height: =36
+                    OnSelect: =Set(varShowUpload, false)
+                    Size: =12
+                    Text: ="Cancel"
+                    Width: =110
+                    ZIndex: =1
+
+                ovUpOk As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderThickness: =0
+                    Color: =varTheme.White
+                    Fill: =varTheme.Blue
+                    Height: =36
+                    OnSelect: |-
+                        =If(IsBlank(ovUpKind.Selected.Value), Notify("Choose the file kind first", NotificationType.Error), Collect(colInputFiles, {DayKey: varSelectedItem.DayKey, FileKind: ovUpKind.Selected.Value, ReportType: Switch(ovUpKind.Selected.Value, "FX Listing", "FX", "MM Listing", "MM", ""), FileName: If(IsBlank(ovUpFile.Text), Lower(Substitute(ovUpKind.Selected.Value, " ", "_")) & "_" & Text(Now(), "yyyymmdd_hhmm") & ".xlsx", ovUpFile.Text), ReceivedOn: Now(), Source: "Manual upload", Validated: false}); /* PROD: upload the picked file into the TZ01 Input Files library here (Attachments / library upload) */ Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Input file uploaded manually — " & ovUpKind.Selected.Value}); Set(varShowUpload, false); Set(varConfirmValidate, true))
+                    Size: =12
+                    Text: ="Upload"
+                    Width: =150
+                    ZIndex: =2
 
     ovLoadScrim As groupContainer.verticalAutoLayoutContainer:
         Fill: =RGBA(20, 10, 30, 0.35)

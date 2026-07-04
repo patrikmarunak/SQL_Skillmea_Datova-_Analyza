@@ -420,7 +420,7 @@ scrChecks As screen:
                     Fill: =varTheme.Green
                     Height: =36
                     OnSelect: |-
-                        =IfError(Patch(colDailyReports, varCurrentReport, {Submitted:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Report submitted — " & varCurrentReport.ReportType & " Listing"}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover), Notify("Could not submit — please retry", NotificationType.Error)); Set(varConfirmSubmit, false)
+                        =/* PROD: Patch('TZ01 Daily Reports', rep, {Status:"Completed", Submitted by:User().Email, Submitted On:Now()}) + Review Log append */ IfError(Patch(colDailyReports, varCurrentReport, {Submitted:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Report submitted — " & varCurrentReport.ReportType & " Listing"}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover), Notify("Could not submit — please retry", NotificationType.Error)); Set(varConfirmSubmit, false)
                     Size: =12
                     Text: ="Submit report"
                     Width: =190
@@ -497,7 +497,7 @@ scrChecks As screen:
                     Fill: =varTheme.Blue
                     Height: =36
                     OnSelect: |-
-                        =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)}, IfError(ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " findings to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Sent " & CountRows(toSend) & " finding(s) to FO — " & varCurrentReport.ReportType & " Listing"}), Notify("Could not send — please retry", NotificationType.Error))); Set(varConfirmSend, false)
+                        =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)}, /* PROD: mirror to Patch of TZ01 Daily Transactions (LookUp by ID) */ IfError(ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " findings to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Sent " & CountRows(toSend) & " finding(s) to FO — " & varCurrentReport.ReportType & " Listing"}), Notify("Could not send — please retry", NotificationType.Error))); Set(varConfirmSend, false)
                     Size: =12
                     Text: ="Yes, send to FO"
                     Width: =190

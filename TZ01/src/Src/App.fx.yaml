@@ -69,6 +69,10 @@ App As appinfo:
         ClearCollect(colTxnCells, Ungroup(ForAll(colTransactions As T, {Cells: ForAll(Filter(colAllColsForListing, Listing = T.ReportType) As C, {TxnID: T.ID, ColName: C.ColName, Value: Switch(C.ColName, "Company Code", T.'Company Code', "Transaction", T.'Transaction', "Business Partner", T.'Business Partner', "Product Type", T.'Product Type', "Product type name", T.'Product type name', "Transaction Type", T.'Transaction Type', "Name of Transaction Type", T.'Name of Transaction Type', "Buy/Sell Indicator", T.'Buy/Sell Indicator', "Value Date", T.'Value Date', "Expiration Date", T.'Expiration Date', "Traded Currency", T.'Traded Currency', "Payment Amount in Payment Currency", T.'Payment Amount in Payment Currency', "Oposit Currency", T.'Oposit Currency', "Oposit Amount", T.'Oposit Amount', "Premium Currency", T.'Premium Currency', "Premium Amount", T.'Premium Amount', "Transaction Rate", T.'Transaction Rate', "Leading Currency", T.'Leading Currency', "Following Currency", T.'Following Currency', "Contract Date", T.'Contract Date', "Contract.Concl.Time", T.'Contract.Concl.Time', "Trader", T.'Trader', "Reference", T.'Reference', "Assignment", T.'Assignment', "Characteristics", T.'Characteristics', "Internal Reference", T.'Internal Reference', "Trading Platform ID", T.'Trading Platform ID', "Hedge request", T.'Hedge request', "Entered On", T.'Entered On', "Expire/Exercise", T.'Expire/Exercise', "Active Status", T.'Active Status', "Release Status", T.'Release Status', "Active activity", T.'Active activity', "Market spot rate", T.'Market spot rate', "Company Name", T.'Company Name', "Transaction category", T.'Transaction category', "Transaction Currency", T.'Transaction Currency', "Amount/start", T.'Amount/start', "Interest Rate", T.'Interest Rate', "Interest amount", T.'Interest amount', "Term Start", T.'Term Start', "Term End", T.'Term End', "Changed On", T.'Changed On', "Activity Category", T.'Activity Category', "Activity Categ. Name", T.'Activity Categ. Name', "")})}), "Cells"));
         Set(varShowAll, false);
         ClearCollect(colExpanded, {Value:0}); Clear(colExpanded);
+        // ----- input files received for the day (v4.1). PROD: ClearCollect(colInputFiles, Filter('TZ01 Input Files', DayKey = varDayKey)) -----
+        ClearCollect(colInputFiles, {DayKey:"2026-02-16", FileKind:"FX Listing", ReportType:"FX", FileName:"ZTRM_export_2026-02-16.htm", ReceivedOn:DateValue("2026-02-16"), Source:"Email flow", Validated:true}, {DayKey:"2026-02-16", FileKind:"MM Listing", ReportType:"MM", FileName:"TM00_export_2026-02-16.htm", ReceivedOn:DateValue("2026-02-16"), Source:"Email flow", Validated:true});
+        // manual upload + confirmed validation dialog state
+        Set(varShowUpload, false); Set(varConfirmValidate, false);
         // ----- identity + roles from the Reviewers matrix (Group column: MO / FO / ADMIN, TZ20 pattern) -----
         // PRODUCTION: colReviewers loads from the TZ01 Reviewers list (Group choice column added by provisioning v4 delta).
         Set(varUser, User());
@@ -100,19 +104,52 @@ App As appinfo:
         Set(varDayKey, varSelectedItem.DayKey);
         If(!IsBlank(varDeepReport), Set(varCurrentReport, LookUp(colDailyReports, DailyItemID = varSelectedItem.ID, ReportType = varDeepReport)));
         If(!IsBlank(varDeepCheckKey), Set(varCurrentCheck, LookUp(colChecks, CheckKey = varDeepCheckKey)))
-        // ===== PRODUCTION: swap seeds for SharePoint loads (commented) =====
         // =====================================================================
-        //  PRODUCTION:  replace the seed blocks above with these loads
+        //  PRODUCTION SWAP — everything below depends on the REAL SharePoint lists
+        //  (site: env var Sharepoint_TZ01_site; one data-source env var per list,
+        //   TZ20 pattern: Sharepoint_TZ01_<List>_list). Connect the lists as data
+        //  sources, uncomment these loads and DELETE the seed blocks above.
         // =====================================================================
+        // Set(varLoading, true);
         // ClearCollect(colDailyItems,   'TZ01 Daily Item');
         // ClearCollect(colDailyReports, 'TZ01 Daily Reports');
-        // ClearCollect(colChecks,       'TZ01 Daily Report Checks');
-        // ClearCollect(colReasonConfig, 'TZ01 Reason Config');
+        // ClearCollect(colChecks, RenameColumns('TZ01 Daily Report Checks',
+        //     "Check Number","CheckNumber", "Check Name","CheckName", "Report Type","ReportType",
+        //     "Findings Count","FindingsCount", "FO Flagged Count","FOFlaggedCount",
+        //     "Not Compared","NotCompared", "Is Late","IsLate", "Completed On","CompletedOn"));
+        // ClearCollect(colReasonConfig, RenameColumns('TZ01 Reason Config',
+        //     "Report Type","ReportType", "Check Number","CheckNumber", "Title","Reason",
+        //     "Role","AppliesTo", "Auto Flag FO","AutoFlagFO", "Requires Comment","RequiresComment", "Order","Sort"));
+        // ClearCollect(colReviewers, AddColumns(RenameColumns(Filter('TZ01 Reviewers', Active),
+        //     "Report Type","ReportType", "Check Number","CheckNumber", "Default","IsDefault"),
+        //     "Email", Lower(Reviewer.Email), "Name", Reviewer.DisplayName));   // Group column: provisioning v4 delta
+        // ClearCollect(colCheckColumns, RenameColumns('TZ01 Check Columns',
+        //     "Check Number","CheckNo", "Column Name","ColName", "Order","Order", "Align","Align"));
         // ClearCollect(colTopReport,    'TZ01 Top Report');
-        // // load only the selected day's transactions (delegable on DayKey):
-        // // done on the overview OnSelect, not OnStart:
-        // //   ClearCollect(colTransactions,
-        // //      AddColumns(Filter('TZ01 Daily Transactions', DayKey = varDayKey),
-        // //                 "_state","loaded","_isDirty",false));
+        // ClearCollect(colInputFiles,   Filter('TZ01 Input Files', DayKey = varDayKey));
+        // // transactions: load ONLY the selected day (delegable on the indexed DayKey),
+        // // then add the app-local working fields (never stored in SharePoint):
+        // ClearCollect(colTransactions, AddColumns(
+        //     RenameColumns(Filter('TZ01 Daily Transactions', DayKey = varDayKey),
+        //         "MO Reason","MOReason", "MO Comment","MOComment", "Flagged To FO","FlaggedToFO",
+        //         "FO Reviewer","FOReviewer", "FO Sent","FOSent", "FO Sent On","FOSentOn",
+        //         "FO Reason","FOReason", "FO Comment","FOComment", "FO Responded On","FORespondedOn",
+        //         "Report Type","ReportType", "Check Number","CheckNumber", "Is Late","IsLate", "Days Late","DaysLate"),
+        //     "_state","loaded", "_isDirty",false, "_foDraftReason","", "_foDraftComment",""));
+        // Set(varLoading, false);
+        // // re-run the colTxnCells flatten AFTER the production loads (it reads colTransactions).
+        // =====================================================================
+        //  WRITE-BACK (per action; each OnSelect also carries a local PROD note):
+        //  - MO edits / flag:   Patch('TZ01 Daily Transactions', LookUp('TZ01 Daily Transactions', ID=row.ID), {MO Reason, MO Comment, Flagged To FO, FO Reviewer})
+        //  - MO batch send:     + {FO Sent:true, FO Sent On:Now()}  -> FLOW TZ01_Notify_FO_App groups per FO Reviewer, one deeplink email each
+        //  - FO batch respond:  + {FO Reason, FO Comment(append), FO Responded On:Now()} -> FLOW TZ01_Notify_MO_App, one grouped notification
+        //  - complete check:    Patch('TZ01 Daily Report Checks', chk, {Completed:true, Completed On:Now()}); late checks also write TZ01 Top Report rows
+        //  - submit report:     Patch('TZ01 Daily Reports', rep, {Status:"Completed", Submitted by:User().Email, Submitted On:Now()})
+        //  - audit (colAudit):  mirror each entry to 'TZ01 Daily Reports'.Review Log (append) — aggregated into the Daily Item log by the flow
+        //  - manual upload:     real file goes to the 'TZ01 Input Files' library (Attachments/library upload), then
+        //                       FLOW TZ01_Run_Validation_App.Run(dailyItemId, fileKind, fileName) — PowerAppV2 trigger, fired
+        //                       ONLY after the user confirms the validation dialog; the flow parses the file, (re)writes
+        //                       Daily Report Checks + Daily Transactions, appends the Review Log, and the app reloads the day.
+        // =====================================================================
     StartScreen: =If(Coalesce(Param("Role"),"")="FO", scrInbox, Switch(Coalesce(Param("Screen"),""), "detail", scrCheckDetail, "checks", scrChecks, "moqueue", scrMoQueue, "inbox", scrInbox, scrOverview))
 

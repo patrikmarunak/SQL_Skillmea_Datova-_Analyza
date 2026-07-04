@@ -1,5 +1,38 @@
 # TZ01 — change log
 
+## v4.1 delta (production-ready annotations + manual report upload with confirmed validation)
+
+361 controls (+24); packs clean, round-trip stable.
+
+**Production dependencies are now spelled out in the app itself.** `App.OnStart`
+ends with a full **PRODUCTION SWAP** comment block: exact list names, per-collection
+`ClearCollect` + `RenameColumns` maps (incl. Reviewers→Group, ReasonConfig flag
+columns, per-day delegable transactions load with the app-local `_state/_isDirty/
+_foDraft*` fields), the env-var binding convention (`Sharepoint_TZ01_*`, TZ20
+pattern), and the write-back contract per action. Every write site on the screens
+carries a short `/* PROD: … */` note saying which real list/flow the Patch mirrors
+to (MO edits, both MO batch sends, FO batch respond, complete, resend, submit,
+audit → Review Log).
+
+**Manual report upload + confirmed validation (overview).**
+- **Upload input file** (MO-only) opens a dialog: file kind (FX Listing / MM
+  Listing / ZTRM Export / US Bank Report / Other) + optional file name → writes a
+  metadata row into `colInputFiles` (PROD: the real file goes to the **TZ01 Input
+  Files** library) + audit entry.
+- Immediately after upload a **"Run validation now?"** confirm appears — nothing
+  runs and nobody is notified until the user confirms. OK = the validation-flow
+  call site (`FLOW: TZ01_Run_Validation_App.Run(dailyItemId, fileKind, fileName)`,
+  PowerAppV2; the flow parses the file, (re)writes Daily Report Checks + Daily
+  Transactions, appends the Review Log; the app then reloads the day). Cancel
+  keeps the upload and validation can be started later.
+- New **INPUT FILES · SELECTED DAY** panel on the overview left column shows the
+  day's received/uploaded files (`✓ validated` / `not validated`, source Email
+  flow vs Manual upload) with a **Validate** button on unvalidated rows that
+  re-opens the same confirm.
+- `colInputFiles` seeded with the day's two email-delivered listings; production
+  load = `Filter('TZ01 Input Files', DayKey = varDayKey)`.
+
+
 ## v4 delta (solution alignment: roles MO/FO/ADMIN, FO batched send, confirm-before-send, ch. 8.3/14.7 config)
 
 Aligns the app with the TZ01 proposal (ch. 8.3, 14.7, 14.8) and the TZ20 solution
