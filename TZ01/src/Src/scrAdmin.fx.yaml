@@ -1,0 +1,253 @@
+scrAdmin As screen:
+    Fill: =varTheme.Bg
+
+    adRoot As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(0,0,0,0)
+        Height: =Parent.Height
+        Width: =Parent.Width
+        ZIndex: =1
+
+        adhdrBar As groupContainer.horizontalAutoLayoutContainer:
+            Fill: =varTheme.Purple
+            Height: =58
+            LayoutAlignItems: =LayoutAlignItems.Center
+            LayoutGap: =12
+            PaddingBottom: =12
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =12
+            Width: =Parent.Width
+            ZIndex: =10
+
+            adhdrBack As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderThickness: =0
+                Color: =varTheme.White
+                Fill: =RGBA(255, 255, 255, 0.14)
+                Height: =34
+                HoverColor: =varTheme.White
+                HoverFill: =RGBA(255, 255, 255, 0.24)
+                OnSelect: =Navigate(scrOverview, ScreenTransition.UnCoverRight)
+                PressedColor: =varTheme.White
+                PressedFill: =RGBA(255, 255, 255, 0.24)
+                Size: =12
+                Text: ="< Back"
+                Width: =92
+                ZIndex: =1
+
+            adhdrTitle As label:
+                AlignInContainer: =AlignInContainer.Center
+                Color: =varTheme.White
+                FillPortions: =1
+                FontWeight: =FontWeight.Semibold
+                Height: =34
+                Size: =16
+                Text: ="CONFIGURATION — READ ONLY"
+                ZIndex: =2
+
+            adhdrRoleSeg As groupContainer.horizontalAutoLayoutContainer:
+                AlignInContainer: =AlignInContainer.Center
+                Fill: =RGBA(255, 255, 255, 0.13)
+                Height: =34
+                LayoutGap: =4
+                PaddingBottom: =3
+                PaddingLeft: =3
+                PaddingRight: =3
+                PaddingTop: =3
+                Visible: =IsBlank(varRoleResolved)
+                Width: =240
+                ZIndex: =3
+
+                adhdrMO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="MO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="MO", varTheme.White, RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "MO"); Navigate(scrOverview, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Middle Office"
+                    ZIndex: =1
+
+                adhdrFO As button:
+                    BorderThickness: =0
+                    Color: =If(varRole="FO", varTheme.Purple, RGBA(227,214,237,1))
+                    Fill: =If(varRole="FO", varTheme.White, RGBA(255,255,255,0))
+                    FillPortions: =1
+                    Height: =28
+                    OnSelect: =Set(varRole, "FO"); Navigate(scrInbox, ScreenTransition.Fade)
+                    Size: =11
+                    Text: ="Front Office"
+                    ZIndex: =2
+
+            adhdrLogo As label:
+                Align: =Align.Center
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =RGBA(255, 255, 255, 0.4)
+                BorderStyle: =BorderStyle.Dashed
+                BorderThickness: =1
+                Color: =varTheme.White
+                Height: =30
+                Size: =11
+                Text: ="[ logo ]"
+                Width: =110
+                ZIndex: =4
+
+            adhdrUser As label:
+                Align: =Align.Right
+                AlignInContainer: =AlignInContainer.Center
+                Color: =RGBA(227, 214, 237, 1)
+                Height: =30
+                Size: =11
+                Text: ="Signed in as " & Coalesce(varUser.FullName, varUser.Email, "Demo user") & "  ·  " & varRole
+                Width: =220
+                ZIndex: =5
+
+        adBody As groupContainer.verticalAutoLayoutContainer:
+            Fill: =RGBA(0,0,0,0)
+            LayoutGap: =10
+            PaddingBottom: =14
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =14
+            Width: =Parent.Width
+            ZIndex: =20
+
+            adNote As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                BorderColor: =RGBA(234,217,243,1)
+                BorderThickness: =1
+                Color: =varTheme.Muted
+                Fill: =RGBA(251,247,254,1)
+                Height: =48
+                PaddingLeft: =14
+                PaddingTop: =8
+                Size: =11
+                Text: |-
+                    ="Read-only view of the configuration that drives the app: reason dropdowns (with auto-flag / mandatory-comment rules), FO reviewer routing, and per-check visible columns. Maintain the values in the SharePoint config lists — TZ01 Reason Config, TZ01 Reviewers, TZ01 Check Columns."
+                Width: =Parent.Width
+                ZIndex: =1
+
+            adCols As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                LayoutGap: =10
+                Width: =Parent.Width
+                ZIndex: =2
+
+                adRCol As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =varTheme.Line
+                    BorderThickness: =1
+                    Fill: =varTheme.Card
+                    Height: =Parent.Height
+                    LayoutGap: =6
+                    PaddingBottom: =10
+                    PaddingLeft: =12
+                    PaddingRight: =12
+                    PaddingTop: =10
+                    ZIndex: =1
+
+                    adRTitle As label:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =varTheme.Ink
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        Size: =12
+                        Text: ="REASON CONFIG (MO + FO)"
+                        Width: =Parent.Width
+                        ZIndex: =1
+
+                    "adRGal As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                        Items: =SortByColumns(colReasonConfig, "ReportType", SortOrder.Ascending, "CheckNumber", SortOrder.Ascending, "AppliesTo", SortOrder.Ascending, "Sort", SortOrder.Ascending)
+                        Layout: =Layout.Vertical
+                        TemplatePadding: =1
+                        TemplateSize: =24
+                        Width: =Parent.Width
+                        ZIndex: =2
+
+                        adRRowLbl As label:
+                            Color: =varTheme.Muted
+                            Height: =Parent.TemplateHeight
+                            Size: =10
+                            Text: =ThisItem.ReportType & ThisItem.CheckNumber & " · " & ThisItem.AppliesTo & " · " & ThisItem.Reason & If(ThisItem.AutoFlagFO, "  [auto-flag FO]", "") & If(ThisItem.RequiresComment, "  [comment required]", "")
+                            Width: =Parent.TemplateWidth
+                            Wrap: =false
+                            ZIndex: =1
+
+                adVCol As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =varTheme.Line
+                    BorderThickness: =1
+                    Fill: =varTheme.Card
+                    Height: =Parent.Height
+                    LayoutGap: =6
+                    PaddingBottom: =10
+                    PaddingLeft: =12
+                    PaddingRight: =12
+                    PaddingTop: =10
+                    ZIndex: =1
+
+                    adVTitle As label:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =varTheme.Ink
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        Size: =12
+                        Text: ="REVIEWERS & ROLES"
+                        Width: =Parent.Width
+                        ZIndex: =1
+
+                    "adVGal As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                        Items: =colReviewers
+                        Layout: =Layout.Vertical
+                        TemplatePadding: =1
+                        TemplateSize: =24
+                        Width: =Parent.Width
+                        ZIndex: =2
+
+                        adVRowLbl As label:
+                            Color: =varTheme.Muted
+                            Height: =Parent.TemplateHeight
+                            Size: =10
+                            Text: =ThisItem.Email & " · " & ThisItem.Group & If(ThisItem.Group="FO", " · " & ThisItem.ReportType & If(ThisItem.CheckNumber>0, Text(ThisItem.CheckNumber), "") & If(ThisItem.IsDefault, " (default)", ""), "")
+                            Width: =Parent.TemplateWidth
+                            Wrap: =false
+                            ZIndex: =1
+
+                adCCol As groupContainer.verticalAutoLayoutContainer:
+                    BorderColor: =varTheme.Line
+                    BorderThickness: =1
+                    Fill: =varTheme.Card
+                    Height: =Parent.Height
+                    LayoutGap: =6
+                    PaddingBottom: =10
+                    PaddingLeft: =12
+                    PaddingRight: =12
+                    PaddingTop: =10
+                    ZIndex: =1
+
+                    adCTitle As label:
+                        AlignInContainer: =AlignInContainer.Stretch
+                        Color: =varTheme.Ink
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        Size: =12
+                        Text: ="CHECK COLUMNS (QUICK VIEW)"
+                        Width: =Parent.Width
+                        ZIndex: =1
+
+                    "adCGal As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                        Items: =SortByColumns(colCheckColumns, "Report", SortOrder.Ascending, "CheckNo", SortOrder.Ascending, "Order", SortOrder.Ascending)
+                        Layout: =Layout.Vertical
+                        TemplatePadding: =1
+                        TemplateSize: =24
+                        Width: =Parent.Width
+                        ZIndex: =2
+
+                        adCRowLbl As label:
+                            Color: =varTheme.Muted
+                            Height: =Parent.TemplateHeight
+                            Size: =10
+                            Text: =ThisItem.Report & ThisItem.CheckNo & " · " & ThisItem.Order & "  " & ThisItem.ColName
+                            Width: =Parent.TemplateWidth
+                            Wrap: =false
+                            ZIndex: =1
+

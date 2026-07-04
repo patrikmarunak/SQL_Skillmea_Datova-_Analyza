@@ -1,5 +1,66 @@
 # TZ01 — change log
 
+## v4 delta (solution alignment: roles MO/FO/ADMIN, FO batched send, confirm-before-send, ch. 8.3/14.7 config)
+
+Aligns the app with the TZ01 proposal (ch. 8.3, 14.7, 14.8) and the TZ20 solution
+architecture (role model from the Reviewers list, app→flow contracts, env-var-bound
+SharePoint data sources). 337 controls (+26); packs clean and round-trips losslessly.
+
+**Roles (TZ20 pattern).** `App.OnStart` resolves `colUserRoles` from the Reviewers
+matrix (`Group` column: **MO / FO / ADMIN**) → `varIsMO/varIsFO/varIsAdmin`,
+`varRole = Coalesce(resolved, "MO")`; the deeplink `Role=FO` still wins; the manual
+MO/FO toggle shows only when identity doesn't resolve (demo). **Admins are excluded
+from sign-off**: Send-to-FO, Submit, Complete, Resend/Nudge are `DisplayMode`-gated
+to `varRole="MO"` (MO inputs were already MO-gated). New **`scrAdmin`** (read-only
+configuration view: reasons + flags, reviewers/roles, quick-view columns) reachable
+via an ADMIN-only "Configuration" button on the overview.
+
+**Restricted FO experience.** With a resolved FO identity, the FO queue filters to
+`FOReviewer = signed-in user` (`varFoMineOnly`); FO cards lost **Open check** — FO
+answers inline and never browses the wider transaction population. Demo users
+(unresolved identity) still see the full seeded queue.
+
+**FO batched send.** Per-card "Send response to MO" replaced by ONE screen-level
+**"Send responses to MO (N)"**. FO reason/comment are staged per row in app-local
+`_foDraftReason/_foDraftComment` (never written to SharePoint); the batch applies
+`FOReason` + appended `FOComment` history + `FORespondedOn` in one pass → the
+notify-MO flow sends one grouped notification.
+
+**Confirm-before-send (anti-spam).** Both MO batched sends (Check Analysis + My
+Queue) and the FO batched send open a confirm dialog first, stating how many
+findings/reviewers are affected and warning to review ALL findings before sending
+(one grouped email per reviewer). The FO dialog also says how many findings still
+lack a reason and won't be sent.
+
+**Config-driven reason semantics (ch. 14.7).** `colReasonConfig` reseeded with the
+production DRP MO/FO reasons per check (FO reasons are per check now; FX 3 has none —
+"does not go to FO"), plus `AutoFlagFO` (auto-flag on select — replaces the hardcoded
+"Request FO explanation" checks) and `RequiresComment` (mandatory-comment validation
+before send — replaces the hardcoded reason-name checks). `Auto` marks script-set
+reasons (FX4 Hedge rate, MM4 Credit line). Seed reasons updated to production values
+("Late booking" → "Processing error"; MM1 FO reply → "Technical Issue").
+
+**Quick-view columns (ch. 8.3).** `colCheckColumns` reseeded to the "Columns required
+in View Table" sets, in order (e.g. FX2 = 9 cols incl. Characteristics; FX4 = Traded/
+Oposit Currency + Transaction Rate + Market spot rate). "Show all columns" unchanged.
+
+**Flow integration points (TZ20 contract style).** The app only sets flags
+(`FOSent/FOSentOn`, `FORespondedOn`, `Completed`, `Submitted`) — formulas carry
+`FLOW:` markers where the TZ01 solution's PowerAppV2 flows attach (notify-FO grouped
+per reviewer, notify-MO on responses). No flow datasources are wired yet: the TZ01
+solution (env vars `Sharepoint_TZ01_*`, connection references, flows) doesn't exist
+yet — creating it is the next step (see ci/SETUP.md + the v4 provisioning delta).
+
+**Provisioning** — `provisioning/TZ01_provision_v4_delta.ps1`: `Group` choice column
+on TZ01 Reviewers; `Auto`/`Auto Flag FO`/`Requires Comment` on TZ01 Reason Config
+(+ `-Reseed` per ch. 14.7); TZ01 Check Columns `-Reseed` per ch. 8.3.
+
+**Verified:** pack + unpack + repack round-trip stable; production reasons, ch. 8.3
+column sets, confirm overlays and removed FO buttons confirmed in the packed source.
+**Needs Studio:** import-without-repair + App Checker pass (Solution Checker in CI
+does not analyse canvas formulas).
+
+
 ## v3.2 delta (My Queue as an MO worklist + FO inbox parity)
 
 Ports the prototype's My-Queue rework to Power Apps. Touches only the MO queue

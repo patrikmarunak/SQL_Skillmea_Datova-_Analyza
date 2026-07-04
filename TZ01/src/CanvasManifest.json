@@ -41,6 +41,7 @@
     "scrCheckDetail",
     "scrMoQueue",
     "scrInbox",
-    "scrTop"
+    "scrTop",
+    "scrAdmin"
   ]
 }

@@ -132,11 +132,11 @@ scrChecks As screen:
                 Color: =varTheme.White
                 DisabledColor: =varTheme.Faint
                 DisabledFill: =RGBA(240,240,240,1)
-                DisplayMode: =If(CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent))>0, DisplayMode.Edit, DisplayMode.Disabled)
+                DisplayMode: =If(varRole="MO" && CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent))>0, DisplayMode.Edit, DisplayMode.Disabled)
                 Fill: =varTheme.Blue
                 Height: =34
                 OnSelect: |-
-                    =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)}, If(CountRows(Filter(toSend, (MOReason="Request FO explanation" || MOReason="Other") && IsBlank(MOComment)))>0, Notify("Add a comment before sending to FO", NotificationType.Error), ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " findings to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Sent " & CountRows(toSend) & " finding(s) to FO — " & varCurrentReport.ReportType & " Listing"})))
+                    =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)}, If(CountRows(Filter(toSend As T2, LookUp(colReasonConfig, AppliesTo="MO" && ReportType=T2.ReportType && CheckNumber=T2.CheckNumber && Reason=T2.MOReason).RequiresComment && IsBlank(T2.MOComment)))>0, Notify("Add a comment before sending to FO", NotificationType.Error), Set(varConfirmSend, true)))
                 Size: =12
                 Text: ="Send flagged to FO (" & CountRows(Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)) & ")"
                 Width: =200
@@ -161,7 +161,7 @@ scrChecks As screen:
                 Color: =varTheme.White
                 DisabledColor: =varTheme.Faint
                 DisabledFill: =RGBA(240,240,240,1)
-                DisplayMode: =If(CountRows(Filter(colChecks, DailyReportID=varCurrentReport.ID, !(CountRows(Filter(colTransactions, DailyReportCheckID=ID))=0 || Completed)))=0, DisplayMode.Edit, DisplayMode.Disabled)
+                DisplayMode: =If(varRole="MO" && CountRows(Filter(colChecks, DailyReportID=varCurrentReport.ID, !(CountRows(Filter(colTransactions, DailyReportCheckID=ID))=0 || Completed)))=0, DisplayMode.Edit, DisplayMode.Disabled)
                 Fill: =varTheme.Green
                 Height: =34
                 OnSelect: =Set(varConfirmSubmit, true)
@@ -423,6 +423,83 @@ scrChecks As screen:
                         =IfError(Patch(colDailyReports, varCurrentReport, {Submitted:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Report submitted — " & varCurrentReport.ReportType & " Listing"}); Notify("Report submitted", NotificationType.Success); Navigate(scrOverview, ScreenTransition.UnCover), Notify("Could not submit — please retry", NotificationType.Error)); Set(varConfirmSubmit, false)
                     Size: =12
                     Text: ="Submit report"
+                    Width: =190
+                    ZIndex: =2
+
+    cfSendScrim As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(20, 10, 30, 0.45)
+        Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutJustifyContent: =LayoutJustifyContent.Center
+        Visible: =varConfirmSend
+        Width: =Parent.Width
+        ZIndex: =900
+
+        cfSendCard As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Center
+            BorderColor: =varTheme.Line
+            BorderThickness: =1
+            Fill: =varTheme.Card
+            Height: =210
+            LayoutGap: =12
+            PaddingBottom: =20
+            PaddingLeft: =22
+            PaddingRight: =22
+            PaddingTop: =20
+            Width: =460
+            ZIndex: =2
+
+            cfSendTitle As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Ink
+                FontWeight: =FontWeight.Semibold
+                Height: =26
+                Size: =15
+                Text: ="Send flagged findings to Front Office?"
+                Width: =Parent.Width
+                ZIndex: =1
+
+            cfSendMsg As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Muted
+                FillPortions: =1
+                Size: =12
+                Text: |-
+                    =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)}, "This notifies " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s) with " & CountRows(toSend) & " flagged finding(s) — one grouped email per reviewer. Make sure you have reviewed ALL findings first, so reviewers are not spammed with follow-up notifications.")
+                Width: =Parent.Width
+                ZIndex: =2
+
+            cfSendBtns As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutGap: =10
+                LayoutJustifyContent: =LayoutJustifyContent.End
+                Width: =Parent.Width
+                ZIndex: =3
+
+                cfSendCancel As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderColor: =varTheme.Line
+                    BorderThickness: =1
+                    Color: =varTheme.Muted
+                    Fill: =varTheme.Card
+                    Height: =36
+                    OnSelect: =Set(varConfirmSend, false)
+                    Size: =12
+                    Text: ="Cancel"
+                    Width: =110
+                    ZIndex: =1
+
+                cfSendOk As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderThickness: =0
+                    Color: =varTheme.White
+                    Fill: =varTheme.Blue
+                    Height: =36
+                    OnSelect: |-
+                        =With({toSend: Filter(colTransactions, DailyReportID=varCurrentReport.ID, FlaggedToFO, !FOSent)}, IfError(ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " findings to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Sent " & CountRows(toSend) & " finding(s) to FO — " & varCurrentReport.ReportType & " Listing"}), Notify("Could not send — please retry", NotificationType.Error))); Set(varConfirmSend, false)
+                    Size: =12
+                    Text: ="Yes, send to FO"
                     Width: =190
                     ZIndex: =2
 

@@ -149,7 +149,7 @@ scrCheckDetail As screen:
                 DisabledColor: =varTheme.Faint
                 DisabledFill: =RGBA(240,240,240,1)
                 DisplayMode: |-
-                    =If(With({tx: Filter(colTransactions, DailyReportCheckID=varCurrentCheck.ID)}, CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0), DisplayMode.Edit, DisplayMode.Disabled)
+                    =If(varRole="MO" && With({tx: Filter(colTransactions, DailyReportCheckID=varCurrentCheck.ID)}, CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0), DisplayMode.Edit, DisplayMode.Disabled)
                 Fill: =varTheme.Green
                 Height: =34
                 OnSelect: =Set(varConfirmComplete, true)
@@ -316,7 +316,7 @@ scrCheckDetail As screen:
                         Height: =36
                         Items: =SortByColumns(Filter(colReasonConfig, ReportType=varCurrentCheck.ReportType, CheckNumber=varCurrentCheck.CheckNumber, AppliesTo<>"FO"), "Sort").Reason
                         OnChange: |-
-                            =Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"}); If(Self.Selected.Value = "Request FO explanation" && !ThisItem.FlaggedToFO, Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(varCurrentCheck.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true}))
+                            =Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"}); If(LookUp(colReasonConfig, AppliesTo="MO" && ReportType=varCurrentCheck.ReportType && CheckNumber=varCurrentCheck.CheckNumber && Reason=Self.Selected.Value).AutoFlagFO && !ThisItem.FlaggedToFO, Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(varCurrentCheck.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true}))
                         Width: =160
                         ZIndex: =2
 
@@ -358,7 +358,7 @@ scrCheckDetail As screen:
                         Default: =ThisItem.FOReason
                         DisplayMode: =DisplayMode.View
                         Height: =36
-                        Items: =Filter(colReasonConfig, AppliesTo="FO").Reason
+                        Items: =SortByColumns(Filter(colReasonConfig, AppliesTo="FO", ReportType=ThisItem.ReportType, CheckNumber=ThisItem.CheckNumber), "Sort").Reason
                         Width: =150
                         ZIndex: =6
 

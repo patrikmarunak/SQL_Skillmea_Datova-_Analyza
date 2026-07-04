@@ -218,11 +218,11 @@ scrMoQueue As screen:
                     Color: =varTheme.White
                     DisabledColor: =varTheme.Faint
                     DisabledFill: =RGBA(240,240,240,1)
-                    DisplayMode: =If(CountRows(Filter(colTransactions, FlaggedToFO, !FOSent))>0, DisplayMode.Edit, DisplayMode.Disabled)
+                    DisplayMode: =If(varRole="MO" && CountRows(Filter(colTransactions, FlaggedToFO, !FOSent))>0, DisplayMode.Edit, DisplayMode.Disabled)
                     Fill: =varTheme.Blue
                     Height: =30
                     OnSelect: |-
-                        =With({toSend: Filter(colTransactions, FlaggedToFO, !FOSent)}, If(CountRows(Filter(toSend, (MOReason="Request FO explanation" || MOReason="Other") && IsBlank(MOComment)))>0, Notify("Add a comment before sending to FO", NotificationType.Error), ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " finding(s) to FO", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Sent " & CountRows(toSend) & " finding(s) to FO from My Queue"})))
+                        =With({toSend: Filter(colTransactions, FlaggedToFO, !FOSent)}, If(CountRows(Filter(toSend As T2, LookUp(colReasonConfig, AppliesTo="MO" && ReportType=T2.ReportType && CheckNumber=T2.CheckNumber && Reason=T2.MOReason).RequiresComment && IsBlank(T2.MOComment)))>0, Notify("Add a comment before sending to FO", NotificationType.Error), Set(varConfirmQSend, true)))
                     Size: =11
                     Text: ="Send flagged to FO (" & CountRows(Filter(colTransactions, FlaggedToFO, !FOSent)) & ")"
                     Width: =210
@@ -277,7 +277,7 @@ scrMoQueue As screen:
                             Height: =36
                             Items: =SortByColumns(Filter(colReasonConfig, ReportType=ThisItem.ReportType, CheckNumber=ThisItem.CheckNumber, AppliesTo<>"FO"), "Sort").Reason
                             OnChange: |-
-                                =Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"}); If(Self.Selected.Value = "Request FO explanation" && !ThisItem.FlaggedToFO, Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(ThisItem.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true}))
+                                =Patch(colTransactions, ThisItem, {MOReason:Self.Selected.Value, _isDirty:true, _state:"modified"}); If(LookUp(colReasonConfig, AppliesTo="MO" && ReportType=ThisItem.ReportType && CheckNumber=ThisItem.CheckNumber && Reason=Self.Selected.Value).AutoFlagFO && !ThisItem.FlaggedToFO, Patch(colTransactions, ThisItem, {FlaggedToFO:true, FOReviewer:Coalesce(ThisItem.FOReviewer, If(ThisItem.ReportType="MM", "fo.mm@mdlz.com", "fo.fx@mdlz.com")), _isDirty:true}))
                             Width: =180
                             ZIndex: =1
 
@@ -325,7 +325,7 @@ scrMoQueue As screen:
                             DisabledColor: =varTheme.Faint
                             DisabledFill: =RGBA(240,240,240,1)
                             DisplayMode: |-
-                                =If(With({tx: Filter(colTransactions, DailyReportCheckID = ThisItem.DailyReportCheckID)}, CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0), DisplayMode.Edit, DisplayMode.Disabled)
+                                =If(varRole="MO" && With({tx: Filter(colTransactions, DailyReportCheckID = ThisItem.DailyReportCheckID)}, CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0), DisplayMode.Edit, DisplayMode.Disabled)
                             Fill: =varTheme.Green
                             Height: =34
                             OnSelect: |-
@@ -604,7 +604,7 @@ scrMoQueue As screen:
                             DisabledColor: =varTheme.Faint
                             DisabledFill: =RGBA(240,240,240,1)
                             DisplayMode: |-
-                                =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.DailyReportCheckID)}, If(CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0, DisplayMode.Edit, DisplayMode.Disabled))
+                                =With({tx: Filter(colTransactions, DailyReportCheckID=ThisItem.DailyReportCheckID)}, If(varRole="MO" && CountRows(tx)>0 && CountRows(Filter(tx, FlaggedToFO && Not(FOSent && !IsBlank(FORespondedOn) && FORespondedOn >= FOSentOn)))=0 && CountRows(Filter(tx, IsBlank(MOReason)))=0, DisplayMode.Edit, DisplayMode.Disabled))
                             Fill: =varTheme.Green
                             Height: =34
                             OnSelect: =Set(varQTarget, ThisItem); Set(varQAction, "complete")
@@ -617,6 +617,7 @@ scrMoQueue As screen:
                             AlignInContainer: =AlignInContainer.Center
                             BorderThickness: =0
                             Color: =varTheme.White
+                            DisplayMode: =If(varRole="MO", DisplayMode.Edit, DisplayMode.Disabled)
                             Fill: =varTheme.Orange
                             Height: =34
                             OnSelect: |-
@@ -791,6 +792,7 @@ scrMoQueue As screen:
                             AlignInContainer: =AlignInContainer.Center
                             BorderThickness: =0
                             Color: =varTheme.White
+                            DisplayMode: =If(varRole="MO", DisplayMode.Edit, DisplayMode.Disabled)
                             Fill: =varTheme.Orange
                             Height: =34
                             OnSelect: =Set(varQTarget, ThisItem); Set(varQAction, "resend")
@@ -896,6 +898,83 @@ scrMoQueue As screen:
                         =If(varQAction="resend", IfError(Patch(colTransactions, varQTarget, {FOSentOn: Now(), _isDirty:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Resent to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1) & " — " & varQTarget.TransactionNo}); Notify("Resent to " & Left(varQTarget.FOReviewer, Find("@", varQTarget.FOReviewer & "@") - 1), NotificationType.Information), Notify("Could not resend — please retry", NotificationType.Error)), IfError(Patch(colChecks, LookUp(colChecks, ID=varQTarget.DailyReportCheckID), {Completed:true}); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Check completed from queue — " & varQTarget.TransactionNo}); Notify("Check completed", NotificationType.Success), Notify("Could not complete — please retry", NotificationType.Error))); Set(varQAction, "")
                     Size: =12
                     Text: =If(varQAction="resend", "Resend", "Complete check")
+                    Width: =190
+                    ZIndex: =2
+
+    cfQsScrim As groupContainer.verticalAutoLayoutContainer:
+        Fill: =RGBA(20, 10, 30, 0.45)
+        Height: =Parent.Height
+        LayoutAlignItems: =LayoutAlignItems.Center
+        LayoutJustifyContent: =LayoutJustifyContent.Center
+        Visible: =varConfirmQSend
+        Width: =Parent.Width
+        ZIndex: =900
+
+        cfQsCard As groupContainer.verticalAutoLayoutContainer:
+            AlignInContainer: =AlignInContainer.Center
+            BorderColor: =varTheme.Line
+            BorderThickness: =1
+            Fill: =varTheme.Card
+            Height: =210
+            LayoutGap: =12
+            PaddingBottom: =20
+            PaddingLeft: =22
+            PaddingRight: =22
+            PaddingTop: =20
+            Width: =460
+            ZIndex: =2
+
+            cfQsTitle As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Ink
+                FontWeight: =FontWeight.Semibold
+                Height: =26
+                Size: =15
+                Text: ="Send flagged findings to Front Office?"
+                Width: =Parent.Width
+                ZIndex: =1
+
+            cfQsMsg As label:
+                AlignInContainer: =AlignInContainer.Stretch
+                Color: =varTheme.Muted
+                FillPortions: =1
+                Size: =12
+                Text: |-
+                    =With({toSend: Filter(colTransactions, FlaggedToFO, !FOSent)}, "This notifies " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s) with " & CountRows(toSend) & " flagged finding(s) — one grouped email per reviewer. Make sure you have reviewed ALL findings first, so reviewers are not spammed with follow-up notifications.")
+                Width: =Parent.Width
+                ZIndex: =2
+
+            cfQsBtns As groupContainer.horizontalAutoLayoutContainer:
+                Fill: =RGBA(0,0,0,0)
+                Height: =40
+                LayoutGap: =10
+                LayoutJustifyContent: =LayoutJustifyContent.End
+                Width: =Parent.Width
+                ZIndex: =3
+
+                cfQsCancel As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderColor: =varTheme.Line
+                    BorderThickness: =1
+                    Color: =varTheme.Muted
+                    Fill: =varTheme.Card
+                    Height: =36
+                    OnSelect: =Set(varConfirmQSend, false)
+                    Size: =12
+                    Text: ="Cancel"
+                    Width: =110
+                    ZIndex: =1
+
+                cfQsOk As button:
+                    AlignInContainer: =AlignInContainer.Center
+                    BorderThickness: =0
+                    Color: =varTheme.White
+                    Fill: =varTheme.Blue
+                    Height: =36
+                    OnSelect: |-
+                        =With({toSend: Filter(colTransactions, FlaggedToFO, !FOSent)}, IfError(ForAll(toSend As T, Patch(colTransactions, T, {FOSent:true, FOSentOn:Now(), _isDirty:true})); Notify("Sent " & CountRows(toSend) & " finding(s) to " & CountRows(Distinct(toSend, FOReviewer)) & " FO reviewer(s)", NotificationType.Success); Set(varAuditSeq, varAuditSeq + 1); Collect(colAudit, {Seq: varAuditSeq, Stamp: Now(), Text: "Sent " & CountRows(toSend) & " finding(s) to FO from My Queue"}), Notify("Could not send — please retry", NotificationType.Error))); Set(varConfirmQSend, false)
+                    Size: =12
+                    Text: ="Yes, send to FO"
                     Width: =190
                     ZIndex: =2
 

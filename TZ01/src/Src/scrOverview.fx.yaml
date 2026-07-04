@@ -159,6 +159,20 @@ scrOverview As screen:
                 Width: =180
                 ZIndex: =2
 
+            ovAdmin As button:
+                AlignInContainer: =AlignInContainer.Center
+                BorderColor: =varTheme.Line
+                BorderThickness: =1
+                Color: =varTheme.Muted
+                Fill: =varTheme.Card
+                Height: =34
+                OnSelect: =Navigate(scrAdmin, ScreenTransition.Cover)
+                Size: =12
+                Text: ="Configuration"
+                Visible: =varIsAdmin
+                Width: =140
+                ZIndex: =3
+
         ovHelpWrap As groupContainer.verticalAutoLayoutContainer:
             Fill: =RGBA(0,0,0,0)
             Height: =54
