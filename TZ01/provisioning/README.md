@@ -24,13 +24,15 @@ Install-Module PnP.PowerShell -Scope CurrentUser -Force
 Novšie PnP.PowerShell už nemá vstavanú prihlasovaciu appku – treba vlastný **ClientId**.
 Buď použi existujúci App registration, alebo vytvor jednorazovo cez PnP:
 ```powershell
+# POZOR: cmdlet NEMÁ parameter -Interactive (registrácia je interaktívna sama o sebe)
 Register-PnPEntraIDAppForInteractiveLogin `
   -ApplicationName "PnP-TZ01-Provisioning" `
-  -Tenant "<tenant>.onmicrosoft.com" `
-  -Interactive
+  -Tenant "<tenant>.onmicrosoft.com"
+# ak sa neotvorí prehliadač, pridaj -DeviceLogin
 ```
-Príkaz vypíše **Client Id** (GUID) – skopíruj si ho. (Prvýkrát vyžaduje admin súhlas
-na delegované SharePoint práva.)
+Príkaz otvorí prihlásenie + admin-consent obrazovku (klikni Accept) a **vypíše
+`AppId/ClientId` (GUID)** – skopíruj si ho. Beží ~1 min. (Prvýkrát vyžaduje práva na
+registráciu Entra appky + admin súhlas na delegované SharePoint práva.)
 
 ### 3) Cieľový SharePoint site
 Skript vytvára **listy v existujúcom site** – site vopred maj hotový
