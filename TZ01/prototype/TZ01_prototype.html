@@ -156,6 +156,28 @@ body.offline .offline-banner{display:block}
 #confirm .cf-msg{font-size:12.5px;color:var(--muted);line-height:1.65;margin-bottom:18px}
 #confirm .cf-msg b{color:var(--ink)}
 #confirm .cf-actions{display:flex;justify-content:flex-end;gap:9px}
+/* ===== approach A: group My Queue / FO inbox by CHECK (accordion) + inline table + bulk apply ===== */
+.acc{border:1px solid var(--line);border-radius:9px;margin-bottom:10px;background:#fff;overflow:hidden}
+.acc-head{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;background:#fbfbfc}
+.acc-head:hover{background:#f4f5f7}
+.acc-head .chev{display:inline-flex;color:var(--faint);transition:transform .15s}
+.acc.open .acc-head .chev{transform:rotate(90deg)}
+.acc-head .gt{font-size:12.5px;font-weight:600;color:var(--ink)}
+.acc-head .gt .gs{font-size:11.5px;color:var(--muted);font-weight:400}
+.acc-head .gr{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.acc-body{padding:2px 14px 12px;border-top:1px solid var(--line)}
+.badge-sm{display:inline-block;border-radius:10px;padding:1px 9px;font-size:10.5px;white-space:nowrap}
+.bulkbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--blue-l);border:1px solid #d6e3f1;border-radius:7px;padding:8px 10px;margin:10px 0}
+.bulkbar .lbl{font-size:11px;color:#2c4a63;font-weight:600}
+.bulkbar .sep{width:1px;height:22px;background:#cdd8e6}
+.qtbl-wrap{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:7px}
+.qtbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.qtbl thead th{background:var(--thead);text-align:left;padding:7px 9px;font-weight:600;color:#4a4a4f;white-space:nowrap;position:sticky;top:0;z-index:1}
+.qtbl td{padding:6px 9px;border-top:1px solid #efeff1;vertical-align:middle}
+.qtbl tr:hover td{background:#fafcff}
+.qtbl .selc{width:26px;text-align:center;padding:6px 4px}
+.qtbl .sel,.qtbl .inp{padding:4px 7px;font-size:11px}
+.grp-tools{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -256,7 +278,18 @@ function f(rec, opt){opt=opt||{};return{rec:rec,mo:{reason:opt.reason||"",commen
 function foDefault(chkId){return chkId.startsWith("mm")?"fo.mm@mdlz.com":"fo.fx@mdlz.com";}
 
 const FX = {key:"fx",name:"FX Listing",id:41,date:"16 Feb 2026",submitted:false,checks:[
-  {id:"fx1",n:"Check 1",scope:"Internal deals net to zero",cols:["companyCode","transaction","businessPartner","productType","transactionTypeName","tradedCurrency","paymentAmount","trader"],findings:[],completed:false,att:[]},
+  {id:"fx1",n:"Check 1",scope:"Internal deals net to zero",cols:["companyCode","transaction","businessPartner","productType","transactionTypeName","tradedCurrency","paymentAmount","trader"],completed:false,att:[],findings:[
+    f(fxRec({transaction:"CH061000000061001",businessPartner:"I_DE01",productType:"60A",transactionTypeName:"Forward",tradedCurrency:"EUR",paymentAmount:{t:"1 200 000",c:"ink"},trader:"M. Novak"})),
+    f(fxRec({transaction:"CH061000000061002",businessPartner:"I_DE01",productType:"60A",transactionTypeName:"Forward",tradedCurrency:"EUR",paymentAmount:{t:"-1 200 000",c:"ink"},trader:"M. Novak"})),
+    f(fxRec({transaction:"CH061000000061003",businessPartner:"I_US10",productType:"60C",transactionTypeName:"Swap",tradedCurrency:"USD",paymentAmount:{t:"3 500 000",c:"ink"},trader:"L. Weber"})),
+    f(fxRec({transaction:"CH061000000061004",businessPartner:"I_US10",productType:"60C",transactionTypeName:"Swap",tradedCurrency:"USD",paymentAmount:{t:"-3 500 000",c:"ink"},trader:"L. Weber"})),
+    f(fxRec({transaction:"CH061000000061005",businessPartner:"I_GB07",productType:"76A",transactionTypeName:"Forward",tradedCurrency:"GBP",paymentAmount:{t:"900 000",c:"ink"},trader:"A. Rossi"})),
+    f(fxRec({transaction:"CH061000000061006",businessPartner:"I_GB07",productType:"76A",transactionTypeName:"Forward",tradedCurrency:"GBP",paymentAmount:{t:"-850 000",c:"red"},trader:"A. Rossi"})),
+    f(fxRec({transaction:"CH061000000061007",companyCode:"SA04",businessPartner:"I_CH02",productType:"60A",transactionTypeName:"Forward",tradedCurrency:"CHF",paymentAmount:{t:"2 000 000",c:"ink"},trader:"M. Novak"})),
+    f(fxRec({transaction:"CH061000000061008",companyCode:"SA04",businessPartner:"I_CH02",productType:"60A",transactionTypeName:"Forward",tradedCurrency:"CHF",paymentAmount:{t:"-2 000 000",c:"ink"},trader:"M. Novak"})),
+    f(fxRec({transaction:"CH061000000061009",businessPartner:"I_JP03",productType:"76C",transactionTypeName:"Swap",tradedCurrency:"JPY",paymentAmount:{t:"500 000 000",c:"ink"},trader:"K. Tanaka"})),
+    f(fxRec({transaction:"CH061000000061010",businessPartner:"I_JP03",productType:"76C",transactionTypeName:"Swap",tradedCurrency:"JPY",paymentAmount:{t:"-500 000 000",c:"ink"},trader:"K. Tanaka"})),
+  ],note:"Internal deals must net to zero per business partner; an unmatched leg (sum ≠ 0) is a finding."},
   {id:"fx2",n:"Check 2",scope:"CH06 pairwise offset",cols:["companyCode","transaction","businessPartner","productType","transactionTypeName","tradedCurrency","paymentAmount","characteristics","trader"],completed:false,att:[],findings:[
     f(fxRec({transaction:"CH06...070312",transactionTypeName:"Forward-liquidity",productType:"60B",characteristics:"Standard",paymentAmount:{t:"-1 000 000",c:"ink"},tradedCurrency:"EUR",businessPartner:"I_US10"})),
     f(fxRec({transaction:"CH06...070318",transactionTypeName:"Forward-Exposure",productType:"60B",characteristics:"Exposure",paymentAmount:{t:"-2 000 000",c:"ink"},tradedCurrency:"EUR",businessPartner:"I_US10"})),
@@ -337,7 +370,10 @@ const App = { role:"MO", dayIndex:0, screen:"overview", report:null, check:null,
   filters:{ checks:{q:"",status:"All statuses"}, detail:{q:"",state:"All"}, top:{q:"",sort:"Days late"}, inbox:{q:""}, queue:{q:""} },
   dirty:new Set(),               // E: keys of edited findings (unsaved)
   showAll:false,                 // transaction table: relevant columns vs full record (check detail = screen-level)
-  showAllItems:new Set(),        // per-card show-all (My Queue / FO inbox)
+  showAllItems:new Set(),        // per-card / per-group show-all (My Queue / FO inbox)
+  expandedGroups:new Set(),      // approach A: which check-groups are expanded in the queues
+  selRows:new Set(),             // approach A: rows selected for bulk apply
+  _groups:{},                    // gkey -> group (rebuilt each render, so bulk actions can look it up)
   go(s,opt){opt=opt||{}; this.screen=s; if(opt.report!==undefined)this.report=opt.report; if(opt.check!==undefined)this.check=opt.check; render();},
   back(){ if(this.screen==="detail")this.go(this.role==="FO"?"inbox":"checks"); else if(this.screen==="checks"||this.screen==="top"||this.screen==="moqueue")this.go("overview"); },
 };
@@ -579,6 +615,134 @@ function recTableHtml(chk,fd,key){
   h+='</tr></tbody></table></div></div>';
   return h;
 }
+
+// ===== approach A: group queue items by CHECK, render an accordion whose body is
+// the detail-style inline table + a bulk-apply bar. Keeps a check with dozens of
+// findings scannable; MO/FO act on many transactions at once; batched send stays
+// screen-level so reviewers get one grouped notification (no spam). =====
+function groupItems(items,section){
+  const map=new Map();
+  items.forEach(it=>{const di=(it.dayIndex!==undefined?it.dayIndex:0);const k=section+":"+it.chk.id+":"+di;
+    if(!map.has(k))map.set(k,{gkey:k,chk:it.chk,repName:it.repName,dayIndex:di,items:[]});
+    map.get(k).items.push(it);});
+  return [...map.values()];
+}
+function isOpen(gk){return App.expandedGroups.has(gk);}
+function toggleGroup(gk){App.expandedGroups.has(gk)?App.expandedGroups.delete(gk):App.expandedGroups.add(gk);render();}
+function rowKey(it){return itKey(it);}
+function toggleRowSel(k){App.selRows.has(k)?App.selRows.delete(k):App.selRows.add(k);render();}
+function groupSelAll(gk,on){const g=App._groups[gk];g.items.forEach(it=>{const k=rowKey(it);on?App.selRows.add(k):App.selRows.delete(k);});render();}
+function selCount(g){return g.items.filter(it=>App.selRows.has(rowKey(it))).length;}
+function targetsOf(g){const s=g.items.filter(it=>App.selRows.has(rowKey(it)));return s.length?s:g.items;}
+function qOpts(list,sel){return '<option value="">— choose —</option>'+list.map(o=>'<option'+(o===sel?' selected':'')+'>'+o+'</option>').join("");}
+function qcells(fd,cols){return cols.map(c=>{const o=recCell(fd,c);return '<td style="text-align:'+(o.a||c.a||'left')+';color:'+cellColor(o.c)+';white-space:nowrap"'+(c.k==="transaction"?' class="mono"':'')+'>'+o.t+'</td>';}).join("");}
+function grpCols(g){const all=COLMAP[listOf(g.chk)],exp=App.showAllItems.has(g.gkey);
+  return '<div class="grp-tools"><span class="rec-cnt">'+colsForKey(g.chk,g.gkey).length+' of '+all.length+' cols</span>'+
+    '<button class="ico-btn'+(exp?' active':'')+'" title="Toggle between the check\'s relevant columns and the full SAP record" onclick="toggleItemCols(\''+g.gkey+'\')">'+(exp?'Show relevant columns':'Show all columns')+'</button></div>';}
+function accGroup(g,badges,right,body){
+  App._groups[g.gkey]=g; const open=isOpen(g.gkey);
+  return '<div class="acc'+(open?' open':'')+'">'+
+    '<div class="acc-head" title="Click to '+(open?'collapse':'expand')+' this check" onclick="toggleGroup(\''+g.gkey+'\')">'+
+      '<span class="chev">'+I.chevR+'</span>'+
+      '<span class="gt">'+g.repName+' · '+g.chk.n+' <span class="gs">· '+g.chk.scope+'</span></span>'+
+      '<span class="gr" onclick="event.stopPropagation()">'+badges+right+'</span>'+
+    '</div>'+(open?'<div class="acc-body">'+body+'</div>':'')+'</div>';
+}
+function moCompleteBtn(g){return canComplete(g.chk)
+  ? '<button class="btn btn-green" style="padding:5px 12px" title="All findings of this check are resolved — complete it and drop it from the queue" onclick="completeCheckQ(\''+g.chk.id+'\','+g.dayIndex+')">'+I.check+' Complete check</button>'
+  : '<button class="btn" disabled style="padding:5px 12px" title="Set an MO reason on every finding of this check and resolve or answer any flagged item first">'+I.check+' Complete check</button>';}
+
+// ---- MO: TO REVIEW — editable table + bulk apply ----
+function moReviewBadges(g){const n=g.items.length,fl=g.items.filter(it=>it.fd.fo.flagged).length,nr=g.items.filter(it=>!it.fd.mo.reason).length;
+  return '<span class="badge-sm b-amber">'+n+' finding'+(n>1?'s':'')+'</span>'+(fl?'<span class="badge-sm b-green" style="margin-left:6px">'+fl+' flagged</span>':'')+(nr?'<span class="badge-sm" style="background:#f3f3f4;color:var(--muted);margin-left:6px">'+nr+' no reason</span>':'');}
+function moBulkBar(g){const k=selCount(g),t=k||g.items.length;
+  return '<div class="bulkbar"><span class="lbl">Bulk '+(k?('selected '+k):('all '+g.items.length))+':</span>'+
+    '<select class="sel" id="br-'+g.gkey+'" style="min-width:190px" title="Reason to apply to the '+(k?'selected':'all')+' rows"><option value="">reason…</option>'+REASONS[g.chk.id].map(o=>'<option>'+o+'</option>').join("")+'</select>'+
+    '<input class="inp" id="bc-'+g.gkey+'" placeholder="comment…" style="min-width:210px" title="Comment to apply to the '+(k?'selected':'all')+' rows">'+
+    '<button class="btn btn-blue" style="padding:5px 12px" title="Set the reason/comment above on '+(k?('the '+k+' selected'):('all '+g.items.length))+' findings at once" onclick="bulkApplyMO(\''+g.gkey+'\')">Apply to '+t+'</button>'+
+    '<span class="sep"></span>'+
+    '<button class="btn btn-ghost" style="padding:5px 10px" title="Flag '+(k?'selected':'all')+' to FO" onclick="bulkFlag(\''+g.gkey+'\',true)">Flag '+t+'</button>'+
+    '<button class="btn btn-ghost" style="padding:5px 10px" title="Remove FO flag from '+(k?'selected':'all')+'" onclick="bulkFlag(\''+g.gkey+'\',false)">Unflag</button></div>';}
+function moReviewBody(g){const cols=colsForKey(g.chk,g.gkey),allSel=g.items.length>0&&selCount(g)===g.items.length;
+  let head='<tr><th class="selc"><input type="checkbox" class="chk" '+(allSel?'checked':'')+' title="Select all rows" onchange="groupSelAll(\''+g.gkey+'\',this.checked)"></th>'+cols.map(c=>'<th style="text-align:'+(c.a||'left')+'">'+c.l+'</th>').join("")+'<th>MO reason</th><th>MO comment</th><th style="text-align:center" title="Flag this finding to Front Office">FO?</th></tr>';
+  let rows=g.items.map(it=>{const fd=it.fd,ck=it.chk,i=it.idx,k=rowKey(it),s=App.selRows.has(k);
+    return '<tr'+(s?' style="background:#eef4fb"':'')+'>'+
+      '<td class="selc"><input type="checkbox" class="chk" '+(s?'checked':'')+' onchange="toggleRowSel(\''+k+'\')"></td>'+qcells(fd,cols)+
+      '<td><select class="sel" style="min-width:150px" title="MO reason for this transaction" onchange="setMO(\''+ck.id+'\','+i+',\'reason\',this.value)">'+qOpts(REASONS[ck.id],fd.mo.reason)+'</select></td>'+
+      '<td><input class="inp" style="min-width:150px" value="'+esc(fd.mo.comment)+'" placeholder="comment…" title="MO comment for this transaction" oninput="setMO(\''+ck.id+'\','+i+',\'comment\',this.value)"></td>'+
+      '<td style="text-align:center"><input type="checkbox" class="chk" '+(fd.fo.flagged?'checked':'')+' title="Flag to FO" onchange="toggleFO(\''+ck.id+'\','+i+',this.checked)"></td></tr>';}).join("");
+  return grpCols(g)+moBulkBar(g)+'<div class="qtbl-wrap"><table class="qtbl"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>';}
+function bulkApplyMO(gk){const g=App._groups[gk];const rE=document.getElementById('br-'+gk),cE=document.getElementById('bc-'+gk);
+  const reason=rE?rE.value:"",comment=cE?cE.value:"";if(!reason&&!comment){toast("Choose a reason or type a comment first");return;}
+  const tg=targetsOf(g);tg.forEach(it=>{const fd=it.fd;if(reason){fd.mo.reason=reason;if(reason==="Request FO explanation"&&!fd.fo.flagged){fd.fo.flagged=true;if(!fd.fo.reviewer)fd.fo.reviewer=foDefault(it.chk.id);}}if(comment)fd.mo.comment=comment;});
+  logAudit("MO bulk-applied "+(reason||"comment")+" to "+tg.length+" finding(s) — "+g.chk.n);toast("Applied to "+tg.length+" finding"+(tg.length>1?"s":""));render();}
+function bulkFlag(gk,on){const g=App._groups[gk],tg=targetsOf(g);tg.forEach(it=>{const fd=it.fd;fd.fo.flagged=on;if(on){if(!fd.fo.reviewer)fd.fo.reviewer=foDefault(it.chk.id);}else{fd.fo.sent=false;fd.fo.responded=false;}});toast((on?"Flagged ":"Unflagged ")+tg.length);render();}
+
+// ---- MO: REPLIED / AWAITING — read table + bulk resend / nudge ----
+function repliedBadges(g){return '<span class="badge-sm b-green">'+g.items.length+' replied</span>';}
+function awaitBadges(g){return '<span class="badge-sm" style="background:#e3eefb;color:var(--blue)">'+g.items.length+' awaiting</span>';}
+function repliedBody(g){const cols=colsForKey(g.chk,g.gkey),allSel=g.items.length>0&&selCount(g)===g.items.length;
+  let head='<tr><th class="selc"><input type="checkbox" class="chk" '+(allSel?'checked':'')+' onchange="groupSelAll(\''+g.gkey+'\',this.checked)"></th>'+cols.map(c=>'<th>'+c.l+'</th>').join("")+'<th>MO ask</th><th>FO reply</th></tr>';
+  let rows=g.items.map(it=>{const fd=it.fd,k=rowKey(it),s=App.selRows.has(k);
+    const ask=(fd.mo.reason?'['+fd.mo.reason+'] ':'')+(fd.mo.comment||'—');
+    const rep=fd.fo.replies.length?('['+(fd.fo.reason||fd.fo.replies[fd.fo.replies.length-1].reason||'')+'] '+(fd.fo.replies[fd.fo.replies.length-1].comment||'—')):'—';
+    return '<tr'+(s?' style="background:#eef4fb"':'')+'>'+
+      '<td class="selc"><input type="checkbox" class="chk" '+(s?'checked':'')+' onchange="toggleRowSel(\''+k+'\')"></td>'+qcells(fd,cols)+
+      '<td style="max-width:200px;white-space:normal;color:var(--muted)" title="'+esc(ask)+'">'+ask+'</td>'+
+      '<td style="max-width:220px;white-space:normal;color:var(--green)" title="'+esc(rep)+'">'+rep+'</td></tr>';}).join("");
+  const k=selCount(g),t=k||g.items.length;
+  const bar='<div class="bulkbar"><span class="lbl">Not satisfied with '+(k?('selected '+k):('all '+g.items.length))+'?</span>'+
+    '<input class="inp" id="rc-'+g.gkey+'" placeholder="new comment to FO (required to resend)…" style="min-width:280px" title="A new MO comment is appended to the conversation and the finding reopens for FO">'+
+    '<button class="btn btn-orange" style="padding:5px 12px" title="Resend '+(k?('the '+k+' selected'):('all '+g.items.length))+' findings to FO with your new comment — one grouped notification per reviewer" onclick="bulkResend(\''+g.gkey+'\')">'+I.send+' Resend '+t+'</button></div>';
+  return grpCols(g)+bar+'<div class="qtbl-wrap"><table class="qtbl"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>';}
+function bulkResend(gk){const g=App._groups[gk],cE=document.getElementById('rc-'+gk),c=(cE?cE.value:"").trim();
+  if(!c){toast("Add a new comment before resending");return;}
+  const tg=targetsOf(g).filter(it=>it.fd.fo.responded);if(tg.length===0){toast("Nothing to resend");return;}
+  const byRev={};tg.forEach(it=>{const r=it.fd.fo.reviewer||"fo@mdlz.com";byRev[r]=1;});const m=Object.keys(byRev).length;
+  showConfirm({title:"Resend to Front Office?",msg:"This reopens <b>"+tg.length+"</b> finding"+(tg.length>1?"s":"")+" for <b>"+m+"</b> reviewer"+(m>1?"s":"")+" with your new comment appended — one grouped notification each. Make sure the comment applies to all of them.",okLabel:I.send+" Resend",
+    onOk:()=>{tg.forEach(it=>{const fd=it.fd;fd.mo.comment=c;fd.mo.asks.push({reason:fd.mo.reason,comment:c,at:nowLabel()});fd.fo.responded=false;fd.fo.reason="";fd.fo.comment="";fd.fo.sentOn=nowLabel();});logAudit("Resent "+tg.length+" finding(s) to FO — "+g.chk.n);toast("Resent "+tg.length+" to FO");render();}});}
+function awaitBody(g){const cols=colsForKey(g.chk,g.gkey),allSel=g.items.length>0&&selCount(g)===g.items.length;
+  let head='<tr><th class="selc"><input type="checkbox" class="chk" '+(allSel?'checked':'')+' onchange="groupSelAll(\''+g.gkey+'\',this.checked)"></th>'+cols.map(c=>'<th>'+c.l+'</th>').join("")+'<th>Reviewer</th><th>Status</th></tr>';
+  let rows=g.items.map(it=>{const fd=it.fd,k=rowKey(it),s=App.selRows.has(k),who=fd.fo.reviewer?fd.fo.reviewer.split("@")[0]:'FO';
+    return '<tr'+(s?' style="background:#eef4fb"':'')+'>'+
+      '<td class="selc"><input type="checkbox" class="chk" '+(s?'checked':'')+' onchange="toggleRowSel(\''+k+'\')"></td>'+qcells(fd,cols)+
+      '<td style="color:var(--muted)">'+who+'</td><td><span class="badge-sm" style="background:#e3eefb;color:var(--blue)">Awaiting reply</span></td></tr>';}).join("");
+  const k=selCount(g),t=k||g.items.length;
+  const bar='<div class="bulkbar"><span class="lbl">'+(k?('Selected '+k):('All '+g.items.length))+' still with FO:</span>'+
+    '<button class="btn btn-orange" style="padding:5px 12px" title="Re-notify the reviewer(s) — no new question, just a reminder" onclick="bulkNudge(\''+g.gkey+'\')">'+I.send+' Nudge '+t+'</button></div>';
+  return grpCols(g)+bar+'<div class="qtbl-wrap"><table class="qtbl"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>';}
+function bulkNudge(gk){const g=App._groups[gk],tg=targetsOf(g);tg.forEach(it=>it.fd.fo.sentOn=nowLabel());logAudit("Nudged "+tg.length+" finding(s) — "+g.chk.n);toast("Re-notified "+tg.length);render();}
+
+// ---- FO: inbox — editable table + bulk apply ----
+function foBadges(g){const n=g.items.length,rd=g.items.filter(it=>it.fd.fo.reason).length;
+  return '<span class="badge-sm b-amber">'+n+' awaiting</span>'+(rd?'<span class="badge-sm b-green" style="margin-left:6px">'+rd+' ready</span>':'');}
+function foDoneBadges(g){return '<span class="badge-sm b-green">'+g.items.length+' responded</span>';}
+function foBulkBar(g){const k=selCount(g),t=k||g.items.length;
+  return '<div class="bulkbar"><span class="lbl">Bulk '+(k?('selected '+k):('all '+g.items.length))+':</span>'+
+    '<select class="sel fo-inp" id="br-'+g.gkey+'" style="min-width:190px" title="FO reason to apply to '+(k?'selected':'all')+' rows"><option value="">reason…</option>'+FO_REASONS.map(o=>'<option>'+o+'</option>').join("")+'</select>'+
+    '<input class="inp fo-inp" id="bc-'+g.gkey+'" placeholder="comment…" style="min-width:210px" title="FO comment to apply to '+(k?'selected':'all')+' rows">'+
+    '<button class="btn btn-blue" style="padding:5px 12px" title="Set the reason/comment above on '+(k?('the '+k+' selected'):('all '+g.items.length))+' findings at once" onclick="bulkApplyFO(\''+g.gkey+'\')">Apply to '+t+'</button></div>';}
+function foBody(g){const cols=colsForKey(g.chk,g.gkey),allSel=g.items.length>0&&selCount(g)===g.items.length;
+  let head='<tr><th class="selc"><input type="checkbox" class="chk" '+(allSel?'checked':'')+' onchange="groupSelAll(\''+g.gkey+'\',this.checked)"></th>'+cols.map(c=>'<th>'+c.l+'</th>').join("")+'<th>MO ask</th><th>Your reason</th><th>Your comment</th></tr>';
+  let rows=g.items.map(it=>{const fd=it.fd,ck=it.chk,i=it.idx,k=rowKey(it),s=App.selRows.has(k);
+    const ask=(fd.mo.reason?'['+fd.mo.reason+'] ':'')+(fd.mo.comment||'—');
+    return '<tr'+(s?' style="background:#faf5ec"':'')+'>'+
+      '<td class="selc"><input type="checkbox" class="chk" '+(s?'checked':'')+' onchange="toggleRowSel(\''+k+'\')"></td>'+qcells(fd,cols)+
+      '<td style="max-width:200px;white-space:normal;color:var(--muted)" title="'+esc(ask)+'">'+ask+'</td>'+
+      '<td><select class="sel fo-inp" style="min-width:150px" title="Your reason for this transaction" onchange="setFO(\''+ck.id+'\','+i+',\'reason\',this.value)">'+qOpts(FO_REASONS,fd.fo.reason)+'</select></td>'+
+      '<td><input class="inp fo-inp" style="min-width:150px" value="'+esc(fd.fo.comment)+'" placeholder="explain/confirm…" title="Your comment for this transaction" oninput="setFO(\''+ck.id+'\','+i+',\'comment\',this.value)"></td></tr>';}).join("");
+  return grpCols(g)+foBulkBar(g)+'<div class="qtbl-wrap"><table class="qtbl"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>';}
+function bulkApplyFO(gk){const g=App._groups[gk];const rE=document.getElementById('br-'+gk),cE=document.getElementById('bc-'+gk);
+  const reason=rE?rE.value:"",comment=cE?cE.value:"";if(!reason&&!comment){toast("Choose a reason or type a comment first");return;}
+  const tg=targetsOf(g).filter(it=>!it.fd.fo.responded);tg.forEach(it=>{if(reason)it.fd.fo.reason=reason;if(comment)it.fd.fo.comment=comment;});
+  toast("Applied to "+tg.length+" finding"+(tg.length>1?"s":""));render();}
+function foDoneBody(g){const cols=colsForKey(g.chk,g.gkey);
+  let head='<tr>'+cols.map(c=>'<th>'+c.l+'</th>').join("")+'<th>MO ask</th><th>Your reply</th></tr>';
+  let rows=g.items.map(it=>{const fd=it.fd;const ask=(fd.mo.reason?'['+fd.mo.reason+'] ':'')+(fd.mo.comment||'—');
+    const rep=fd.fo.replies.length?('['+(fd.fo.replies[fd.fo.replies.length-1].reason||'')+'] '+(fd.fo.replies[fd.fo.replies.length-1].comment||'—')):'—';
+    return '<tr>'+qcells(fd,cols)+'<td style="max-width:200px;white-space:normal;color:var(--muted)" title="'+esc(ask)+'">'+ask+'</td><td style="max-width:220px;white-space:normal;color:var(--green)" title="'+esc(rep)+'">'+rep+'</td></tr>';}).join("");
+  return grpCols(g)+'<div class="qtbl-wrap"><table class="qtbl"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>';}
+
 function inboxItems(){const out=[];const day=DAYS[0];["fx","mm"].forEach(k=>{const rep=day.reports[k];rep.checks.forEach(chk=>{chk.findings.forEach((fd,i)=>{if(fd.fo.flagged&&fd.fo.sent)out.push({repName:rep.name,chk,idx:i,fd});});});});return out;}
 function renderInbox(){
   const total=inboxItems();
@@ -600,26 +764,11 @@ function renderInbox(){
         ? '<button class="btn btn-blue" onclick="askSendFOResponses()">'+I.send+' Send response'+(readyCount>1?'s':'')+' to MO ('+readyCount+')</button>'
         : '<button class="btn" disabled title="Choose a reason on at least one finding first">'+I.send+' Send response to MO</button>')
     : '';
-  let html='<div class="help">'+I.info+' You are in the <b>Front Office</b> view. These are the findings Middle Office flagged to you via deeplink. Add your reason and comment on each, then send all your responses back to MO in one batch.</div>'+tools+
+  App._groups={};
+  let html='<div class="help">'+I.info+' You are in the <b>Front Office</b> view — the findings Middle Office flagged to you, grouped by check. Expand a check, add your reason &amp; comment per transaction (or use <b>Bulk</b> to answer many at once), then send all responses to MO in one batch.</div>'+tools+
     '<div class="inbox-head"><span class="eyebrow" style="margin:0">ITEMS AWAITING YOUR RESPONSE <span class="cnt" style="font-weight:400;margin-left:8px">'+allPending.length+' pending · '+allDone.length+' responded</span></span>'+sendBtn+'</div>';
-  const card=(it)=>{
-    const fd=it.fd, ck=it.chk, resp=fd.fo.responded, txn=txnNo(fd);
-    const opts=FO_REASONS.map(o=>'<option'+(o===fd.fo.reason?' selected':'')+'>'+o+'</option>').join("");
-    const resentNote=(!resp && fd.fo.replies.length>0)?'<span class="badge" style="background:#fbe7d8;color:var(--orange);margin-left:8px">MO asked again</span>':'';
-    const respArea = resp
-      ? ''
-      : '<div class="resp"><div class="fld"><label>Your reason</label><select class="sel fo-inp" onchange="setFO(\''+ck.id+'\','+it.idx+',\'reason\',this.value)"><option value="">— choose —</option>'+opts+'</select></div>'+
-        '<div class="fld"><label>Your '+(fd.fo.replies.length>0?'new ':'')+'comment</label><input class="inp fo-inp" value="'+esc(fd.fo.comment)+'" placeholder="explain or confirm…" oninput="setFO(\''+ck.id+'\','+it.idx+',\'comment\',this.value)"></div>'+
-        '<div style="display:flex;gap:7px;align-items:center"><span class="ico-btn" onclick="toast(\'Evidence attached\')">'+I.clip+' Attach</span></div></div>';
-    return '<div class="fcard'+(resp?' done':'')+'"><div class="top"><div class="where">'+it.repName+' · '+ck.n+' <span>· '+ck.scope+'</span><br><span class="mono" style="font-size:11px">'+txn+'</span></div>'+
-      (resp?'<span class="badge b-green">Responded</span>':'<span class="badge b-amber">Awaiting you</span>')+resentNote+'</div>'+
-      '<div class="ask"><span class="deeplink">'+I.link+' Opened from email deeplink</span> &nbsp; <b>MO ⇄ FO conversation</b> '+moReasonBadge(fd)+'</div>'+
-      recTableHtml(ck,fd,itKey(it))+
-      conversationHtml(fd)+
-      respArea+'</div>';
-  };
-  if(pending.length) html+=pending.map(card).join("");
-  if(done.length) html+='<p class="eyebrow" style="margin-top:18px">ALREADY RESPONDED</p>'+done.map(card).join("");
+  if(pending.length) html+=groupItems(pending,'inb').map(g=>accGroup(g,foBadges(g),'',foBody(g))).join("");
+  if(done.length) html+='<p class="eyebrow" style="margin-top:18px">ALREADY RESPONDED</p>'+groupItems(done,'ind').map(g=>accGroup(g,foDoneBadges(g),'',foDoneBody(g))).join("");
   if(items.length===0) html+='<p class="muted-note">No items match your search.</p>';
   document.getElementById("screen").innerHTML=html;
   document.getElementById("foot").innerHTML='<div class="left">'+I.info+' Front Office view — you only see items MO flagged to you. Respond to all, then send in one batch.</div><div class="right"></div>';
@@ -708,60 +857,24 @@ function renderMoQueue(){
   const rev=review.filter(match), sentF=sent.filter(match);
   const replied=sentF.filter(x=>x.fd.fo.responded), awaiting=sentF.filter(x=>!x.fd.fo.responded);
   const flaggedNotSent=review.filter(x=>x.fd.fo.flagged).length;
+  App._groups={};
   const tools='<div class="toolbar">'+searchBox("queue","q","Search transaction, reviewer or reason…","srch-queue")+'<span class="spacer"></span></div>';
-  let html='<div class="help">'+I.info+' Your <b>Middle Office queue</b> — analyse findings, flag &amp; send them to Front Office, and act on replies, without opening each check. The per-check flow on Check Analysis still works too.</div>'+tools;
+  let html='<div class="help">'+I.info+' Your <b>Middle Office queue</b> — findings grouped by check. Expand a check, set MO reason/comment &amp; flag per transaction (or use <b>Bulk</b> for many at once), then <b>Send flagged to FO</b> in one batch. Act on replies here too. The per-check flow on Check Analysis still works.</div>'+tools;
 
-  // section 1 - TO REVIEW / NOT SENT YET: full MO controls + one batched send (like Check Analysis)
-  const reviewCard=(it)=>{
-    const fd=it.fd, ck=it.chk, key=itKey(it), flagged=fd.fo.flagged;
-    const opts=REASONS[ck.id].map(o=>'<option'+(o===fd.mo.reason?' selected':'')+'>'+o+'</option>').join("");
-    const selGreen=(fd.mo.reason==="Hedge rate"||fd.mo.reason==="Credit line")?' green':'';
-    return '<div class="fcard"><div class="top"><div class="where">'+it.repName+' · '+ck.n+' <span>· '+ck.scope+'</span><br><span class="mono" style="font-size:11px">'+txnNo(fd)+'</span></div>'+
-      (flagged?'<span class="badge b-amber">Flagged to FO</span>':'<span class="badge" style="background:#eef0f2;color:var(--muted)">Not flagged</span>')+'</div>'+
-      recTableHtml(ck,fd,key)+
-      '<div class="resp" style="grid-template-columns:190px 1fr auto;align-items:end">'+
-        '<div class="fld"><label>MO reason</label><select class="sel'+selGreen+'" onchange="setMO(\''+ck.id+'\','+it.idx+',\'reason\',this.value)"><option value="">— choose —</option>'+opts+'</select></div>'+
-        '<div class="fld"><label>MO comment</label><input class="inp" value="'+esc(fd.mo.comment)+'" placeholder="comment for FO…" oninput="setMO(\''+ck.id+'\','+it.idx+',\'comment\',this.value)"></div>'+
-        '<div style="display:flex;gap:10px;align-items:center">'+
-          '<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input type="checkbox" class="chk" '+(flagged?'checked':'')+' onchange="toggleFO(\''+ck.id+'\','+it.idx+',this.checked)"> Flag to FO</label>'+
-          '<button class="btn btn-ghost" onclick="openCheckFromQueue(\''+ck.id+'\',0)">Open check</button>'+
-          (canComplete(ck)
-            ? '<button class="btn btn-green" onclick="completeCheckQ(\''+ck.id+'\',0)">'+I.check+' Complete check</button>'
-            : '<button class="btn" disabled title="Set an MO reason on every finding of this check (and resolve or answer any flagged item) first">'+I.check+' Complete check</button>')+
-        '</div>'+
-      '</div></div>';
-  };
+  // section 1 — TO REVIEW / NOT SENT YET: accordion per check, inline editable table + bulk apply, one batched send
   if(rev.length){
-    const sendBtn=flaggedNotSent>0?'<button class="btn btn-blue" onclick="askSendFOQueue()">'+I.send+' Send flagged to FO ('+flaggedNotSent+')</button>':'<button class="btn" disabled>'+I.send+' Send flagged to FO</button>';
-    html+='<div class="inbox-head"><span class="eyebrow" style="margin:0">TO REVIEW — NOT SENT YET</span>'+sendBtn+'</div>'+rev.map(reviewCard).join("");
+    const sendBtn=flaggedNotSent>0
+      ? '<button class="btn btn-blue" title="Send every flagged-not-yet-sent finding to its FO reviewer — one grouped email each (review all first)" onclick="askSendFOQueue()">'+I.send+' Send flagged to FO ('+flaggedNotSent+')</button>'
+      : '<button class="btn" disabled title="Flag at least one finding to FO first">'+I.send+' Send flagged to FO</button>';
+    html+='<div class="inbox-head"><span class="eyebrow" style="margin:0">TO REVIEW — NOT SENT YET</span>'+sendBtn+'</div>';
+    html+=groupItems(rev,'rev').map(g=>accGroup(g,moReviewBadges(g),moCompleteBtn(g),moReviewBody(g))).join("");
   }
-
-  // sections 2 & 3 - REPLIED / STILL WITH FO: read + conversation thread + resend(-with-append) / nudge
-  const sentCard=(it)=>{
-    const fd=it.fd, ck=it.chk, key=itKey(it), resp=fd.fo.responded, who=fd.fo.reviewer?fd.fo.reviewer.split("@")[0]:'FO';
-    const dayTag='<span style="font-size:10px;color:var(--faint)"> · '+it.date+'</span>';
-    let actions;
-    if(resp){
-      const ropts=REASONS[ck.id].map(o=>'<option'+(o===fd.mo.reason?' selected':'')+'>'+o+'</option>').join("");
-      actions='<div class="resp" style="grid-template-columns:190px 1fr auto;align-items:end;margin-top:6px">'+
-        '<div class="fld"><label>MO reason (optional change)</label><select id="rr-'+key+'" class="sel">'+ropts+'</select></div>'+
-        '<div class="fld"><label>New comment to FO (required to resend)</label><input id="rc-'+key+'" class="inp" placeholder="why the reply is not enough…"></div>'+
-        '<div style="display:flex;gap:7px;align-items:center">'+
-          (canComplete(ck)?'<button class="btn btn-green" onclick="completeCheckQ(\''+ck.id+'\','+it.dayIndex+')">'+I.check+' Complete</button>':'')+
-          '<button class="btn btn-orange" onclick="resendFO(\''+ck.id+'\','+it.idx+','+it.dayIndex+',\''+key+'\')">'+I.send+' Resend</button>'+
-          '<button class="btn btn-ghost" onclick="openCheckFromQueue(\''+ck.id+'\','+it.dayIndex+')">Open check</button>'+
-        '</div></div>';
-    } else {
-      actions='<div class="resp" style="grid-template-columns:1fr auto"><div class="fld"><label>Status</label><div class="inp" style="background:#eef4fb;border-color:#cfe0f2;color:var(--blue)">Awaiting reply from '+who+'</div></div><div style="display:flex;gap:7px;align-items:center"><button class="btn btn-orange" onclick="resendFO(\''+ck.id+'\','+it.idx+','+it.dayIndex+')">'+I.send+' Nudge FO</button><button class="btn btn-ghost" onclick="openCheckFromQueue(\''+ck.id+'\','+it.dayIndex+')">Open check</button></div></div>';
-    }
-    return '<div class="fcard'+(resp?'':' done')+'"><div class="top"><div class="where">'+it.repName+' · '+ck.n+dayTag+' <span>· '+ck.scope+'</span><br><span class="mono" style="font-size:11px">'+txnNo(fd)+'</span></div>'+
-      (resp?'<span class="badge b-green">FO replied</span>':'<span class="badge b-blue" style="background:#e3eefb;color:var(--blue)">Awaiting FO</span>')+'</div>'+
-      recTableHtml(ck,fd,key)+
-      conversationHtml(fd)+
-      actions+'</div>';
-  };
-  if(replied.length) html+='<p class="eyebrow" style="margin-top:18px">REPLIED — READY FOR YOU</p>'+replied.map(sentCard).join("");
-  if(awaiting.length) html+='<p class="eyebrow" style="margin-top:18px">STILL WITH FRONT OFFICE</p>'+awaiting.map(sentCard).join("");
+  // section 2 — REPLIED: read table + bulk resend (with a required new comment)
+  if(replied.length) html+='<p class="eyebrow" style="margin-top:18px">REPLIED — READY FOR YOU</p>'+
+    groupItems(replied,'rep').map(g=>accGroup(g,repliedBadges(g),moCompleteBtn(g),repliedBody(g))).join("");
+  // section 3 — STILL WITH FO: read table + bulk nudge
+  if(awaiting.length) html+='<p class="eyebrow" style="margin-top:18px">STILL WITH FRONT OFFICE</p>'+
+    groupItems(awaiting,'awa').map(g=>accGroup(g,awaitBadges(g),'',awaitBody(g))).join("");
   if(rev.length===0 && replied.length===0 && awaiting.length===0) html+='<p class="muted-note">No items match your search.</p>';
   document.getElementById("screen").innerHTML=html;
   document.getElementById("foot").innerHTML='<div class="left">'+I.info+' Middle Office queue — analyse, send to FO, and act on replies in one place.</div><div class="right"><button class="btn btn-orange" onclick="App.back()">Back</button></div>';

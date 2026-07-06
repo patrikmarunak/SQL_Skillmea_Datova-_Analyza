@@ -5,7 +5,30 @@ TZ01 Treasury Daily Transaction Review app (MO + FO roles). Open it in any brows
 no build, no server. It is the **spec source of truth** the Power Apps app is ported
 from (`../CHANGES.md` tracks the Power Apps deltas).
 
-## Latest iteration — proposal chapters 8.3 + 14
+## Iteration — My Queue at scale (accordion by check + bulk apply)
+
+Handles checks with many findings (e.g. Check 1 = dozens of internal deals). Both
+queues (MO My Queue, FO My Queue) group findings **by check into a collapsible
+accordion**; expanding a check shows the **detail-style inline table** (quick-view
+columns + per-row MO/FO reason & comment & flag) instead of one card per transaction.
+
+- **Bulk apply**: select rows (or none = all) and set one reason/comment/flag across
+  the whole selection in one click — so a check with 24 identical findings is one
+  action, not 24. FO has the same bulk-apply for its reason/comment.
+- **Anti-spam preserved**: sending stays **screen-level and batched** (one grouped
+  notification per reviewer) with the confirm popup; MO *Replied* uses a bulk
+  **Resend** (shared new comment, appended) and *Still with FO* a bulk **Nudge**.
+- **Scannable**: groups collapsed by default show a status summary (N findings, X
+  flagged, Y no-reason); only the expanded group renders its table.
+- **Header/column alignment** is structural: header and cells share one `<table>`
+  (thead + tbody), so columns can't drift.
+- Demo data: Check 1 (FX) seeded with 10 transactions to show the accordion + bulk.
+
+Check Detail is unchanged (it already handled many rows). The four screens are
+preserved — only the queue card granularity changed from per-transaction to
+per-check-group.
+
+## Earlier iteration — proposal chapters 8.3 + 14
 
 Aligned to `TZ01_Prototype_Proposal_EN.docx`:
 
