@@ -266,6 +266,125 @@ empty tooltip.
 
 ---
 
+## 8b. Work package H — My Queue at scale (accordion by check + inline table + bulk apply)
+
+A check can carry **dozens** of findings (e.g. FX Check 1 internal deals). One card per
+transaction does not scale. Both **MO My Queue** and **FO My Queue** must group findings
+**by check** into a collapsible accordion; expanding a check shows the **detail-style
+inline table** (the feature-D dynamic columns + per-row MO/FO reason/comment/flag) with a
+**bulk-apply** bar. This mirrors the prototype's v5 queue. Match this UX; keep the screens.
+
+**Chosen structure — flat "accordion" gallery (do this; avoids 3-level nesting).**
+Do **not** nest a groups-gallery around a rows-gallery around the cells-gallery (3 levels of
+galleries with editable controls is slow and the editor fights it). Instead drive **one**
+vertical gallery from a pre-built, interleaved collection; only the horizontal **`galCells`**
+(dynamic columns, reused from Check Detail) stays nested → **max 2 gallery levels**.
+
+Build the row model in a refresh action (call it on queue open, after edits that change
+membership, and after expand/collapse):
+
+```powerfx
+// which check-groups are expanded (persists across refresh)
+// toggle:  If(key in colExpanded, RemoveIf(colExpanded, Value=key), Collect(colExpanded,{Value:key}))
+
+// section predicate examples (bare, over the day-scoped colTransactions):
+//   TO REVIEW  : !FOSent
+//   REPLIED    : FlaggedToFO && FOSent && FOAnswered
+//   AWAITING   : FlaggedToFO && FOSent && !FOAnswered
+// (FOAnswered = FOSent && FORespondedOn >= FOSentOn — the derived flag from WP-B.)
+
+ClearCollect(colQueueRows,
+  Ungroup(
+    ForAll(
+      // one entry per check that has rows in this section, in check order:
+      Sort(
+        Distinct(Filter(colTransactions, <sectionPredicate>), DailyReportCheckID) As GK,
+        Value
+      ) As G,
+      With({ chk: LookUp(colChecks, ID = G.Value),
+             rows: Filter(colTransactions, DailyReportCheckID = G.Value, <sectionPredicate>) },
+        { Block:
+            Table(
+              // header row (always present)
+              { Kind:"header", Sort:0, CheckID: chk.ID, CheckKey: chk.CheckKey,
+                Title: chk.ReportType & " · Check " & chk.CheckNumber, Scope: chk.Scope,
+                Cnt: CountRows(rows),
+                CntFlagged: CountRows(Filter(rows, FlaggedToFO)),
+                CntNoReason: CountRows(Filter(rows, IsBlank(MOReason))) }
+            ) &
+            // detail rows only if the group is expanded
+            If(chk.CheckKey in colExpanded,
+               ForAll(rows As R, { Kind:"row", Sort:1, CheckID: chk.ID, CheckKey: chk.CheckKey, Txn: R })
+            )
+        }
+      ),
+      "Block"     // Ungroup flattens the per-group Block tables into one ordered list
+    )
+  )
+);
+```
+
+`galQueue.Items = colQueueRows`. In the template, switch controls by `ThisItem.Kind`:
+
+```
+galQueue (vertical; TemplateSize dynamic — see below)
+  ├─ conHeader   Visible = ThisItem.Kind = "header"
+  │    icoChevron (rotate when expanded)  OnSelect = toggle colExpanded + rebuild colQueueRows
+  │    lblTitle = ThisItem.Title & "  ·  " & ThisItem.Scope
+  │    lblBadges = ThisItem.Cnt & " findings · " & ThisItem.CntFlagged & " flagged · " & ThisItem.CntNoReason & " no reason"
+  │    — bulk bar —  drpBulkReason (Items = reasons for this check) · txtBulkComment · btnApply · btnFlag/btnUnflag
+  │    btnComplete  (DisplayMode gated to canComplete for ThisItem.CheckID)
+  └─ conRow      Visible = ThisItem.Kind = "row"
+       chkSelect (bound to  ThisItem.Txn.ID in colSelected)
+       galCells  (HORIZONTAL — dynamic quick-view columns from colTxnCells for ThisItem.Txn) 
+       drpMOReason · txtMOComment · chkFlagFO      (MO queue)   — or drpFOReason · txtFOComment (FO queue)
+```
+
+Row height: give `conHeader` a fixed height and `conRow` a fixed height; set
+`galQueue.TemplateSize = If(ThisItem.Kind="header", <headerH>, <rowH>)` so headers and rows
+size correctly in one gallery.
+
+**Selection + bulk apply.**
+```powerfx
+// row checkbox OnCheck/OnUncheck:
+//   Collect(colSelected,{Id:ThisItem.Txn.ID})   /   RemoveIf(colSelected, Id=ThisItem.Txn.ID)
+
+// btnApply.OnSelect (targets = selected rows of THIS group, else ALL rows of the group):
+With({ tg: Filter(colTransactions, DailyReportCheckID = ThisItem.CheckID, <sectionPredicate>,
+                  (CountRows(colSelected)=0 || ID in colSelected.Id)) },
+  ForAll(tg As R,
+    IfError(
+      Patch('TZ01 Daily Transactions', LookUp('TZ01 Daily Transactions', ID=R.ID),
+            { 'MO Reason': drpBulkReason.Selected.Value, 'MO Comment': txtBulkComment.Text });
+      Patch(colTransactions, R, { MOReason: drpBulkReason.Selected.Value, MOComment: txtBulkComment.Text }),
+      Notify("Save failed — " & FirstError.Message, NotificationType.Error)));
+  // auto-flag if the chosen reason has AutoFlagFO (config-driven, WP-B), then:
+  Notify("Applied to " & CountRows(tg) & " findings", NotificationType.Success)
+);
+// rebuild colQueueRows so the header counts refresh.
+```
+
+**Anti-spam stays (unchanged from WP-C):** sending is **screen-level + batched** with the
+confirm popup (one grouped notification per reviewer). MO *Replied* = a bulk **Resend**
+(one shared new comment, appended to each `MO Comment` thread, reopens the rows); *Still
+with FO* = a bulk **Nudge** (bump `FO Sent On`, no new ask). No per-row send.
+
+**Scannability:** groups collapsed by default (empty `colExpanded`); the header badges give
+the at-a-glance state; only expanded groups have `Kind="row"` entries, so the gallery stays
+short and fast even with hundreds of findings. Keep the existing check/reviewer/status
+filters (they filter which rows feed the section predicate).
+
+**Alternative (only if 1:1 prototype fidelity is required):** true nested galleries
+`galGroups → galRows → galCells`. Works, but 3 levels with editable controls is heavier and
+the editor may warn — prefer the flat gallery above.
+
+Acceptance: a check with 20+ findings shows as **one** collapsible group; expanding reveals
+the inline table with aligned header (WP-E); bulk-apply sets reason/comment/flag on the
+selected (or all) rows in one action and Patches SharePoint; batched send + confirm
+unchanged; App Checker clean; smooth at 100+ findings.
+
+---
+
 ## 9. Final acceptance checklist
 
 - [ ] Cold start loads all 9 lists from SharePoint; transactions day-scoped + delegable.
@@ -278,6 +397,8 @@ empty tooltip.
       Item and per Daily Report Check; existing attachments listed with open links.
 - [ ] Every flow call site is a working flag-set + one `TODO(flow)` block (no invented flow).
 - [ ] Every tabular gallery has a header; header columns aligned with row columns (list + all green).
+- [ ] My Queue (MO + FO) grouped by check (accordion); expand shows the inline table + bulk
+      apply; flat single gallery over `colQueueRows` (max 2 gallery levels); scales to 100+ findings.
 - [ ] TZ20 design reused: galleries, containers, filter bar, comboboxes, modern controls.
 - [ ] Tooltip on every interactive control; disabled buttons explain why; AccessibleLabel on icons.
 - [ ] App Checker: 0 errors. App opens without repair.
