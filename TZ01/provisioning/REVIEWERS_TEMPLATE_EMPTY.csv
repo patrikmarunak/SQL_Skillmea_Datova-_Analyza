@@ -1,0 +1,2 @@
+Name,Email,Group,ReportType,CheckNumber,IsDefault,Active,Notes
+"[Enter Full Name]","[name@company.com]","MO or FO or ADMIN","FX or MM or *","0 or 1-6",TRUE or FALSE,TRUE or FALSE,"[Optional description]"

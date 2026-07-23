@@ -1,0 +1,5 @@
+Name,Email,Group,ReportType,CheckNumber,IsDefault,Active,Notes
+"Martina Medvedova","martina.medvedova@mdlz.com","MO","*",0,TRUE,TRUE,"MO Default — всички reports"
+"Ana Kovac","ana.kovac@mdlz.com","FO","FX",6,FALSE,TRUE,"FX Check 6 (Approvals)"
+"Peter Cerny","peter.cerny@mdlz.com","FO","MM",0,TRUE,TRUE,"MM Default — всички MM checks (group lead)"
+"Ivan Horvat","ivan.horvat@mdlz.com","FO","FX",4,FALSE,TRUE,"FX Checks 1,2,4,5 (Reconciliation)"
