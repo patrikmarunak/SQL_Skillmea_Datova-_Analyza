@@ -6,7 +6,7 @@
   test data the canvas app currently holds offline. Re-generate with
   TZ01/provisioning/gen_provision.py after changing the seed.
 
-  Creates the 9 TZ01 lists (proposal ch. 14) with friendly display names +
+  Creates the 10 TZ01 lists (proposal ch. 14 + FO Groups routing) with friendly display names +
   compact internal names, so the app's production ClearCollect/RenameColumns
   (see App.OnStart 'PRODUCTION SWAP' block) binds without changes, and seeds
   every list with the current collection data in dependency order (real
@@ -192,6 +192,16 @@ Ensure-Field $rv 'Check Number' 'CheckNumber' 'Number' $null
 Ensure-Field $rv 'Default' 'IsDefault' 'Boolean' $null
 Ensure-Field $rv 'Active' 'Active' 'Boolean' $null
 
+$fg = Ensure-List 'TZ01 FO Groups'
+Ensure-Field $fg 'GroupID' 'GroupID' 'Text' $null
+Ensure-Field $fg 'GroupName' 'GroupName' 'Text' $null
+Ensure-Field $fg 'Report Type' 'ReportType' 'Choice' @('FX','MM') $null
+Ensure-Field $fg 'Check Numbers' 'CheckNumbers' 'Text' $null
+Ensure-Field $fg 'Routing Policy' 'RoutingPolicy' 'Choice' @('Notify All','Notify Assigned','Single Trader','Escalate On Timeout')
+Ensure-Field $fg 'Routing Rule' 'RoutingRule' 'Note' $null
+Ensure-Field $fg 'Team Size' 'TeamSize' 'Number' $null
+Ensure-Field $fg 'Active' 'Active' 'Boolean' $null
+
 $cc = Ensure-List 'TZ01 Check Columns'
 Ensure-Field $cc 'Report' 'Report' 'Choice' @('FX','MM')
 Ensure-Field $cc 'Check Number' 'CheckNumber' 'Number' $null
@@ -230,6 +240,7 @@ Clear-List $ck
 Clear-List $tx
 Clear-List $rc
 Clear-List $rv
+Clear-List $fg
 Clear-List $cc
 Clear-List $tr
 Clear-List $inf
@@ -1940,6 +1951,53 @@ if (-not $SkipPeople){ try { $rvVals['Reviewer'] = 'admin.tz01@mdlz.com' ; $null
   catch { $rvVals.Remove('Reviewer'); $null = Add-TzItem $rv $rvVals; Write-Warning "reviewer admin.tz01@mdlz.com not resolved as a person — seeded email text only" } }
 else { $null = Add-TzItem $rv $rvVals }
 Write-Information "seeded Reviewers"
+
+# --- TZ01 FO Groups (routing policy matrix) ---
+$null = Add-TzItem $fg @{
+  Title = 'FX Traders'
+  GroupID = 'FX|Traders'
+  GroupName = 'FX Traders'
+  ReportType = 'FX'
+  CheckNumbers = '1,2,4,5,6'
+  RoutingPolicy = 'Notify Assigned'
+  RoutingRule = 'Check 6 → Ana Kovac (FX Approvals); Checks 1,2,4,5 → Ivan Horvat (FX Reconciliation). Notify assigned trader only; escalate to Group Lead if no response in 2h.'
+  TeamSize = 2
+  Active = $true
+}
+$null = Add-TzItem $fg @{
+  Title = 'MM Reconciliation'
+  GroupID = 'MM|Traders'
+  GroupName = 'MM Reconciliation'
+  ReportType = 'MM'
+  CheckNumbers = '1,2,3,4'
+  RoutingPolicy = 'Notify All'
+  RoutingRule = 'All MM checks → Peter Cerny (Group Lead). Notify all MM traders; Peter triages by check and routes to specialist.'
+  TeamSize = 1
+  Active = $true
+}
+$null = Add-TzItem $fg @{
+  Title = 'FX Late Transactions'
+  GroupID = 'FX|Late'
+  GroupName = 'FX Late Transactions'
+  ReportType = 'FX'
+  CheckNumbers = '5'
+  RoutingPolicy = 'Escalate On Timeout'
+  RoutingRule = 'Check 5 (Late confirmations) → Ivan Horvat (assigned); escalate to Ana Kovac (FX Lead) if no acknowledgment in 1h. High SLA: 30min turnaround.'
+  TeamSize = 2
+  Active = $true
+}
+$null = Add-TzItem $fg @{
+  Title = 'MM Credit Line'
+  GroupID = 'MM|CreditLine'
+  GroupName = 'MM Credit Line'
+  ReportType = 'MM'
+  CheckNumbers = '4'
+  RoutingPolicy = 'Single Trader'
+  RoutingRule = 'Check 4 (Credit line) — specialized check → Peter Cerny always. Single point of contact; Peter delegates if needed.'
+  TeamSize = 1
+  Active = $true
+}
+Write-Information "seeded FO Groups"
 
 # --- TZ01 Check Columns (ch. 8.3 quick-view sets) ---
 $null = Add-TzItem $cc @{

@@ -410,5 +410,6 @@ List names, key columns, rename maps and per-action write targets are authoritat
 `TZ01/provisioning/TZ01_provision_full.ps1` (live schema: display + internal names,
 choices). Quick-view columns per check come from **TZ01 Check Columns** (ch. 8.3); reason
 dropdowns + `Auto Flag FO` / `Requires Comment` from **TZ01 Reason Config** (ch. 14.7);
-roles (MO/FO/ADMIN) from **TZ01 Reviewers** `Group`. Do not restate these values in
+roles (MO/FO/ADMIN) from **TZ01 Reviewers** `Group`; FO notification routing policies
+from **TZ01 FO Groups** (see `TZ01/provisioning/FO_ROUTING.md`). Do not restate these values in
 formulas — read them from the lists.

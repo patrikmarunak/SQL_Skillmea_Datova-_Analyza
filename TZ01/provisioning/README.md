@@ -1,6 +1,6 @@
 # TZ01 — SharePoint provisioning
 
-`TZ01_provision_full.ps1` vytvorí všetkých 9 TZ01 listov (proposal kap. 14) a naplní
+`TZ01_provision_full.ps1` vytvorí všetkých 10 TZ01 listov (proposal kap. 14 + FO Groups routing) a naplní
 ich test dátami, ktoré má appka v kolekciách. Generuje sa z `App.OnStart` skriptom
 `gen_provision.py` (spúšťaj z rootu repa: `python3 TZ01/provisioning/gen_provision.py`).
 
@@ -67,13 +67,33 @@ Príklad čistého reseedu:
 ```
 
 ### 5) Overenie
-V site → **Site contents** by malo byť 9 TZ01 listov naplnených dátami:
+V site → **Site contents** by malo byť 10 TZ01 listov naplnených dátami:
 Daily Item (1), Daily Reports (2), Daily Report Checks (10), Daily Transactions (10),
-Reason Config (81), Reviewers (5), Check Columns (65), Top Report (3), Input Files (2).
+Reason Config (81), Reviewers (5), FO Groups (4), Check Columns (65), Top Report (3), Input Files (2).
 ```powershell
 Connect-PnPOnline -Url "https://<tenant>.sharepoint.com/sites/TZ01" -Interactive -ClientId "<guid>"
 Get-PnPList | Where-Object Title -like "TZ01*" | Select-Object Title, ItemCount
 ```
+
+---
+
+## FO Notification Routing
+
+TZ01 v5 introduces **"TZ01 FO Groups"** — a routing matrix that defines which Front Office groups handle which checks and how to notify them (single trader vs group lead vs escalation).
+
+See **`FO_ROUTING.md`** for:
+- FO Groups table structure and seed data
+- 4 routing policies: Notify Assigned, Notify All, Single Trader, Escalate On Timeout
+- Integration with Power Apps popups (WP-C) and Power Automate flows
+- Customization guide (add trader, change policy, etc.)
+
+Quick reference:
+| GroupID | GroupName | ReportType | Checks | Policy |
+|---|---|---|---|---|
+| FX\|Traders | FX Traders | FX | 1,2,4,5,6 | Notify Assigned |
+| MM\|Traders | MM Reconciliation | MM | 1,2,3,4 | Notify All |
+| FX\|Late | FX Late Transactions | FX | 5 | Escalate On Timeout |
+| MM\|CreditLine | MM Credit Line | MM | 4 | Single Trader |
 
 ---
 

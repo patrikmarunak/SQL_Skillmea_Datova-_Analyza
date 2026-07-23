@@ -159,7 +159,7 @@ w("  GENERATED from the app's App.OnStart collections — the seed below is exac
 w("  test data the canvas app currently holds offline. Re-generate with")
 w("  TZ01/provisioning/gen_provision.py after changing the seed.")
 w("")
-w("  Creates the 9 TZ01 lists (proposal ch. 14) with friendly display names +")
+w("  Creates the 10 TZ01 lists (proposal ch. 14 + FO Groups routing) with friendly display names +")
 w("  compact internal names, so the app's production ClearCollect/RenameColumns")
 w("  (see App.OnStart 'PRODUCTION SWAP' block) binds without changes, and seeds")
 w("  every list with the current collection data in dependency order (real")
