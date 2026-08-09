@@ -540,23 +540,17 @@ testData:
     - { ID: 102, FX: 2, TransactionNo: CH061000000070318, TxnTypeName: Forward-Exposure, Amount: -2000000, BusinessPartner: I_US10, Characteristics: Exposure }
     - { ID: 103, FX: 3, TransactionNo: CH061000000088210, ProductType: 60C, BusinessPartner: I_US10, Amount: 3400000, state: notCompared-context }
     - { ID: 104, FX: 4, TransactionNo: CH061000000091120, ProductType: 60C, TransactionRate: 1.1840, MarketSpotRate: 1.1010, MOReason: Hedge rate }
-    - { ID: 105, FX: 4, TransactionNo: CH061000000091150, ProductType: 60A, TransactionRate: 1.0710, MarketSpotRate: 0.9950,
-        MOReason: Other, MOComment: "Rate looks off, please explain.", FlaggedToFO: true, FOReviewer: ivan.horvat@mdlz.com }
+    - { ID: 105, FX: 4, TransactionNo: CH061000000091150, ProductType: 60A, TransactionRate: 1.0710, MarketSpotRate: 0.9950 }
     - { ID: 106, FX: 5, TransactionNo: CH061000000072201, EnteredOn: 2026-02-12, ContractDate: 2026-02-09, Amount: 1500000,
-        MOReason: Processing error, IsLate: true, DaysLate: 3 }
-    - { ID: 107, FX: 6, TransactionNo: CH061000000088210, ProductType: 60C, Characteristics: Exceptional, Amount: 4200000,
-        MOReason: Request FO explanation, MOComment: "Attach Vitus approval please.", FlaggedToFO: true, FOReviewer: ana.kovac@mdlz.com }
-    - { ID: 108, MM: 1, TransactionNo: MM0000000055120, CompanyCode: SA04, Amount: 10000000,
-        MOReason: Request FO explanation, MOComment: "Borrowing leg not posted — please post or confirm.",
-        FlaggedToFO: true, FOSent: true, FOSentOn: 2026-02-15T16:00, FOReviewer: peter.cerny@mdlz.com,
-        FOReason: Technical Issue, FOComment: "Borrowing leg will be posted today, SAP ticket raised.", FORespondedOn: 2026-02-15T16:40 }
+        IsLate: true, DaysLate: 3 }
+    - { ID: 107, FX: 6, TransactionNo: CH061000000088210, ProductType: 60C, Characteristics: Exceptional, Amount: 4200000 }
+    - { ID: 108, MM: 1, TransactionNo: MM0000000055120, CompanyCode: SA04, Amount: 10000000 }
     - { ID: 109, MM: 2, TransactionNo: MM0000000053088, ProductType: 53A, TransactionCurrency: USD, Amount: 25000000,
-        BusinessPartner: DealerBk, MOReason: Request FO explanation, MOComment: "Check US bank report / SAP upload.",
-        FlaggedToFO: true, FOSent: true, FOSentOn: 2026-02-16T09:10, FOReviewer: peter.cerny@mdlz.com }
+        BusinessPartner: DealerBk }
     - { ID: 110, MM: 4, TransactionNo: MM000000000056d44, ProductType: 56D, EnteredOn: 2026-02-14, ContractDate: 2026-02-11,
         Amount: 8000000, MOReason: Credit line, IsLate: true, DaysLate: 3 }
     - { ID: 111, MM: 4, TransactionNo: MM0000000055201, EnteredOn: 2026-02-13, ContractDate: 2026-02-10,
-        Amount: 5000000, MOReason: Processing error, MOComment: "Entered 3 days late.", IsLate: true, DaysLate: 3 }
+        Amount: 5000000, IsLate: true, DaysLate: 3 }
   auditSeed:
     - { at: 2026-02-16T09:14, text: "FO query sent for CH06 DTCC deal by MO" }
     - { at: 2026-02-16T08:31, text: "Automatic validation — FX 6 findings, MM 4 findings" }
